@@ -31,7 +31,7 @@ Create them **once** (on any manager):
 docker network create --driver overlay --attachable proxy_net
 docker network create --driver overlay --attachable backend_net
 docker network create --driver overlay --attachable monitoring_net
-
+```
 
 | Task                         | Command                                                                                                                 |
 | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
