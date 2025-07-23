@@ -38,7 +38,7 @@ docker network create --driver overlay --attachable monitoring_net
 | Show nodes & roles           | `docker node ls`                                                                                                        |
 | Show stacks                  | `docker stack ls`                                                                                                       |
 | Show services in *one* stack | `docker stack services <stack>`                                                                                         |
-| Quick status for all stacks  | <br>`for s in $(docker stack ls -q); do`<br>`  docker stack services $s --format '{{.Name}}\t{{.Replicas}}';`<br>`done` |
+| Quick status for all stacks  | `for s in $(docker stack ls -q); do docker stack services $s --format '{{.Name}}\t{{.Replicas}}';done` |
 | Inspect a failing task       | `docker service ps <service> --no-trunc`                                                                                |
 | Tail logs                    | `docker service logs <service> --raw --tail 100`                                                                        |
 | Force‑restart a service      | `docker service update --force <service>`                                                                               |
