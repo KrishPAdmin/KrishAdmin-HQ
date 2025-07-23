@@ -7,8 +7,6 @@
 | pi‑01           | Manager    | Nginx Proxy Manager |
 | pi‑02           | Manager    | Uptime Kuma |
 | pi‑03           | Manager    | Prometheus, Grafana |
-| pi‑04           | Worker     | Glance Homepage |
-| pi‑05           | Worker     | Home Assistant |
 | **All nodes**   | –          | Portainer Agent (global) |
 
 Services are pinned via node **labels** (e.g. `node.labels.kuma == true`).
