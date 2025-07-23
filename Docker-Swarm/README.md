@@ -17,19 +17,7 @@ Services are pinned via node **labels** (e.g. `node.labels.kuma == true`).
 
 A single NFS export (`/srv/docker‑nfs`) is mounted on **every** node at  
 `/mnt/nfs`.  
-Each app gets its own sub‑directory:
-/mnt/nfs
-├─ kuma/
-├─ grafana/
-├─ prometheus/
-│ ├─ data/
-│ └─ prometheus.yml
-├─ glance/
-│ └─ config/glance.yml
-├─ homeassistant/
-├─ portainer/
-└─ npm/
-
+Each app gets its own sub‑directory
 
 ### Overlay Networks
 
