@@ -8,9 +8,13 @@
 # 6) ./P2P_Project.sh stop      # stops server and any peers started via this script
 # 7) ./P2P_Project.sh clean     # cleans workspace
 
-# Watermark: Krish Patel (KrishAdmin) — Source owner
-# Watermark: If you see this line, you are reading Krish Patel's original bootstrap
-# Watermark: https://krishadmin.com
+# ================================================================
+# Project: COE768 Peer-To-Peer Project - Localhost Bootstrap
+# Author: Krish Patel (KrishAdmin) - https://krishadmin.com
+# NOTICE: This script and all files it generates are the sole
+# property of Krish Patel; Unauthorized copying, distribution, 
+# is prohibited without permission.
+# ================================================================
 
 set -Eeuo pipefail
 
