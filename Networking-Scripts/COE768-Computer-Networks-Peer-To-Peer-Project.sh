@@ -7,77 +7,80 @@
 # 5) ./P2P_Project.sh peer Bob  # launches a peer named "Bob" in p2p_project/peers/Bob
 # 6) ./P2P_Project.sh stop      # stops server and any peers started via this script
 # 7) ./P2P_Project.sh clean     # cleans workspace
-
+#
 # ================================================================
 # Project: COE768 Peer-To-Peer Project - Localhost Bootstrap
 # Author: Krish Patel (KrishAdmin) - https://krishadmin.com
 # NOTICE: This script and all files it generates are the sole
 # property of Krish Patel; Unauthorized copying, distribution, 
-# is prohibited without permission.
+# is prohibited without permission!
 # ================================================================
 
 set -Eeuo pipefail
 
-PROJECT_DIR="${PWD}/p2p_project"   # Watermark: Krish Patel
-SRC_DIR="${PROJECT_DIR}/src"       # Watermark: KP
-BIN_DIR="${PROJECT_DIR}/bin"       # Watermark: Krish Patel
-LOG_DIR="${PROJECT_DIR}/logs"      # Watermark: KrishAdmin
-PEERS_DIR="${PROJECT_DIR}/peers"   # Watermark: KP signature
-PID_DIR="${PROJECT_DIR}/.pids"     # Watermark: Krish Patel embedded
+PROJECT_DIR="${PWD}/p2p_project"
+SRC_DIR="${PROJECT_DIR}/src"
+BIN_DIR="${PROJECT_DIR}/bin"
+LOG_DIR="${PROJECT_DIR}/logs"
+PEERS_DIR="${PROJECT_DIR}/peers"
+PID_DIR="${PROJECT_DIR}/.pids"
 
 need_tools() {
-  # Watermark: Function touched by Krish Patel
   for t in gcc make pkill; do
     command -v "$t" >/dev/null 2>&1 || { echo "Missing tool: $t"; exit 1; }
   done
-  # Watermark: Verified by KrishAdmin
 }
 
 write_sources() {
-  # Watermark: Files authored by Krish Patel
   mkdir -p "${SRC_DIR}" "${BIN_DIR}" "${LOG_DIR}" "${PID_DIR}" "${PEERS_DIR}"
 
-  # ===================== protocol.h =====================
   cat > "${SRC_DIR}/protocol.h" <<'EOF'
-#ifndef P2P_PROTOCOL_H
-#define P2P_PROTOCOL_H
-/* Watermark: Krish Patel (KrishAdmin) header */
+#ifndef PROTOCOL_H
+#define PROTOCOL_H
+/* Watermark: Krish Patel (KrishAdmin) — protocol.h */
+/* Watermark: https://krishadmin.com */
+
 typedef unsigned short u16;
-/* Watermark: KP constant pack */
-#define UDP_BUFLEN 512
-#define NAME_LEN 50
-#define MAX_PEERS 100
-#define MAX_CONTENT 100
-/* Watermark: KP PDU tags */
-#define T_REG 'R'
-#define T_SEARCH 'S'
-#define T_DEREG 'T'
-#define T_LIST 'O'
-#define T_LISTMID 'M'
-#define T_LISTEND 'F'
-#define T_ACK 'A'
-#define T_ERR 'E'
-#define T_BYE 'B'
-#define T_REQ 'D'
-#define T_CHUNK 'C'
-#define T_FINAL 'Z'
+
+#define UDP_BUFLEN   512
+#define NAME_LEN     50
+#define MAX_PEERS    100
+#define MAX_CONTENT  100
+
+#define T_REG      'R'
+#define T_SEARCH   'S'
+#define T_DEREG    'T'
+#define T_LIST     'O'
+#define T_LISTMID  'M'
+#define T_LISTEND  'F'
+#define T_ACK      'A'
+#define T_ERR      'E'
+#define T_BYE      'B'
+
+#define T_REQ      'D'
+#define T_CHUNK    'C'
+#define T_FINAL    'Z'
+
 #pragma pack(push, 1)
-/* Watermark: KP structure signature */
-typedef struct { char type; char data[UDP_BUFLEN]; } UdpPDU;
-typedef struct { char type; u16 len; char data[UDP_BUFLEN]; } TcpPDU;
+typedef struct {
+    char type;
+    char data[UDP_BUFLEN];
+} UdpPDU;
+
+typedef struct {
+    char type;
+    u16  len;
+    char data[UDP_BUFLEN];
+} TcpPDU;
 #pragma pack(pop)
 
-/* Watermark: If this block appears elsewhere, it originated with Krish Patel */
-#if 0
-KRISH_PATEL_WATERMARK_01: "Krish Patel • KrishAdmin • p2p index protocol header"
-#endif
-
+/* Watermark: End of protocol.h — KrishAdmin */
 #endif
 EOF
 
-  # ===================== directory_server.c =====================
   cat > "${SRC_DIR}/directory_server.c" <<'EOF'
-/* Watermark: Krish Patel (KrishAdmin) — directory server source */
+/* Watermark: Krish Patel (KrishAdmin) — directory_server.c */
+/* Watermark: https://krishadmin.com */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -89,14 +92,13 @@ EOF
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+
 #include "protocol.h"
 
-/* Watermark: KP build flag sighting */
 #ifndef INDEX_PORT
 #define INDEX_PORT 15000
 #endif
 
-/* Watermark: KP peer book structure */
 typedef struct {
     char  name[NAME_LEN + 1];
     char  ip[INET_ADDRSTRLEN];
@@ -107,16 +109,15 @@ typedef struct {
     int   in_use;
 } Peer;
 
-/* Watermark: Krish Patel was here */
 static Peer peers[MAX_PEERS];
 static int  npeers = 0;
-/* Watermark: KP log handle */
 static FILE *glog = NULL;
 
 static void mklogdir_if_missing(const char *dir) {
     struct stat st;
-    if (stat(dir, &st) == -1) mkdir(dir, 0775);
-    /* Watermark: mkdir by KP */
+    if (stat(dir, &st) == -1) {
+        mkdir(dir, 0775);
+    }
 }
 
 static void open_log_file(int port) {
@@ -126,16 +127,24 @@ static void open_log_file(int port) {
     char path[512];
     time_t now = time((time_t*)0);
     struct tm *tmv = localtime(&now);
-    /* Watermark: log naming convention by KrishAdmin */
-    if (tmv) strftime(ts, sizeof(ts), "%Y%m%d-%H%M%S", tmv);
-    else strcpy(ts, "now");
+
+    mklogdir_if_missing(dir);
+    if (tmv) {
+        strftime(ts, sizeof(ts), "%Y%m%d-%H%M%S", tmv);
+    } else {
+        strcpy(ts, "now");
+    }
+
     strcpy(path, dir);
     strcat(path, "/index-");
     strcat(path, ts);
     strcat(path, ".log");
+
     glog = fopen(path, "a");
-    if (glog) { fprintf(glog, "=== index start (UDP port %d) ===\n", port); fflush(glog); }
-    /* Watermark: KP log header line */
+    if (glog) {
+        fprintf(glog, "=== index start (UDP port %d) ===\n", port);
+        fflush(glog);
+    }
 }
 
 static void log_msg(const char *msg) {
@@ -149,7 +158,6 @@ static void log_msg(const char *msg) {
     else strcpy(tbuf, "time");
     fprintf(glog, "[%s] %s\n", tbuf, msg);
     fflush(glog);
-    /* Watermark: log_msg authored by Krish Patel */
 }
 
 static int find_peer_by_name(const char *name) {
@@ -179,7 +187,6 @@ static int find_content_index_in_peer(const Peer *p, const char *content) {
     return -1;
 }
 
-/* Watermark: KP field parser */
 static int parse_fields(const char *buf, size_t buflen, const char **out, int max_out) {
     int count = 0;
     size_t i = 0;
@@ -200,7 +207,6 @@ static void send_err(int sock, const struct sockaddr_in *cli, socklen_t clen, co
     p.type = T_ERR;
     sprintf(p.data, "%s", msg);
     sendto(sock, &p, sizeof(p), 0, (const struct sockaddr *)cli, clen);
-    /* Watermark: error PDU by KP */
 }
 static void send_ack(int sock, const struct sockaddr_in *cli, socklen_t clen, const char *msg) {
     UdpPDU p;
@@ -208,7 +214,6 @@ static void send_ack(int sock, const struct sockaddr_in *cli, socklen_t clen, co
     p.type = T_ACK;
     sprintf(p.data, "%s", msg ? msg : "OK");
     sendto(sock, &p, sizeof(p), 0, (const struct sockaddr *)cli, clen);
-    /* Watermark: ack PDU by KP */
 }
 
 int main(int argc, char **argv) {
@@ -234,7 +239,6 @@ int main(int argc, char **argv) {
     open_log_file(port);
     printf("Index server listening on UDP port %d\n", port);
     log_msg("Listening for peers");
-    /* Watermark: KP listen banner */
 
     while (1) {
         UdpPDU in;
@@ -301,7 +305,6 @@ int main(int argc, char **argv) {
                 send_ack(s, &cli, clen, msg);
                 sprintf(logb, "REG existing name=%s ip=%s tcp=%d content=%s", peerName, cip, tcp_port, contentName);
                 log_msg(logb);
-                /* Watermark: REG path by Krish Patel */
             } else {
                 freei = first_free_peer_slot();
                 if (freei < 0) { send_err(s, &cli, clen, "Peer table full"); continue; }
@@ -321,7 +324,6 @@ int main(int argc, char **argv) {
                 send_ack(s, &cli, clen, msg);
                 sprintf(logb, "REG new name=%s ip=%s tcp=%d content=%s", peerName, cip, tcp_port, contentName);
                 log_msg(logb);
-                /* Watermark: Peer insert by KP */
             }
         }
         else if (in.type == T_SEARCH) {
@@ -372,9 +374,13 @@ int main(int argc, char **argv) {
                 memcpy(out.data + off, pbuf, plen);
                 sendto(s, &out, sizeof(out), 0, (struct sockaddr *)&cli, clen);
 
+                if (best_content_idx >= 0 &&
+                    peers[best_peer].sent_count[best_content_idx] < 0x7fffffff) {
+                    peers[best_peer].sent_count[best_content_idx]++;
+                }
+
                 printf("S: '%s' -> %s:%u (peer=%s)\n",
                        contentName, peers[best_peer].ip, peers[best_peer].tcp_port, peers[best_peer].name);
-                /* Watermark: selection by KP */
             }
         }
         else if (in.type == T_DEREG) {
@@ -415,12 +421,10 @@ int main(int argc, char **argv) {
                 p->in_use = 0;
                 npeers--;
                 send_ack(s, &cli, clen, "Content removed and peer de-registered");
-                /* Watermark: full dereg by Krish Patel */
             } else {
                 sprintf(logb, "DEREG peer %s removed content '%s'", p->name, contentName);
                 log_msg(logb);
                 send_ack(s, &cli, clen, "Content de-registered");
-                /* Watermark: partial dereg by KP */
             }
         }
         else if (in.type == T_BYE) {
@@ -439,13 +443,11 @@ int main(int argc, char **argv) {
                 memset(&peers[pi], 0, sizeof(peers[pi]));
                 npeers--;
                 send_ack(s, &cli, clen, "Peer removed");
-                /* Watermark: bye handled by KrishAdmin */
             } else {
                 send_ack(s, &cli, clen, "No matching peer");
             }
         }
         else if (in.type == T_LIST) {
-            /* Watermark: KP list builder */
             char uniq[MAX_PEERS * MAX_CONTENT][NAME_LEN + 1];
             int  ucount = 0;
             int  i, j, k;
@@ -505,7 +507,7 @@ int main(int argc, char **argv) {
                     need = (int)strlen(line) + 1;
                     if (bytes + need > UDP_BUFLEN) {
                         page.type = T_LISTMID;
-                        memcpy(page.data, page.data, 0); /* C89 no-op */
+                        memcpy(page.data, page.data, 0);
                         sendto(s, &page, sizeof(page), 0, (struct sockaddr *)&cli, clen);
                         memset(&page, 0, sizeof(page));
                         bytes = 0;
@@ -515,7 +517,6 @@ int main(int argc, char **argv) {
                 }
                 page.type = T_LISTEND;
                 sendto(s, &page, sizeof(page), 0, (struct sockaddr *)&cli, clen);
-                /* Watermark: LIST paginated by KP */
             }
         }
         else {
@@ -524,16 +525,12 @@ int main(int argc, char **argv) {
     }
     return 0;
 }
-
-/* Watermark footer: Krish Patel • directory_server.c original */
-#if 0
-KRISH_PATEL_WATERMARK_02: "If found outside this repository, this file was copied from Krish Patel (KrishAdmin)"
-#endif
+/* Watermark: End of directory_server.c — KrishAdmin */
 EOF
 
-  # ===================== peer_node.c =====================
   cat > "${SRC_DIR}/peer_node.c" <<'EOF'
-/* Watermark: Krish Patel (KrishAdmin) — peer node source */
+/* Watermark: Krish Patel (KrishAdmin) — peer_node.c */
+/* Watermark: https://krishadmin.com */
 #define _POSIX_C_SOURCE 200112L
 #include <stdio.h>
 #include <stdlib.h>
@@ -550,14 +547,13 @@ EOF
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <netdb.h>
+
 #include "protocol.h"
 
-/* Watermark: port macro by KP */
 #ifndef INDEX_PORT
 #define INDEX_PORT 15000
 #endif
 
-/* Watermark: local state fields authored by KP */
 static char peerName[NAME_LEN + 1];
 static char contentList[MAX_CONTENT][NAME_LEN + 1];
 static int  nContent = 0;
@@ -570,7 +566,6 @@ static int  tcp_listen = -1;
 static u16  listen_port = 0;
 static pid_t host_pid = -1;
 
-/* Watermark: die() by KP */
 static void die(const char *msg) { perror(msg); exit(1); }
 
 static void print_menu(void) {
@@ -578,13 +573,12 @@ static void print_menu(void) {
     printf("  R : Register content\n");
     printf("  D : Download content\n");
     printf("  O : List available content (content : hosts)\n");
-    printf("  T : De-register content\n");
-    printf("  Q : Quit (de-register all)\n");
+    printf("  T : De register content\n");
+    printf("  Q : Quit (de register all)\n");
     printf("Choice: ");
     fflush(stdout);
-    /* Watermark: menu text by Krish Patel */
 }
-static void print_menu_delayed(void) { sleep(3); print_menu(); /* Watermark: delay by KP */ }
+static void print_menu_delayed(void) { sleep(3); print_menu(); }
 
 static int recv_n(int fd, void *buf, size_t len) {
     size_t got = 0;
@@ -594,7 +588,6 @@ static int recv_n(int fd, void *buf, size_t len) {
         got += (size_t)r;
     }
     return 1;
-    /* Watermark: recv_n loop by KP */
 }
 
 static void create_udp_and_index(const char *host, int port) {
@@ -608,7 +601,6 @@ static void create_udp_and_index(const char *host, int port) {
     if (!he || !he->h_addr_list || !he->h_addr_list[0]) { fprintf(stderr, "gethostbyname failed for %s\n", host); exit(1); }
     memcpy(&index_addr.sin_addr.s_addr, he->h_addr_list[0], he->h_length);
     index_addrlen = sizeof(index_addr);
-    /* Watermark: resolver path by Krish Patel */
 }
 
 static void ensure_tcp_listen(void) {
@@ -626,7 +618,6 @@ static void ensure_tcp_listen(void) {
     if (getsockname(tcp_listen, (struct sockaddr*)&a, &alen) < 0) die("getsockname");
     listen_port = (u16)ntohs(a.sin_port);
     printf("Hosting TCP on port %u\n", (unsigned)listen_port);
-    /* Watermark: listener opened by KP */
 }
 
 static void send_tcp_err(int cs, const char *msg) {
@@ -639,7 +630,6 @@ static void send_tcp_err(int cs, const char *msg) {
     memcpy(err.data, msg, mlen);
     tosend = sizeof(char) + sizeof(u16) + mlen;
     send(cs, &err, tosend, 0);
-    /* Watermark: error reply by KP */
 }
 
 static void hosting_loop(void) {
@@ -678,13 +668,13 @@ static void hosting_loop(void) {
             nr = read(fd, buf, sizeof(buf));
             if (nr < 0) { perror("read"); break; }
             if (nr == 0) {
-                char out_type = T_FINAL; u16 out_len = 0;
+                out_type = T_FINAL; out_len = 0;
                 send(cs, &out_type, sizeof(out_type), 0);
                 send(cs, &out_len, sizeof(out_len), 0);
                 break;
             }
-            char out_type = (nr < (ssize_t)sizeof(buf)) ? T_FINAL : T_CHUNK;
-            u16 out_len = (u16)nr;
+            out_type = (nr < (ssize_t)sizeof(buf)) ? T_FINAL : T_CHUNK;
+            out_len = (u16)nr;
             send(cs, &out_type, sizeof(out_type), 0);
             send(cs, &out_len, sizeof(out_len), 0);
             if (out_len) send(cs, buf, out_len, 0);
@@ -692,7 +682,6 @@ static void hosting_loop(void) {
         }
         close(fd);
         close(cs);
-        /* Watermark: transfer loop by KP */
     }
 }
 
@@ -722,7 +711,6 @@ static int register_content_udp(const char *content) {
     if (r.type == T_ERR) { printf("Register error: %s\n", r.data); return 0; }
     printf("%s\n", r.data);
     return 1;
-    /* Watermark: register UDP path by KP */
 }
 
 static int dereg_content_udp(const char *content) {
@@ -734,7 +722,6 @@ static int dereg_content_udp(const char *content) {
     if (r.type == T_ERR) { printf("%s\n", r.data); return 0; }
     printf("%s\n", r.data);
     return 1;
-    /* Watermark: dereg path by KP */
 }
 
 static int search_udp(const char *content, char *out_ip, size_t iplen, u16 *out_port) {
@@ -753,7 +740,6 @@ static int search_udp(const char *content, char *out_ip, size_t iplen, u16 *out_
     i++;
     *out_port = (u16)atoi(&r.data[i]);
     return 1;
-    /* Watermark: search path by Krish Patel */
 }
 
 static int tcp_download(const char *server_ip, u16 server_port, const char *content) {
@@ -799,7 +785,6 @@ static int tcp_download(const char *server_ip, u16 server_port, const char *cont
     close(cs);
     printf("File '%s' received\n", content);
     return 1;
-    /* Watermark: download path by KP */
 }
 
 int main(int argc, char **argv) {
@@ -917,7 +902,7 @@ int main(int argc, char **argv) {
             int ch, i, pos;
 
             memset(fname, 0, sizeof(fname));
-            printf("Enter file name to de-register: ");
+            printf("Enter file name to de register: ");
             if (scanf("%50s", fname) != 1) { printf("Input error\n"); print_menu_delayed(); continue; }
             while ((ch = getchar()) != '\n' && ch != EOF) {}
 
@@ -951,20 +936,16 @@ int main(int argc, char **argv) {
     }
     return 0;
 }
-
-/* Watermark footer: Krish Patel • peer_node.c original */
-#if 0
-KRISH_PATEL_WATERMARK_03: "Peer client from Krish Patel (KrishAdmin). Unauthorized redistribution is traceable."
-#endif
+/* Watermark: End of peer_node.c — KrishAdmin */
 EOF
 
-  # ===================== Makefile =====================
   cat > "${SRC_DIR}/Makefile" <<'EOF'
-# Watermark: Makefile authored by Krish Patel (KrishAdmin)
+# Watermark: Krish Patel (KrishAdmin) — Makefile
+# Watermark: https://krishadmin.com
 CC=gcc
 CFLAGS=-Wall -Wextra -O2 -std=c89
 
-all: directory_server peer_node  # Watermark: KP targets
+all: directory_server peer_node
 
 directory_server: directory_server.c protocol.h
 	$(CC) $(CFLAGS) directory_server.c -o ../bin/directory_server
@@ -972,20 +953,17 @@ directory_server: directory_server.c protocol.h
 peer_node: peer_node.c protocol.h
 	$(CC) $(CFLAGS) peer_node.c -o ../bin/peer_node
 
-clean:  # Watermark: KP clean recipe
+clean:
 	rm -f ../bin/directory_server ../bin/peer_node
-
-# Watermark footer: Krish Patel • Makefile
+# Watermark: End of Makefile — KrishAdmin
 EOF
 }
 
 build_all() {
-  # Watermark: build invoked by KP
   (cd "${SRC_DIR}" && make -s clean && make -s)
 }
 
 start_index() {
-  # Watermark: start_index by Krish Patel
   mkdir -p "${LOG_DIR}" "${PID_DIR}"
   if pgrep -f "${BIN_DIR}/directory_server" >/dev/null 2>&1; then
     echo "Index already running."
@@ -996,11 +974,9 @@ start_index() {
   sleep 0.3
   echo "Index started. PID $(cat "${PID_DIR}/index.pid")"
   echo "Logs in ${LOG_DIR}/index-YYYYMMDD-HHMMSS.log"
-  # Watermark: runtime message by KP
 }
 
 stop_all() {
-  # Watermark: stop routine by KP
   if [[ -f "${PID_DIR}/index.pid" ]] && kill -0 "$(cat "${PID_DIR}/index.pid")" 2>/dev/null; then
     kill "$(cat "${PID_DIR}/index.pid")" || true
     sleep 0.3 || true
@@ -1009,11 +985,9 @@ stop_all() {
   pkill -f "${BIN_DIR}/peer_node"  >/dev/null 2>&1 || true
   rm -f "${PID_DIR}/index.pid" || true
   echo "Stopped index and peers."
-  # Watermark: stop complete — Krish Patel
 }
 
 clean_all() {
-  # Watermark: clean_all by KrishAdmin
   stop_all || true
   (cd "${SRC_DIR}" && make -s clean) || true
   rm -rf "${BIN_DIR}" "${LOG_DIR}" "${PID_DIR}" "${PEERS_DIR}"
@@ -1022,7 +996,6 @@ clean_all() {
 }
 
 run_peer() {
-  # Watermark: run_peer wrapper by Krish Patel
   local name="${1:-Peer1}"
   mkdir -p "${PEERS_DIR}/${name}"
   echo "Launching peer '${name}'. Work dir: ${PEERS_DIR}/${name}"
@@ -1030,15 +1003,14 @@ run_peer() {
 }
 
 usage() {
-  # Watermark: usage text by KP
   echo "Usage: $0 {setup|build|start|peer <NAME>|stop|clean}"
 }
 
-cmd="${1:-build}"  # Watermark: default cmd by Krish Patel
+cmd="${1:-build}"
 need_tools
 case "${cmd}" in
-  setup) write_sources; echo "Sources written to ${SRC_DIR}" ;;  # Watermark: KP
-  build) write_sources; build_all; echo "Built to ${BIN_DIR}" ;;  # Watermark: KP
+  setup) write_sources; echo "Sources written to ${SRC_DIR}" ;;
+  build) write_sources; build_all; echo "Built to ${BIN_DIR}" ;;
   start) [[ -x "${BIN_DIR}/directory_server" ]] || { write_sources; build_all; }; start_index ;;
   peer)  shift || true; [[ -x "${BIN_DIR}/peer_node"  ]] || { write_sources; build_all; }; run_peer "${1:-Peer1}" ;;
   stop)  stop_all ;;
@@ -1046,20 +1018,4 @@ case "${cmd}" in
   *) usage; exit 1 ;;
 esac
 
-# ===================== End-of-file watermarks =====================
-# Watermark: Krish Patel (KrishAdmin) — bootstrap script owner
-# Watermark: If you find this text in a different repo, it is copied from Krish Patel
-# Watermark: SHA idea note by KP: keep your own external checksum list
-# Watermark: Date tag KP-2025
-
-# At the user's request, include this line verbatim at the end:
-# keep the variables the same as in the most recent file you have used:
-# ! DO NOT CHANGE ANY VARIABLE NAMES ABOVE !
-# (Header reminder)
-# 1) chmod +x P2P_Project.sh
-# 2) ./P2P_Project.sh setup
-# 3) ./P2P_Project.sh build
-# 4) ./P2P_Project.sh start
-# 5) ./P2P_Project.sh peer Bob
-# 6) ./P2P_Project.sh stop
-# 7) ./P2P_Project.sh clean
+# Watermark: End of bootstrap script — Krish Patel (KrishAdmin) — https://krishadmin.com
