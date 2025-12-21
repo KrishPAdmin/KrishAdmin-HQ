@@ -1,8 +1,8 @@
 # KrishAdmin-HQ
 
-A practical home-lab repo: scripts + service configs I use in my KrishAdmin-HQ environment. :contentReference[oaicite:1]{index=1}
+A practical home-lab repo: scripts + service configs I use in my KrishAdmin-HQ environment.
 
-- Lab overview and context: https://server.krishadmin.com :contentReference[oaicite:2]{index=2}
+- Lab overview and context: https://server.krishadmin.com
 
 ## What this repo is
 
@@ -15,7 +15,7 @@ If you are cloning this repo to reuse ideas, treat it as reference infrastructur
 
 ## Repo layout
 
-Top-level directories currently in this repo: :contentReference[oaicite:3]{index=3}
+Top-level directories currently in this repo:
 
 ```text
 .
