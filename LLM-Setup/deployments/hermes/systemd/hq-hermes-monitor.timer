@@ -1,0 +1,9 @@
+[Unit]
+Description=Record HQ observation changes every five minutes
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=5min
+AccuracySec=1s
+Persistent=true
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,8 @@
+[Unit]
+Description=Nightly local backups at 03:30 America/New_York
+[Timer]
+OnCalendar=*-*-* 03:30:00 America/New_York
+AccuracySec=1min
+Persistent=false
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,19 @@
+[Unit]
+Description=ZeroTier relay to existing authenticated AI API
+Wants=network-online.target zerotier-one.service
+After=network-online.target zerotier-one.service nginx.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+DynamicUser=yes
+ExecStart=/usr/bin/socat TCP4-LISTEN:11434,bind=198.51.100.202,reuseaddr,fork,range=198.51.100.21/32 TCP4:203.0.113.1:11434
+Restart=always
+RestartSec=5
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,12 @@
+[Unit]
+Description=Export sanitized local backup metadata
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/local/libexec/hq-backup-observer.py
+User=root
+UMask=0077
+NoNewPrivileges=true
+PrivateNetwork=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/var/lib/hq-observations

@@ -1,0 +1,37 @@
+{
+  "providers": {
+    "hq-nvidia-gpu": {
+      "baseUrl": "https://192.0.2.181:11434/v1",
+      "api": "openai-completions",
+      "apiKey": "REPLACE_WITH_LOCAL_API_KEY",
+      "authHeader": true,
+      "compat": {
+        "supportsStore": false,
+        "supportsDeveloperRole": false,
+        "supportsReasoningEffort": true,
+        "supportsStrictMode": false,
+        "maxTokensField": "max_tokens"
+      },
+      "models": [
+        {
+          "id": "paperclip-qwen3.5:9b",
+          "reasoning": true,
+          "input": [
+            "text"
+          ],
+          "contextWindow": 16384,
+          "maxTokens": 2048,
+          "cost": {
+            "input": 0,
+            "output": 0,
+            "cacheRead": 0,
+            "cacheWrite": 0
+          },
+          "thinkingLevelMap": {
+            "off": "none"
+          }
+        }
+      ]
+    }
+  }
+}

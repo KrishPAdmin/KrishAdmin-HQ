@@ -1,0 +1,19 @@
+[Unit]
+Description=Fixed HQ and SSH observer diagnostics over a private Unix socket
+After=network-online.target
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /home/operator/krishadmin-hq/deployments/hermes/diagnostics_service.py
+Restart=on-failure
+RestartSec=3
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/operator/krishadmin-hq/deployments/hermes/run/diagnostics /home/operator/krishadmin-hq/deployments/hermes/state/diagnostics
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+MemoryMax=256M
+TasksMax=32
+[Install]
+WantedBy=default.target

@@ -1,0 +1,155 @@
+/* KrishAdmin-HQ theme for Open WebUI 0.11.x.
+   Inspired by KrishPAdmin/Krish-Portfolio-Website. Native branding and controls remain intact. */
+@import url('/hq-theme/fonts.css');
+:root {
+  --hq-accent: #20fd14;
+  --hq-accent-ink: #071006;
+  --hq-border: rgba(124, 166, 135, .18);
+  --hq-glass: rgba(13, 20, 16, .88);
+  --color-gray-50: #f4f8f4 !important;
+  --color-gray-100: #e8f0e9 !important;
+  --color-gray-200: #d1ded3 !important;
+  --color-gray-300: #b5c6b9 !important;
+  --color-gray-400: #95a89a !important;
+  --color-gray-500: #748b7b !important;
+  --color-gray-600: #526959 !important;
+  --color-gray-700: #344a3c !important;
+  --color-gray-800: #1c2a21 !important;
+  --color-gray-850: #142019 !important;
+  --color-gray-900: #0d1510 !important;
+  --color-gray-950: #070b08 !important;
+}
+body, button, input, textarea, select {
+  font-family: 'Source Sans 3', 'Inter', system-ui, sans-serif !important;
+}
+code, pre, kbd, .font-mono { font-family: 'JetBrainsMono', ui-monospace, monospace !important; }
+::selection { background: rgba(32,253,20,.23); color: inherit; }
+a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--hq-accent) !important;
+  outline-offset: 3px;
+}
+.dark body { background: #070b08 !important; }
+.dark #sidebar {
+  background: linear-gradient(175deg, rgba(16,26,20,.97), rgba(7,11,8,.98)) !important;
+  border-right: 1px solid var(--hq-border);
+}
+#sidebar { backdrop-filter: blur(14px); }
+#sidebar-new-chat-button {
+  border: 1px solid rgba(32,253,20,.28) !important;
+  background: rgba(32,253,20,.08) !important;
+  border-radius: 12px !important;
+  min-height: 40px;
+}
+.dark #sidebar-new-chat-button { color: #b9ffb4 !important; }
+#sidebar-new-chat-button:hover { background: rgba(32,253,20,.15) !important; }
+#sidebar a, #sidebar button { transition: background-color .16s ease, border-color .16s ease; }
+.dark #sidebar [aria-current='page'] { background: rgba(32,253,20,.10); }
+.dark #message-input-container {
+  background: linear-gradient(145deg, rgba(25,38,29,.94), rgba(12,20,15,.96)) !important;
+  border: 1px solid rgba(136,184,146,.24) !important;
+  box-shadow: 0 16px 54px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.025) !important;
+  border-radius: 24px !important;
+}
+.dark #message-input-container:focus-within {
+  border-color: rgba(32,253,20,.55) !important;
+  box-shadow: 0 0 0 3px rgba(32,253,20,.055), 0 16px 54px rgba(0,0,0,.25) !important;
+}
+#chat-input { line-height: 1.65 !important; }
+#send-message-button:not(:disabled) {
+  background: var(--hq-accent) !important;
+  color: var(--hq-accent-ink) !important;
+  box-shadow: 0 4px 20px rgba(32,253,20,.12);
+}
+.dark [role='dialog'], .dark [role='menu'], .dark [role='listbox'] {
+  border-color: var(--hq-border) !important;
+  box-shadow: 0 22px 80px rgba(0,0,0,.4);
+}
+.dark .prose { --tw-prose-links: #98f28f; --tw-prose-body: #dce6df; }
+.prose { line-height: 1.75; }
+.dark .prose pre { background: #080e0a !important; border: 1px solid #26372b; border-radius: 14px; }
+.dark .prose table { border-color: #2c3c30; }
+/* Login gets a distinct portfolio-inspired composition, independent of saved chat theme. */
+#auth-page { color: #edf5ee !important; background: #050806 !important; }
+#auth-page > div:first-child {
+  background:
+    radial-gradient(ellipse at 17% 29%, rgba(32,253,20,.105), transparent 48%),
+    linear-gradient(120deg, rgba(4,9,5,.93), rgba(13,19,15,.92)),
+    url('/hq-theme/common-bg.svg') center/cover !important;
+}
+#auth-page::after {
+  content: ''; position: fixed; right: -2vw; bottom: -9vh; width: 40vw; height: 45vh;
+  background: url('/hq-theme/LimeK.png') center/contain no-repeat;
+  opacity: .045; pointer-events: none;
+}
+#auth-container { color: #edf5ee !important; }
+#auth-container::before {
+  content: 'LOCAL\A INTELLIGENCE.';
+  white-space: pre;
+  position: absolute; left: 8vw; top: calc(50% - 132px);
+  font-size: clamp(42px, 5.5vw, 86px); font-weight: 800;
+  line-height: 1.04; letter-spacing: -.04em; color: #f2f7f2;
+  text-shadow: 0 12px 44px rgba(0,0,0,.4); pointer-events: none;
+}
+#auth-container::after {
+  content: 'YOUR WORKSPACE. YOUR HARDWARE.';
+  position: absolute; left: 8vw; top: calc(50% + 85px);
+  color: #20fd14; font-size: 12px; font-weight: 700; letter-spacing: .19em;
+  pointer-events: none;
+}
+#auth-container > div { padding-right: 8vw !important; padding-left: 8vw !important; }
+#auth-container > div > .my-auto {
+  align-self: flex-end; width: min(460px, 41vw);
+}
+#auth-login-card {
+  max-width: none !important; padding: 38px !important;
+  background: var(--hq-glass); border: 1px solid rgba(148,182,155,.22);
+  border-radius: 24px; backdrop-filter: blur(18px);
+  box-shadow: 0 28px 90px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+}
+#auth-login-card::before {
+  content: 'KRISHADMIN-HQ / LOCAL AI'; display: block; margin: 0 0 26px;
+  color: #20fd14; font-size: 11px; font-weight: 800; letter-spacing: .17em; text-align: left;
+}
+#auth-login-card form > .mb-1 { margin-bottom: 16px !important; text-align: left; }
+#auth-login-card form > .mb-1 > div:first-child { font-size: 25px !important; font-weight: 600 !important; letter-spacing: -.025em; }
+#auth-login-card label { color: #acbfb0 !important; font-size: 12px !important; font-weight: 600 !important; letter-spacing: .025em; }
+#auth-login-card input {
+  color: #eff7f0 !important; background: rgba(3,9,5,.5) !important;
+  border: 1px solid #2b3c30 !important; border-radius: 10px !important;
+  min-height: 46px; padding: 10px 13px !important;
+}
+#auth-login-card input::placeholder { color: #819687 !important; }
+#auth-login-card input:focus { border-color: #20fd14 !important; }
+#auth-login-card input[type='password'] { padding-right: 42px !important; }
+#auth-login-card button[type='submit'] {
+  background: #20fd14 !important; color: #061005 !important; border-radius: 10px !important;
+  min-height: 46px; font-weight: 700 !important; font-size: 15px !important;
+  box-shadow: 0 4px 24px rgba(32,253,20,.10);
+}
+#auth-login-card button[type='submit']:hover { background: #65ff5c !important; }
+#auth-login-card button:not([type='submit']) { color: #b7caba !important; }
+/* Keep all original Open WebUI names and logos visible. */
+#auth-page a, #auth-page #logo { visibility: visible; }
+html.light { --hq-accent: #16800d; --hq-accent-ink: #fff; }
+html.light #message-input-container { border: 1px solid #c3d7c5 !important; box-shadow: 0 8px 30px rgba(20,60,28,.07); }
+@media (max-width: 1050px) {
+  #auth-container::before { left: 5vw; font-size: 5.3vw; }
+  #auth-container::after { left: 5vw; font-size: 10px; }
+  #auth-container > div { padding-right: 5vw !important; padding-left: 5vw !important; }
+  #auth-container > div > .my-auto { width: min(440px,45vw); }
+}
+@media (max-width: 760px) {
+  #auth-container::before, #auth-container::after { display: none; }
+  #auth-container > div > .my-auto { width: 100%; max-width: 440px; align-self: center; }
+  #auth-container > div { padding: 80px 20px !important; }
+  #auth-login-card { padding: 28px 24px !important; border-radius: 20px; }
+  #auth-page::after { width: 75vw; opacity: .04; }
+}
+@media (max-height: 620px) {
+  #auth-container { position: relative !important; }
+  #auth-container > div { padding-top: 70px !important; padding-bottom: 65px !important; }
+  #auth-page { overflow-y: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #sidebar *, #message-input-container, #auth-login-card * { transition: none !important; }
+}

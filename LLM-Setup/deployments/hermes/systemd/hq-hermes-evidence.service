@@ -1,0 +1,10 @@
+[Unit]
+Description=Refresh bounded HQ observations for Hermes
+Requires=paperclip-observations.service
+After=paperclip-observations.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /home/operator/krishadmin-hq/deployments/hermes/refresh_evidence.py
+UMask=0077
+NoNewPrivileges=true

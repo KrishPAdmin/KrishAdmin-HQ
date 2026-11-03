@@ -1,0 +1,9 @@
+[Unit]
+Description=Check for Paperclip task results every 30 seconds
+[Timer]
+OnBootSec=30
+OnUnitInactiveSec=30
+AccuracySec=2
+Persistent=true
+[Install]
+WantedBy=timers.target

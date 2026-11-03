@@ -1,0 +1,19 @@
+[Unit]
+Description=Owner-only GitHub repository operations for Hermes
+After=network-online.target
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /home/operator/krishadmin-hq/deployments/hermes/github_service.py
+Restart=on-failure
+RestartSec=3
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/operator/krishadmin-hq/deployments/hermes/run/github /home/operator/krishadmin-hq/deployments/hermes/state/github
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+MemoryMax=256M
+TasksMax=32
+[Install]
+WantedBy=default.target

@@ -1,0 +1,246 @@
+{
+  "id": "homelabHealth001",
+  "name": "KrishAdmin-HQ | Service Health",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "2882381d-1206-55b7-953b-6a6e02e6f250",
+      "name": "Run manually",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "32f15976-7528-57c2-bd00-b033592bd330",
+      "name": "Every minute",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        200
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "302974de-5a21-5e58-a17a-dfa717daac53",
+      "name": "Check n8n readiness",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        100
+      ],
+      "parameters": {
+        "url": "http://127.0.0.1:5678/healthz/readiness",
+        "options": {
+          "timeout": 10000,
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "33e03184-d530-5e72-8477-5239c4902772",
+      "name": "Health report",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        100
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "service",
+              "name": "service",
+              "value": "n8n",
+              "type": "string"
+            },
+            {
+              "id": "checked",
+              "name": "checked_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "healthy",
+              "name": "healthy",
+              "value": "={{ $json.statusCode === 200 && $json.body?.status === 'ok' }}",
+              "type": "boolean"
+            },
+            {
+              "id": "status",
+              "name": "http_status",
+              "value": "={{ $json.statusCode ?? 0 }}",
+              "type": "number"
+            },
+            {
+              "id": "detail",
+              "name": "detail",
+              "value": "={{ $json.error?.message ?? $json.error ?? $json.body?.status ?? 'No readiness response' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "6ebd5736-1f8d-555e-8d27-18e18a0f2d13",
+      "name": "Healthy?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        100
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "healthy-condition",
+              "leftValue": "={{ $json.healthy }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "dc2f1634-50db-5438-8c1f-e5dc797561ca",
+      "name": "Record failed health check",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        960,
+        240
+      ],
+      "parameters": {
+        "errorMessage": "={{ 'n8n readiness failed: ' + $json.detail }}"
+      }
+    }
+  ],
+  "connections": {
+    "Run manually": {
+      "main": [
+        [
+          {
+            "node": "Check n8n readiness",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Every minute": {
+      "main": [
+        [
+          {
+            "node": "Check n8n readiness",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check n8n readiness": {
+      "main": [
+        [
+          {
+            "node": "Health report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Health report": {
+      "main": [
+        [
+          {
+            "node": "Healthy?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Healthy?": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Record failed health check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Etc/UTC",
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all",
+    "saveManualExecutions": true,
+    "executionTimeout": 30
+  },
+  "staticData": {
+    "node:Every minute": {
+      "recurrenceRules": [
+        null
+      ],
+      "recurrenceRuleSignatures": [
+        null
+      ]
+    }
+  },
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "adb9808b-ae5b-5bb4-9775-fb3a7997d6d0",
+  "versionCounter": 1,
+  "triggerCount": 1,
+  "sourceWorkflowId": null,
+  "tags": [],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

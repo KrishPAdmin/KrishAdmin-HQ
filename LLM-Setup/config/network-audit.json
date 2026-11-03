@@ -1,0 +1,33 @@
+{
+  "name": "KrishAdmin-HQ",
+  "allowed_cidrs": ["192.0.2.0/24"],
+  "targets": ["192.0.2.0/24"],
+  "exclude": [],
+  "max_addresses": 256,
+  "known_hosts": {
+    "192.0.2.1": "Default gateway (UDM Pro role to verify)",
+    "192.0.2.180": "KrishAdmin-HQ / n8n",
+    "192.0.2.181": "nvidia-gpu inference VM"
+  },
+  "tcp_ports": "1-1024,2049,2375-2376,3000,3306,3389,5000-5001,5432,5678,5900,6443,8000,8006,8080,8088,8443,8888,9000,9090,9100,11434,32400",
+  "udp_ports": "53,67,68,123,161,500,1900,4500,5353,51820",
+  "max_packets_per_second": 200,
+  "scan_timeout_seconds": 1800,
+  "host_timeout_seconds": 180,
+  "dns_names": [],
+  "https_ports": [443,5001,8006,8443,11434],
+  "http_ports": [80,3000,5000,5678,8000,8080,8088,8888,9000,9090],
+  "trusted_certificates": {
+    "192.0.2.180": "/home/operator/krishadmin-hq/deployments/n8n/tls/server.crt",
+    "192.0.2.181": "/home/operator/krishadmin-hq/deployments/n8n/trust/nvidia-gpu-server.crt"
+  },
+  "ai": {
+    "endpoint": "http://198.51.100.202:11434",
+    "transport_note": "Private ZeroTier VPN; no OpenAI/cloud API",
+    "token_file": "/home/operator/.codex/projects/secrets/ollama-api-token.txt",
+    "model": "qwen2.5:72b-instruct-q8_0",
+    "timeout_seconds": 600,
+    "num_ctx": 8192,
+    "num_predict": 1536
+  }
+}

@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>KrishAdmin-HQ</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,sans-serif;background:#0c1220;color:#edf2fc}body{max-width:1040px;margin:auto;padding:64px 24px}small{color:#79d4c6;letter-spacing:.14em}h1{font-size:clamp(36px,6vw,64px);letter-spacing:-.04em;margin:14px 0}p{color:#aebcd1;line-height:1.7}nav{display:flex;gap:14px;flex-wrap:wrap;margin:32px 0}a{color:inherit;text-decoration:none}nav a,.card{border:1px solid #2a374d;border-radius:14px;padding:18px 22px;background:#131e30}nav a:first-child{background:#79d4c6;color:#10202a;font-weight:700}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;margin:36px 0}.card h2{font-size:20px;margin-top:0}.tag{font-size:12px;color:#79d4c6}code{color:#e1ebfc}footer{border-top:1px solid #2a374d;padding-top:24px;color:#aebcd1;font-size:14px}a:focus-visible{outline:3px solid #79d4c6;outline-offset:4px}
+</style></head><body>
+<small>LOCAL AUTOMATION &amp; AI</small><h1>KrishAdmin-HQ</h1>
+<p>Your homelab automation workspace. Choose a workflow, send a request to the right GPU, and inspect the result in n8n.</p>
+<nav><a href="/">Open n8n</a><a href="/workflow/krishHqAiRouter01">Local AI Router</a><a href="/workflow/homelabHealth001">Service Health</a></nav>
+<div class="grid"><article class="card"><span class="tag">FAST GENERATION</span><h2>nvidia-gpu</h2><p>Summaries, short answers and routine text generation.</p><p>Select <code>tier: fast</code> in the router. Credential and certificate setup is required before first use.</p></article>
+<article class="card"><span class="tag">DETAILED ANALYSIS</span><h2>Dual AMD AMD-GPU</h2><p>Longer explanations and complex troubleshooting with Qwen 2.5 72B.</p><p>Select <code>tier: reasoning</code>. Requests travel over the ZeroTier VPN.</p></article>
+<article class="card"><span class="tag">AUTOMATION</span><h2>Service Health</h2><p>A readiness check every minute, with timestamped results in n8n's execution history.</p><p>This self-check is not an independent outage monitor.</p></article></div>
+<footer>Inference runs when requested. Infrastructure changes require separate, explicitly configured workflows. Manage API credentials inside n8n; never paste them into prompts.</footer>
+</body></html>

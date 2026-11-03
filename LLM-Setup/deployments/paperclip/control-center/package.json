@@ -1,0 +1,1 @@
+{"name":"@krishadmin/paperclip-control-center","version":"0.1.2","type":"module","private":true,"paperclipPlugin":{"manifest":"./dist/manifest.js","worker":"./dist/worker.js","ui":"./dist/ui/"}}

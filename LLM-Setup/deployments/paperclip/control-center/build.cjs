@@ -1,0 +1,4 @@
+const esbuild=require('/app/node_modules/esbuild');
+const fs=require('fs');
+const root=process.argv[2]||'/tmp/hq-control-build';
+(async()=>{await esbuild.build({entryPoints:[root+'/src/worker.js'],outfile:root+'/dist/worker.js',bundle:true,platform:'node',format:'esm',target:'node24',nodePaths:['/app/node_modules','/app/server/node_modules'],alias:{'@paperclipai/plugin-sdk':'/app/packages/plugins/sdk/dist/index.js'},});await esbuild.build({entryPoints:[root+'/src/ui.jsx'],outfile:root+'/dist/ui/index.js',bundle:true,platform:'browser',format:'esm',target:'es2022',external:['react','react-dom','react/jsx-runtime','@paperclipai/plugin-sdk/ui']});fs.copyFileSync(root+'/src/manifest.js',root+'/dist/manifest.js');console.log('Built Control Center worker, manifest and native UI');})().catch(e=>{console.error(e);process.exit(1)});

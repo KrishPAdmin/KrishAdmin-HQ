@@ -1,0 +1,7 @@
+[Unit]
+Description=Local Paperclip and n8n backups with isolated database restore checks
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /home/operator/krishadmin-hq/deployments/hermes/backup_maintenance.py
+TimeoutStartSec=infinity
+UMask=0077

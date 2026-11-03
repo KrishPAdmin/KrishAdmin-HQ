@@ -1,0 +1,23 @@
+{
+  "company_id": "98d79097-4e25-5f5b-b88e-281995c8af1f",
+  "agents": {
+    "dispatcher": "d66d1540-fb5d-5569-9f89-d03d7a90f393",
+    "health": "1540e0e5-faad-5cd3-8f32-5a934a4571d7",
+    "backup": "694ef094-384e-5016-bc6c-7122d6d99f67",
+    "triage": "da4f3c4b-be60-588f-ad8c-b9f5d0f07fb3"
+  },
+  "project_id": "20b670f8-7481-57a0-bbd3-cae518d7bd17",
+  "team_agents": {
+    "jessica": "24ec24b0-783e-538e-bdf8-c1cf7d81edb1",
+    "harvey": "541f48ef-0b34-5f0c-a7ce-173e988f3720",
+    "mike": "5a953881-6342-5890-85d4-42d106ac1f81",
+    "louis": "5c09ecbf-3c98-59e0-9ad8-9453a56e5271",
+    "rachel": "5afe1091-a414-5b8c-8206-7bdbc5f34871",
+    "donna": "7ba92361-0422-55aa-b7c8-21e5faa8a393"
+  },
+  "diagnostic_agents": {
+    "hq": "c4919d5e-f468-51cc-988d-6424a7b61c72",
+    "nvidia-gpu": "59a4ad77-7bac-5512-9e4b-1e07e9bc88a2",
+    "amd-gpu": "aad4c114-18d9-5584-a8ba-8124aee4c6ca"
+  }
+}

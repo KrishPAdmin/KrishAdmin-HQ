@@ -27,3 +27,7 @@ Top-level directories currently in this repo:
 ├── Networking-Scripts/
 ├── Scripts/
 └── README.md
+
+## Local AI and Suits team
+
+See [LLM Setup](LLM-Setup/README.md) for the Hermes, Discord, Paperclip, Suits agents, owner-only GitHub workflow and supporting homelab deployment sources.

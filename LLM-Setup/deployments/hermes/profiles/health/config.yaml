@@ -1,0 +1,56 @@
+{
+  "model": {
+    "default": "qwen3.5:9b",
+    "provider": "custom",
+    "base_url": "http://broker:8080/v1",
+    "context_length": 65536
+  },
+  "platform_toolsets": {
+    "cli": [],
+    "discord": []
+  },
+  "plugins": {
+    "enabled": []
+  },
+  "agent": {
+    "max_turns": 5
+  },
+  "compression": {
+    "enabled": false
+  },
+  "memory": {
+    "memory_enabled": false,
+    "user_profile_enabled": false
+  },
+  "platforms": {
+    "discord": {
+      "enabled": false,
+      "extra": {
+        "dm_policy": "disabled",
+        "group_policy": "allowlist",
+        "group_allow_from": [],
+        "allow_admin_from": [],
+        "group_allow_admin_from": [],
+        "user_allowed_commands": [
+          "status"
+        ],
+        "group_user_allowed_commands": [
+          "status"
+        ]
+      }
+    }
+  },
+  "discord": {
+    "require_mention": true,
+    "history_backfill": false,
+    "auto_thread": false
+  },
+  "display": {
+    "tool_progress": "off"
+  },
+  "tools": {
+    "tool_search": {
+      "enabled": "off"
+    }
+  }
+}

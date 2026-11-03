@@ -1,0 +1,12 @@
+{
+  "nvidia-gpu": {
+    "host": "192.0.2.181",
+    "user": "krishadmin",
+    "key": "/home/operator/.ssh/krishadmin-hq-nvidia-gpu"
+  },
+  "amd-gpu": {
+    "host": "198.51.100.202",
+    "user": "krishadmin",
+    "auth": "password"
+  }
+}

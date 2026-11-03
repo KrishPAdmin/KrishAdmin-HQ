@@ -1,0 +1,15 @@
+name: hq-operations
+version: 2.3.0
+description: Restricted HQ observations, Paperclip task intake and HQ-collected research with AMD-GPU analysis.
+provides_tools:
+  - hq_status
+  - hq_task
+  - hq_research
+  - hq_analyze
+  - hq_files
+  - hq_knowledge
+  - hq_draft
+  - hq_team
+  - hq_calculate
+  - hq_diagnostics
+  - hq_github

@@ -1,0 +1,111 @@
+{
+  "model": {
+    "default": "qwen3.5:9b",
+    "provider": "custom",
+    "base_url": "http://broker:8080/v1",
+    "context_length": 65536
+  },
+  "platform_toolsets": {
+    "cli": [],
+    "discord": [
+      "hq_ops"
+    ]
+  },
+  "plugins": {
+    "enabled": [
+      "hq-operations",
+      "discord-platform"
+    ]
+  },
+  "agent": {
+    "max_turns": 12
+  },
+  "compression": {
+    "enabled": false
+  },
+  "memory": {
+    "memory_enabled": false,
+    "user_profile_enabled": false
+  },
+  "platforms": {
+    "discord": {
+      "enabled": true,
+      "extra": {
+        "dm_policy": "disabled",
+        "group_policy": "allowlist",
+        "group_allow_from": [
+          "900000000000000004",
+          "900000000000000005"
+        ],
+        "allow_admin_from": [],
+        "group_allow_admin_from": [],
+        "user_allowed_commands": [
+          "status"
+        ],
+        "group_user_allowed_commands": [
+          "hq-automation",
+          "hq-code-review",
+          "hq-diagnostics",
+          "hq-donna",
+          "hq-files",
+          "hq-harvey",
+          "hq-health",
+          "hq-jessica",
+          "hq-knowledge",
+          "hq-louis",
+          "hq-mike",
+          "hq-planning",
+          "hq-rachel",
+          "hq-research",
+          "hq-suits-team",
+          "hq-tasks",
+          "status",
+          "hq-github"
+        ],
+        "allowed_channels": [
+          "900000000000000003"
+        ],
+        "allowed_users": [
+          "900000000000000004",
+          "900000000000000005"
+        ],
+        "max_attachment_bytes": 5242880,
+        "free_response_channels": [],
+        "require_mention": true,
+        "thread_require_mention": true
+      },
+      "home_channel": {
+        "platform": "discord",
+        "chat_id": "900000000000000003",
+        "name": "krishadmin-hq-llm"
+      },
+      "gateway_restart_notification": true
+    }
+  },
+  "discord": {
+    "require_mention": true,
+    "history_backfill": false,
+    "auto_thread": false,
+    "allowed_channels": [
+      "900000000000000003"
+    ],
+    "free_response_channels": [],
+    "thread_require_mention": true
+  },
+  "display": {
+    "tool_progress": "off"
+  },
+  "timeouts": {
+    "tools": {
+      "sequential_call": 540,
+      "concurrent_batch": 540
+    }
+  },
+  "tools": {
+    "tool_search": {
+      "enabled": "off"
+    }
+  },
+  "group_sessions_per_user": true,
+  "thread_sessions_per_user": true
+}

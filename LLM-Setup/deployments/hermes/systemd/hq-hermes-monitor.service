@@ -1,0 +1,10 @@
+[Unit]
+Description=Record bounded HQ health changes without inference or notifications
+Requires=hq-hermes-evidence.service
+After=hq-hermes-evidence.service
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /home/operator/krishadmin-hq/deployments/hermes/monitor.py
+TimeoutStartSec=55
+UMask=0077
+NoNewPrivileges=true

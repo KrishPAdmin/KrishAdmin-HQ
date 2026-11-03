@@ -1,0 +1,16 @@
+[Unit]
+Description=Deliver subscribed Paperclip task results to the private Discord channel
+After=network-online.target
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /home/operator/krishadmin-hq/deployments/hermes/notify_tasks.py
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/operator/krishadmin-hq/deployments/hermes/state
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+MemoryMax=128M
+TasksMax=16
+TimeoutStartSec=240

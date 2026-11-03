@@ -1,0 +1,23 @@
+[Unit]
+Description=Local GPU web research queue
+Wants=network-online.target
+After=network-online.target docker.service
+
+[Service]
+User=krishadmin
+WorkingDirectory=/home/operator/ai-local
+ExecStart=/home/operator/ai-local/.venv/bin/python /home/operator/ai-local/research.py worker
+Restart=on-failure
+RestartSec=10
+Environment=XDG_CACHE_HOME=/home/operator/ai-local/research/cache
+Environment=PYTHONUNBUFFERED=1
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/operator/ai-local/research
+PrivateTmp=yes
+MemoryMax=1G
+CPUQuota=100%
+
+[Install]
+WantedBy=multi-user.target

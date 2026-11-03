@@ -1,0 +1,379 @@
+{
+  "id": "krishHqAiRouter01",
+  "name": "KrishAdmin-HQ | Local AI Router",
+  "active": false,
+  "nodes": [
+    {
+      "id": "bfdda238-fa08-52a6-b616-c5ea4a389efd",
+      "name": "Run manually",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "parameters": {},
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "id": "3df5d0d1-bcd9-5275-a424-9124724d3107",
+      "name": "Example request",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6bc25aa9-bc35-546a-89fa-9503d04ca20c",
+              "name": "tier",
+              "value": "reasoning",
+              "type": "string"
+            },
+            {
+              "id": "f8938374-ae80-5c84-8186-885d60c20b9c",
+              "name": "prompt",
+              "value": "In three sentences, explain what evidence I should collect before restarting a failed homelab service.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "id": "be35ce60-8e89-55f0-9f3a-d5551491b967",
+      "name": "Called by another workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "position": [
+        220,
+        240
+      ]
+    },
+    {
+      "id": "77a58515-650a-5108-b5bd-b4a5764a5b84",
+      "name": "Validate request",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "885a3e2d-5815-596d-b24a-7c6fa71325cf",
+              "leftValue": "={{ typeof $json.prompt === 'string' && $json.prompt.trim().length > 0 && $json.prompt.length <= 12000 && ['fast','reasoning'].includes($json.tier) }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "position": [
+        460,
+        100
+      ]
+    },
+    {
+      "id": "2aba2104-b019-5550-a898-361bc1a60ca8",
+      "name": "Invalid request",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "parameters": {
+        "errorMessage": "Provide prompt (1\u201312000 characters) and tier (fast or reasoning)."
+      },
+      "position": [
+        700,
+        340
+      ]
+    },
+    {
+      "id": "e918689f-e2df-58a9-bcbf-3d4cb1b98084",
+      "name": "Use NVIDIA-GPU fast model?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "60431fc3-8e67-5077-99cc-60d9628a0df3",
+              "leftValue": "={{ $json.tier === 'fast' }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "position": [
+        700,
+        40
+      ]
+    },
+    {
+      "id": "9bd3e71a-3177-5e13-b72f-a5b50caa84be",
+      "name": "nvidia-gpu | Fast",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "parameters": {
+        "method": "POST",
+        "url": "https://192.0.2.181:11434/api/chat",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({model: 'qwen3:4b', messages: [{role: 'system', content: 'You are KrishAdmin-HQ, a local homelab assistant. Be accurate and concrete. Distinguish supplied evidence from assumptions. You only generate text; never claim to have inspected systems or executed actions.'}, {role:'user', content:$json.prompt}], stream:false, think:false, options:{num_ctx:8192,num_predict:768,temperature:0.2} }) }}",
+        "options": {
+          "timeout": 600000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "position": [
+        960,
+        -80
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "krishnvidia_gpuAuth01",
+          "name": "KrishAdmin-HQ | nvidia-gpu API"
+        }
+      }
+    },
+    {
+      "id": "f08d7728-8362-56fd-8167-9210986434a5",
+      "name": "Dual AMD-GPU | Reasoning",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "parameters": {
+        "method": "POST",
+        "url": "http://198.51.100.202:11434/api/chat",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({model: 'qwen2.5:72b-instruct-q8_0', messages: [{role: 'system', content: 'You are KrishAdmin-HQ, a local homelab assistant. Be accurate and concrete. Distinguish supplied evidence from assumptions. You only generate text; never claim to have inspected systems or executed actions.'}, {role:'user', content:$json.prompt}], stream:false, options:{num_ctx:8192,num_predict:768,temperature:0.2} }) }}",
+        "options": {
+          "timeout": 600000,
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "position": [
+        960,
+        160
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "krishamd_gpuAuth01",
+          "name": "KrishAdmin-HQ | AMD-GPU API"
+        }
+      }
+    },
+    {
+      "id": "da7b1ae7-f178-52d7-aee3-208781636cdc",
+      "name": "Return answer",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c66bea10-b748-5e15-94be-8d8ac21874b1",
+              "name": "answer",
+              "value": "={{ $json.message?.content ?? '' }}",
+              "type": "string"
+            },
+            {
+              "id": "e2da6b7e-50dd-5f01-bf35-da8eea427f8f",
+              "name": "model",
+              "value": "={{ $json.model }}",
+              "type": "string"
+            },
+            {
+              "id": "c91b3d51-bcdc-521f-b028-ab73387936c9",
+              "name": "completed",
+              "value": "={{ $json.done === true }}",
+              "type": "boolean"
+            },
+            {
+              "id": "2f7008f1-3dfd-5072-8c78-fa8f2a53c952",
+              "name": "generated_tokens",
+              "value": "={{ $json.eval_count ?? 0 }}",
+              "type": "number"
+            },
+            {
+              "id": "1057f78f-aa0e-5479-9822-10300acf8a06",
+              "name": "total_seconds",
+              "value": "={{ ($json.total_duration ?? 0) / 1000000000 }}",
+              "type": "number"
+            },
+            {
+              "id": "207a8931-c7a0-51f3-978f-4a0453aad913",
+              "name": "completed_at",
+              "value": "={{ $now.toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "position": [
+        1220,
+        40
+      ]
+    },
+    {
+      "id": "53540a4d-f7cc-5e11-9548-6933caadd189",
+      "name": "KrishAdmin-HQ guide",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "parameters": {
+        "content": "# KrishAdmin-HQ \u2014 Local AI Router\n\n**Manual use:** edit `Example request`, choose tier `fast` or `reasoning`, then Execute Workflow.\n\n**Reusable:** call this workflow with `{ \"tier\": \"fast\", \"prompt\": \"...\" }`.\n\n**fast:** nvidia-gpu, local HTTPS; token and trusted certificate required. Model will be verified after connection.\n\n**reasoning:** dual AMD-GPU, ZeroTier VPN, Qwen 2.5 72B.\n\nFixed backend URLs; credentials are encrypted in n8n. TLS verification stays enabled. No shell commands or infrastructure changes. No automatic cross-backend retry. Inference runs only when requested.",
+        "height": 430,
+        "width": 460
+      },
+      "position": [
+        0,
+        -500
+      ]
+    }
+  ],
+  "connections": {
+    "Run manually": {
+      "main": [
+        [
+          {
+            "node": "Example request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Example request": {
+      "main": [
+        [
+          {
+            "node": "Validate request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Called by another workflow": {
+      "main": [
+        [
+          {
+            "node": "Validate request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "nvidia-gpu | Fast": {
+      "main": [
+        [
+          {
+            "node": "Return answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dual AMD-GPU | Reasoning": {
+      "main": [
+        [
+          {
+            "node": "Return answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate request": {
+      "main": [
+        [
+          {
+            "node": "Use NVIDIA-GPU fast model?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Invalid request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Use NVIDIA-GPU fast model?": {
+      "main": [
+        [
+          {
+            "node": "nvidia-gpu | Fast",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Dual AMD-GPU | Reasoning",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Etc/UTC",
+    "executionTimeout": 660,
+    "saveDataSuccessExecution": "none",
+    "saveDataErrorExecution": "none",
+    "saveManualExecutions": false
+  },
+  "versionId": "e4adc33a-4f13-5bb7-9560-d1a025c163d6",
+  "pinData": {},
+  "tags": []
+}

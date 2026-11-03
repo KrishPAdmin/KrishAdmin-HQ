@@ -1,0 +1,327 @@
+{
+  "observed_at_utc": "2026-10-25T02:34:09.757621+00:00",
+  "network": "192.0.2.0/24",
+  "limitations": "TCP connect discovery only. No reply does not prove a host is offline. No UDP, vulnerability checks or authentication attempts.",
+  "systems": [
+    {
+      "address": "192.0.2.1",
+      "open_tcp_ports": [
+        22,
+        53,
+        80,
+        443,
+        8443
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false
+    },
+    {
+      "address": "192.0.2.2",
+      "open_tcp_ports": [
+        22
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false
+    },
+    {
+      "address": "192.0.2.3",
+      "open_tcp_ports": [
+        22
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false
+    },
+    {
+      "address": "192.0.2.12",
+      "open_tcp_ports": [
+        80,
+        443,
+        445
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false
+    },
+    {
+      "address": "192.0.2.23",
+      "open_tcp_ports": [
+        22
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false
+    },
+    {
+      "address": "192.0.2.30",
+      "open_tcp_ports": [
+        22
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false
+    },
+    {
+      "address": "192.0.2.33",
+      "open_tcp_ports": [
+        22
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false
+    },
+    {
+      "address": "192.0.2.39",
+      "open_tcp_ports": [
+        445
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false
+    },
+    {
+      "address": "192.0.2.50",
+      "open_tcp_ports": [
+        22,
+        8006
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false,
+      "service_hint": "Possible Proxmox web interface; unverified"
+    },
+    {
+      "address": "192.0.2.51",
+      "open_tcp_ports": [
+        22,
+        8006
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false,
+      "service_hint": "Possible Proxmox web interface; unverified"
+    },
+    {
+      "address": "192.0.2.52",
+      "open_tcp_ports": [
+        22,
+        8006
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false,
+      "service_hint": "Possible Proxmox web interface; unverified"
+    },
+    {
+      "address": "192.0.2.59",
+      "open_tcp_ports": [
+        22,
+        443
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false
+    },
+    {
+      "address": "192.0.2.61",
+      "open_tcp_ports": [
+        53
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false
+    },
+    {
+      "address": "192.0.2.85",
+      "open_tcp_ports": [
+        80,
+        8443
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false
+    },
+    {
+      "address": "192.0.2.90",
+      "open_tcp_ports": [
+        22,
+        80,
+        443
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false
+    },
+    {
+      "address": "192.0.2.91",
+      "open_tcp_ports": [
+        22,
+        80,
+        443
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false
+    },
+    {
+      "address": "192.0.2.92",
+      "open_tcp_ports": [
+        22,
+        80,
+        443
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false
+    },
+    {
+      "address": "192.0.2.93",
+      "open_tcp_ports": [
+        80
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false
+    },
+    {
+      "address": "192.0.2.101",
+      "open_tcp_ports": [
+        445
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false
+    },
+    {
+      "address": "192.0.2.103",
+      "open_tcp_ports": [
+        22
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false
+    },
+    {
+      "address": "192.0.2.180",
+      "open_tcp_ports": [
+        22,
+        443,
+        8443
+      ],
+      "name": "hq-gateway",
+      "identity_verified": true,
+      "authenticated_health_coverage": true
+    },
+    {
+      "address": "192.0.2.181",
+      "open_tcp_ports": [
+        22,
+        11434
+      ],
+      "name": "KrishAdmin-AI-Compute",
+      "identity_verified": true,
+      "authenticated_health_coverage": true
+    },
+    {
+      "address": "192.0.2.201",
+      "open_tcp_ports": [
+        22,
+        80,
+        443
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false
+    },
+    {
+      "address": "192.0.2.202",
+      "open_tcp_ports": [
+        22,
+        80,
+        443
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false
+    },
+    {
+      "address": "192.0.2.211",
+      "open_tcp_ports": [
+        80,
+        443
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false
+    },
+    {
+      "address": "192.0.2.221",
+      "open_tcp_ports": [
+        80,
+        443,
+        445
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false
+    },
+    {
+      "address": "192.0.2.222",
+      "open_tcp_ports": [
+        22,
+        80,
+        443,
+        445
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false
+    },
+    {
+      "address": "192.0.2.249",
+      "open_tcp_ports": [
+        22,
+        80,
+        443
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false
+    },
+    {
+      "address": "192.0.2.250",
+      "open_tcp_ports": [
+        22,
+        80,
+        443
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false
+    },
+    {
+      "address": "192.0.2.251",
+      "open_tcp_ports": [
+        22,
+        80,
+        443
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false
+    },
+    {
+      "address": "192.0.2.253",
+      "open_tcp_ports": [
+        22,
+        80,
+        443
+      ],
+      "name": null,
+      "identity_verified": false,
+      "authenticated_health_coverage": false
+    }
+  ]
+}
