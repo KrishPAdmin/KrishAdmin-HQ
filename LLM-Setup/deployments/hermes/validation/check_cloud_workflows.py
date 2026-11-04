@@ -48,6 +48,8 @@ elif mode=='file':
     prompt='Review the uploaded Python file for bugs using AMD-GPU, including a syntax check. Keep the answer short. Uploaded file_id: '+file_id
 elif mode=='research':
     prompt='Research how Python asyncio TaskGroup handles child task failures using current official documentation. Use AMD-GPU for the analysis, cite the source URL, and keep the answer under 180 words.'
+elif mode=='subscriber':
+    prompt='What is the latest subscriber count on Linus Tech Tips YouTube channel?'
 elif mode=='checker':
     prompt='Run the AMD-GPU checker workflow with GPU and processes checks and interpret the fresh results using AMD-GPU. Include the actual compute receipt; do not create a Paperclip task.'
 elif mode=='automation':
@@ -66,6 +68,13 @@ elif mode=='file':
 elif mode=='research':
     assert any(e['tool']=='hq_research' for e in events)
     assert 'docs.python.org' in out['response']
+elif mode=='subscriber':
+    import re
+    assert any(e['tool'] in ('hq_research','mcp__research__read_page') for e in events)
+    assert not any(e['tool']=='mcp__research__weather' for e in events), 'Unrelated weather request'
+    assert re.search(r'\d[\d.,]*\s*(?:million|billion|[MB]\b)',out['response'],re.I), 'No subscriber quantity in final answer'
+    assert 'youtube.com/' in out['response'] and 'subscriber' in out['response'].lower()
+    assert not any(s in out['response'].lower() for s in ('would you like me to try','no specific subscriber','could not find'))
 elif mode=='checker':
     assert any(e['tool'] in ('mcp__workbench__check_system','hq_diagnostics') for e in events)
     assert not any(x in out['response'].lower() for x in ('gpu healthy','no leak detected','no thermal throttling observed','safe operating range','above 70','observed and healthy','normal operating range','not currently serving')), 'Unsupported diagnostic conclusion'

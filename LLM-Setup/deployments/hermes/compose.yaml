@@ -650,7 +650,8 @@
           "aliases": [
             "hq-hermes-broker"
           ]
-        }
+        },
+        "research_internal": {}
       },
       "logging": {
         "driver": "json-file",
@@ -698,6 +699,112 @@
         "../../secrets/nvidia-gpu-api.txt:/run/secrets/nvidia-gpu-token:ro",
         "../../secrets/amd-gpu-api.txt:/run/secrets/amd-gpu-token:ro",
         "../../secrets/nvidia-gpu-server.crt:/run/secrets/nvidia-gpu-ca.crt:ro"
+      ],
+      "environment": {
+        "HQ_RENDER_URL": "http://renderer:8080/render"
+      }
+    },
+    "render-fetch": {
+      "image": "nousresearch/hermes-agent@sha256:d27689bc6e8581ec884a7227c9101fdaebf6c853cff8859020dac14f21452b4d",
+      "restart": "unless-stopped",
+      "init": true,
+      "user": "1000:1000",
+      "read_only": true,
+      "tmpfs": [
+        "/tmp:rw,noexec,nosuid,size=256m"
+      ],
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "pids_limit": 128,
+      "mem_limit": "256m",
+      "cpus": 1.0,
+      "networks": [
+        "research_internal",
+        "egress"
+      ],
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      },
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:8080/health',timeout=3)"
+        ],
+        "interval": "20s",
+        "timeout": "5s",
+        "retries": 3,
+        "start_period": "45s"
+      },
+      "entrypoint": [
+        "python",
+        "/app/render_fetch.py"
+      ],
+      "volumes": [
+        "./render_fetch.py:/app/render_fetch.py:ro",
+        "./web_research.py:/app/web_research.py:ro"
+      ]
+    },
+    "renderer": {
+      "image": "hq-research-browser:1.0.0",
+      "restart": "unless-stopped",
+      "init": true,
+      "user": "pwuser",
+      "read_only": true,
+      "tmpfs": [
+        "/tmp:rw,nosuid,size=512m"
+      ],
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true",
+        "seccomp=./config/browser-seccomp.json"
+      ],
+      "pids_limit": 256,
+      "mem_limit": "1g",
+      "cpus": 1.0,
+      "networks": [
+        "research_internal"
+      ],
+      "logging": {
+        "driver": "json-file",
+        "options": {
+          "max-size": "10m",
+          "max-file": "3"
+        }
+      },
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:8080/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+        ],
+        "interval": "20s",
+        "timeout": "5s",
+        "retries": 3
+      },
+      "build": {
+        "context": ".",
+        "dockerfile": "Dockerfile.research"
+      },
+      "entrypoint": [
+        "node",
+        "/app/render_server.mjs"
+      ],
+      "shm_size": "128m",
+      "volumes": [
+        "./render_server.mjs:/app/render_server.mjs:ro"
       ]
     },
     "discord-egress": {
@@ -803,6 +910,9 @@
   },
   "networks": {
     "private": {
+      "internal": true
+    },
+    "research_internal": {
       "internal": true
     },
     "egress": {},

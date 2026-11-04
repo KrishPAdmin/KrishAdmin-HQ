@@ -27,12 +27,12 @@ def create_server(mode):
             """Search the public internet now using independent providers on HQ. Use focused terms. Returned links are discovery, not verified facts; read source pages next."""
             return call('/web/search',{'query':query})
         @server.tool()
-        def read_page(url:str,offset:int=0,limit:int=4000,find:str|None=None)->dict:
-            """Read a public HTTPS source on HQ. Returns text, timestamp, hash and next_offset. Optional find jumps to matching text. Private addresses, login cookies, downloads and arbitrary protocols are blocked. Cite this URL; disclose partial pages."""
-            return call('/web/read',{'url':url,'offset':offset,'limit':limit,'find':find})
+        def read_page(url:str,offset:int=0,limit:int=4000,find:str|None=None,render:bool=False)->dict:
+            """Read a public HTTPS source on HQ. Returns text, timestamp, hash and next_offset. Optional find jumps to matching text. Set render=true for an isolated browser DOM fallback on JavaScript pages. Embedded YouTube channel/JSON-LD metadata is extracted automatically. Private addresses, login cookies, downloads and arbitrary protocols are blocked. Cite this URL; disclose partial pages."""
+            return call('/web/read',{'url':url,'offset':offset,'limit':limit,'find':find,'render':render})
         @server.tool()
         def weather(location:str,country_code:str|None=None)->dict:
-            """Get current weather and three-day forecast for a city from Open-Meteo, collected on HQ. Example Toronto with country_code CA. Report resolved location, local observation time, units and source; note location alternatives."""
+            """Get current weather and three-day forecast for a city from Open-Meteo, collected on HQ. Report resolved location, local observation time, units and source; note location alternatives."""
             return call('/web/weather',{'location':location,'country_code':country_code})
     elif mode=='workbench':
         @server.tool()

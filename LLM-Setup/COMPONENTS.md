@@ -14,3 +14,5 @@ Excluded from both editions:
 `.env.example` files list required environment variables without secret values. Some installed provider configuration fields are replaced with explicit local-secret placeholders. Restore/re-enroll secrets locally and verify permissions before starting a service. No live system was reconfigured by producing these editions.
 
 The Hermes source also includes two local stdio MCP servers, public search/page/weather collection, bounded native Discord attachment handoff, fixed workbench workflows, and long-context routing/compaction. See the [MCP runbook](deployments/hermes/docs/mcp.md).
+
+The research renderer uses `Dockerfile.research`, `render_server.mjs`, `render_fetch.py`, a pinned SDK lockfile and seccomp profile under config/. It renders fresh anonymous public pages through a validated HTTPS GET relay, with separate HTML and DOM receipts. Web collection stays on HQ.

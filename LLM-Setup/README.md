@@ -88,3 +88,5 @@ LLM-Setup/
 ```
 
 See [THIRD-PARTY.md](THIRD-PARTY.md) for upstream projects. Existing repository content outside `LLM-Setup/` is preserved.
+
+Public research now checks whether sources answer the question, makes follow-up searches, extracts embedded channel/structured metadata, and supports an isolated read-only browser for JavaScript pages. See the [research and MCP runbook](deployments/hermes/docs/mcp.md#8-research-depth-and-dynamic-pages).

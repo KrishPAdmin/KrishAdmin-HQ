@@ -8,23 +8,23 @@
     },
     {
       "path": "COMPONENTS.md",
-      "sha256": "99796f1935b4a2751faae59ee70547220fca9eb8da12ad6043ebc226e10b9125"
+      "sha256": "1051ee794902690a57d681b98d4bbbdfb37eae261e2a893c7e3a30457078de0d"
     },
     {
       "path": "DEPLOYMENT.md",
-      "sha256": "0573806cc88a27e06f898d51ea864f6dfdcab565a89066465411e9a5b8f1ffb4"
+      "sha256": "a5ec81cd51b23e5c278de63e9663e53fe65e853d38e7558f229a93e3468d3c10"
     },
     {
       "path": "README.md",
-      "sha256": "6c365c5bc78506887951a7d8a3c9754ddfffa98afb3eace7e9edda45eebe2565"
+      "sha256": "9674ca0444aff935d55cb8498068857abfdb0593a63cb778644c56731f7045c3"
     },
     {
       "path": "THIRD-PARTY.md",
-      "sha256": "5d440cf1ba16bd9a2417243d72ce09748560f8caac3066cf471129e92d3beac4"
+      "sha256": "8c21bc428375dc40d82de45f8494889d51674412f2815fa05f5cd55832e59d31"
     },
     {
       "path": "VERIFICATION.md",
-      "sha256": "b09d4eff3abb2c7276f0a994fd7d1337defbdc02eeffa9c216b2de0d3f107241"
+      "sha256": "5e00e7c985866e58033714dbf8de2df886e5ebcb3767faee94773ae3b5b34995"
     },
     {
       "path": "config/network-audit.json",
@@ -55,6 +55,14 @@
       "sha256": "c90f2f4d52bed3fbdc07ab0a909ad1de72cbb9acdd72cd09204e50075ca84911"
     },
     {
+      "path": "deployments/hermes/.dockerignore",
+      "sha256": "ace3f6f2ca86c3c676a27f66c7695cd3a1b8505d23c4e68a0294a7be838f996e"
+    },
+    {
+      "path": "deployments/hermes/Dockerfile.research",
+      "sha256": "f49efb1851be5606526dd3cd93d62bed433b9af65d6437400aaa225f187e0ac1"
+    },
+    {
       "path": "deployments/hermes/README.md",
       "sha256": "a7eabd6cfcc7073613eb52be2d3550782279ff6a5ad1e997e96eed4363e4ab9b"
     },
@@ -72,7 +80,7 @@
     },
     {
       "path": "deployments/hermes/broker.py",
-      "sha256": "92136f085db1cd3ff1e804e22a2612fd1a6fc72716137a6fe19f9475a2de87c1"
+      "sha256": "8c633826a7cc8e9e7171c901ae00b15058f0da3fc957d80ea7fdabaac96f6a24"
     },
     {
       "path": "deployments/hermes/capabilities.py",
@@ -84,7 +92,19 @@
     },
     {
       "path": "deployments/hermes/compose.yaml",
-      "sha256": "923f79ea6641175eaad84ff4522b810c7f9149a114a06f0352d12b9b88c8fe5d"
+      "sha256": "57faa69e5ffb9f9568ec8cddba71ffc26bd2bc6c35a5af8fa18fbb6ba006d4d7"
+    },
+    {
+      "path": "deployments/hermes/config/browser-package-lock.json",
+      "sha256": "437e682db29b9a6ed8f5673511084c3b80f43991b88eaebc496912b80d6cc270"
+    },
+    {
+      "path": "deployments/hermes/config/browser-package.json",
+      "sha256": "b98fb4128b0458ff88f1609aaebd3772ee9bbb66072c91651b5afc89566b4857"
+    },
+    {
+      "path": "deployments/hermes/config/browser-seccomp.json",
+      "sha256": "db79731b5583689fd739eea3f114a8274f66080d45f2b1cba1b753794682ff44"
     },
     {
       "path": "deployments/hermes/config/paperclip.json",
@@ -144,7 +164,7 @@
     },
     {
       "path": "deployments/hermes/docs/mcp.md",
-      "sha256": "a230a6bb79d9e4ebb43f9bc73af87f6094f7e80429977b0d257fbdbceba43548"
+      "sha256": "08050c053be5381c02ba06cafa9c8db43ca1c38ab7b554646e2f3d28baffbbab"
     },
     {
       "path": "deployments/hermes/docs/monitoring.md",
@@ -176,7 +196,7 @@
     },
     {
       "path": "deployments/hermes/doctor.py",
-      "sha256": "5e88b567cc265807432630c71e32b5d4ce4ae25cb9ca33e9e4a9dce4c23d8916"
+      "sha256": "87947a638dc37acb4281ecb9ae21b74e85080dcd7cb9a7e324a4d95095fd4859"
     },
     {
       "path": "deployments/hermes/enroll_amd_gpu_observer.py",
@@ -212,7 +232,7 @@
     },
     {
       "path": "deployments/hermes/mcp_server.py",
-      "sha256": "0572d91695496d4abda09b09de7e7c8a31e76500a1b1a825246aad3e0dce7660"
+      "sha256": "af1227a325056dc124487b9978a699a4b6212785efacd4760ef25fbaa7db7de8"
     },
     {
       "path": "deployments/hermes/monitor.py",
@@ -236,7 +256,7 @@
     },
     {
       "path": "deployments/hermes/prepare.py",
-      "sha256": "be84710f83585379485ac2a16724e5f4410457f60e8be38728105d3524edf66f"
+      "sha256": "a28e1d2127039259fef89f459407a4ad0313db2652b3386353fdffed707503d6"
     },
     {
       "path": "deployments/hermes/profiles/analyst/SOUL.md",
@@ -260,7 +280,7 @@
     },
     {
       "path": "deployments/hermes/profiles/concierge/SOUL.md",
-      "sha256": "26d10b976029a2df41fce22e36947c7a8764c651cb97a7bc984aeb88d74c7081"
+      "sha256": "932327c1e89507b7bd7190dc7f67e266147ad6b64790ff472d38168dd6b9867f"
     },
     {
       "path": "deployments/hermes/profiles/concierge/config.yaml",
@@ -328,7 +348,7 @@
     },
     {
       "path": "deployments/hermes/profiles/concierge/skills/hq-research/SKILL.md",
-      "sha256": "4354ddc0ce37155934d70566c7580beeb5caf809f9b361c31045960aafeefa67"
+      "sha256": "16d0869fa5036f17d4faa71b2738c3aae51d98313d7ee5bcc6f571b8778dcd58"
     },
     {
       "path": "deployments/hermes/profiles/concierge/skills/hq-suits-team/SKILL.md",
@@ -401,6 +421,14 @@
     {
       "path": "deployments/hermes/release.json",
       "sha256": "19f9c6ec7ad5ed8b7aed5b039116c62293ed7b7f6b3cd1cc3c84f167701e0322"
+    },
+    {
+      "path": "deployments/hermes/render_fetch.py",
+      "sha256": "64758d9154e26487feafcccd83ab02b41a905c511a0292ff871b75f612659670"
+    },
+    {
+      "path": "deployments/hermes/render_server.mjs",
+      "sha256": "5c09a2bdf64dbbd9afe5d6d184595a6ea18e8e69c5cb316b9819f6851a65e263"
     },
     {
       "path": "deployments/hermes/reporting.py",
@@ -515,6 +543,10 @@
       "sha256": "dc669f2773f850077acada7902ba550ed0caf7564b0f0ac67ca23197f5d58c60"
     },
     {
+      "path": "deployments/hermes/test_research_depth.py",
+      "sha256": "1620b232731812e344da34da45c9b6a5775914d564b746b1436a39ea7c9ffd11"
+    },
+    {
       "path": "deployments/hermes/test_task_updates.py",
       "sha256": "01b1ae44b918dc6e212d3a3c609bfdde6a48780d7266421413ff51fc12269b5a"
     },
@@ -524,7 +556,7 @@
     },
     {
       "path": "deployments/hermes/validation/check_cloud_workflows.py",
-      "sha256": "5967a63963c0ceb68462cc4588f17d674b16018fa8a58affe250f90b0dfdc850"
+      "sha256": "1873523945852ff24cf624778c270c5d7fe63c3bfc1a9f8118021394254fbab6"
     },
     {
       "path": "deployments/hermes/validation/check_context_compaction.py",
@@ -547,12 +579,16 @@
       "sha256": "a972cba0497d97a1d0b67cc71aea81974e525a648b50adf3a115f7f1447d0926"
     },
     {
+      "path": "deployments/hermes/validation/check_research_browser.py",
+      "sha256": "8a1a3e1fa4665f7af5ec6c38ddab820528f48aacf585e31db83570221262abfd"
+    },
+    {
       "path": "deployments/hermes/verify_database_backup.py",
       "sha256": "eb0fc2afb6638365959f57b11740a142b1aaae49077de76b6ad6eec91e484cbe"
     },
     {
       "path": "deployments/hermes/web_research.py",
-      "sha256": "b33025c7caa3eb20b87d216a8067bd884caa6b5b7c30be2cbc38731e7f68c1ed"
+      "sha256": "b347f2ef333fffbc9d644a5d4830262bad3a5108aec021189c024b8340b04af8"
     },
     {
       "path": "deployments/hermes/worker.py",

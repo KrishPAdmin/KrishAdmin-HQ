@@ -17,7 +17,7 @@ def diagnose():
         result=subprocess.run(['docker','compose','ps','--all','--format','json'],cwd=ROOT,capture_output=True,text=True,timeout=15,check=True)
         rows=[json.loads(line) for line in result.stdout.splitlines() if line.strip()]
         rows={r['Service']:r for r in rows}
-        for name in ('broker','health','backup','triage','analyst','discord-egress','concierge','files',*TEAM):
+        for name in ('broker','health','backup','triage','analyst','discord-egress','concierge','files','renderer','render-fetch',*TEAM):
             row=rows.get(name,{})
             add('container:'+name,row.get('State')=='running' and row.get('Health') not in ('unhealthy','starting'),
                 str(row.get('State','missing'))+'; health='+str(row.get('Health') or 'not configured'))
@@ -25,6 +25,9 @@ def diagnose():
         add('internal_agent_network',network.get('Internal') is True,'Docker private network must be internal.')
         analyst=json.loads(subprocess.check_output(['docker','inspect','hq-hermes-analyst-1'],timeout=10))[0]
         add('analyst_network_membership',set(analyst['NetworkSettings']['Networks'])=={'hq-hermes_private'},'Analyst must join only the internal network.')
+        browser=json.loads(subprocess.check_output(['docker','inspect','hq-hermes-renderer-1'],timeout=10))[0]
+        net=json.loads(subprocess.check_output(['docker','network','inspect','hq-hermes_research_internal'],timeout=10))[0]
+        add('browser_network_isolation',net.get('Internal') is True and set(browser['NetworkSettings']['Networks'])=={'hq-hermes_research_internal'},'Browser has only an internal network; public HTTPS uses the validating fetch relay.')
     except Exception as error:add('container_inspection',False,type(error).__name__+'; run docker compose ps locally')
     try:
         gateway=json.loads((ROOT/'profiles/concierge/gateway_state.json').read_text())

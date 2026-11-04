@@ -32,3 +32,5 @@ Source control does not restore Paperclip/n8n databases, Discord conversations, 
 See [recovery](deployments/hermes/docs/recovery.md), [backups](deployments/hermes/docs/backups.md), and [GitHub operation](deployments/hermes/docs/github.md). The backup helpers are not a license to interrupt production services without the operator's selected approval.
 
 For public deployments, copy `deployments/hermes/config/publication-private-terms.json.example` to the ignored `.json` path and configure your private names locally. Do not publish the real blocklist into the public repository.
+
+For the research browser, provision Docker build access to the pinned Playwright image and npm package, then run `python3 prepare.py` and `docker compose up -d --build renderer render-fetch broker` from deployments/hermes. The browser has no host port or external network route; the public-fetch relay is separate. Keep the supplied seccomp profile and Chromium sandbox enabled. Run `python3 validation/check_research_browser.py` after deployment. This is source for the configured installation, not a promise of unattended fresh-host enrollment.

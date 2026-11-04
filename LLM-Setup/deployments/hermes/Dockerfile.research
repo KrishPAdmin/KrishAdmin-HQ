@@ -1,0 +1,7 @@
+FROM mcr.microsoft.com/playwright@sha256:dcc5531e97840b9b5e794f2814476b21571c5124a3fca2267d73041f56e7580e
+WORKDIR /app
+COPY config/browser-package.json ./package.json
+COPY config/browser-package-lock.json ./package-lock.json
+RUN npm ci --ignore-scripts --no-audit --no-fund
+USER pwuser
+ENTRYPOINT ["node", "/app/render_server.mjs"]

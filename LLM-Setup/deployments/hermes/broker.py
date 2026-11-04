@@ -256,8 +256,41 @@ def research_request(body):
     question=body.get('question') or body.get('query')
     if not isinstance(question,str) or not question.strip():raise ValueError('A research question is required')
     packet=collect_web(body.get('query') or question,body.get('urls'))
-    packet['research_status']=packet['status']
-    packet['search_summary']={k:v for k,v in packet['search'].items() if k!='results'}
+    attempts=[{'query':body.get('query') or question,'source_count':len(packet['sources'])}]
+    def coverage(p):
+        prompt='Assess whether these fetched source excerpts actually answer the user request. Do not answer the request yet. Return ONLY JSON with sufficient (boolean), missing (short string), and queries (up to 2 focused follow-up web searches if insufficient). Related pages or missing numbers are NOT sufficient. Do not require exact private data when a clearly labeled public rounded number answers the request. User request: '+question
+        try:
+            assessment=run_worker('analyst',p,prompt,'plan')
+            raw=assessment.get('text','');start=raw.find('{')
+            result,_=json.JSONDecoder().raw_decode(raw[start:])
+            if type(result.get('sufficient')) is not bool:raise ValueError('Missing boolean coverage')
+            queries=result.get('queries',[])
+            result['queries']=[q for q in queries if isinstance(q,str) and 1<=len(q)<=250][:2] if isinstance(queries,list) else []
+            return result
+        except Exception as error:return {'sufficient':False,'missing':'Coverage assessment unavailable: '+type(error).__name__,'queries':[]}
+    # A coverage gate prevents 'fetched related pages' being mistaken for success.
+    # Planning is AMD-GPU inference; every follow-up fetch still runs on HQ.
+    packet['research_status']=packet['status'];packet['search_summary']={k:v for k,v in packet['search'].items() if k!='results'}
+    assessment=coverage(packet) if packet['sources'] else {'sufficient':False,'missing':'No readable sources','queries':[question[:230]+' official source',question[:230]+' latest data']}
+    if not assessment['sufficient']:
+        queries=assessment['queries'] or [question[:230]+' official source',question[:230]+' latest data']
+        for query in queries:
+            follow=collect_web(query)
+            attempts.append({'query':query,'source_count':len(follow['sources'])})
+            merged={s['url']:s for s in packet['sources']}
+            for source in follow['sources']:merged[source['url']]=source
+            packet['sources']=list(merged.values())[-4:]
+            # Keep several sources within the verified 32K analysis budget.
+            for source in packet['sources']:
+                if len(source['excerpt'].encode())>4000:source['excerpt']=source['excerpt'].encode()[:4000].decode('utf-8',errors='ignore');source['truncated']=True
+            packet.setdefault('fetch_failures',[]).extend(follow.get('fetch_failures',[]))
+        if len(attempts)>1 and packet['sources']:assessment=coverage(packet)
+    packet['search_attempts']=attempts
+    packet['research_status']='supported' if assessment['sufficient'] else 'partial' if packet['sources'] else 'no_source_evidence'
+    packet['search_summary']['coverage']=assessment
+    packet['search_summary']['search_attempts']=attempts
+    packet['status']='sources_collected' if packet['sources'] else 'no_source_evidence'
+    packet['evidence_sha256']=digest({k:v for k,v in packet.items() if k!='evidence_sha256'})
     if not packet['sources']:
         audit('web_research',status=packet['status'],evidence_sha256=packet['evidence_sha256'])
         return {'evidence':packet,'analysis':None,'status':'research_incomplete','reason':'No readable sources collected; use search/read tools or a supplied public source URL. Do not guess an answer.'}
@@ -269,9 +302,9 @@ def research_request(body):
             if len(source['excerpt'].encode())<=200:raise
             source['excerpt']=source['excerpt'].encode()[:max(200,int(len(source['excerpt'].encode())*.8))].decode('utf-8',errors='ignore');source['truncated']=True
     packet['evidence_sha256']=digest({k:v for k,v in packet.items() if k!='evidence_sha256'})
-    result=run_worker('analyst',packet,question,'research')
+    result=run_worker('analyst',packet,question+'\nAnswer directly with source URLs and source/fetch time. Label rounded values as approximate. Explain remaining gaps after the searches already attempted. Do not ask permission to try another ordinary public search; attempts have already been performed. Do not dump evidence hashes into the user answer.','research')
     audit('web_research',status=packet['status'],backend=result['backend'],run_id=result['run_id'],urls=[s['url'] for s in packet['sources']],evidence_sha256=packet['evidence_sha256'])
-    return {'evidence':packet,'analysis':result,'status':'completed','workflow':'HQ search and source retrieval -> AMD-GPU analysis'}
+    return {'evidence':packet,'analysis':result,'status':'completed' if assessment['sufficient'] else 'partial','workflow':'HQ collection -> AMD-GPU coverage assessment -> HQ follow-up searches when needed -> AMD-GPU synthesis'}
 
 def workbench(body):
     """Repeatable evidence workflows; never run model-selected commands."""
@@ -514,7 +547,7 @@ class Handler(BaseHTTPRequestHandler):
             if role in ('concierge','operator'):
                 if self.path=='/web/weather':return self.send(200,weather(body.get('location'),body.get('country_code')))
                 if self.path=='/web/search':return self.send(200,search_web(body.get('query')))
-                if self.path=='/web/read':return self.send(200,read_page(body.get('url'),body.get('offset',0),body.get('limit',4000),body.get('find')))
+                if self.path=='/web/read':return self.send(200,read_page(body.get('url'),body.get('offset',0),body.get('limit',4000),body.get('find'),body.get('render',False)))
                 if self.path=='/workbench':return self.send(200,workbench(body))
                 if self.path=='/research':return self.send(200,research_request(body))
                 if self.path=='/diagnostics':return self.send(200,diagnostics(body))

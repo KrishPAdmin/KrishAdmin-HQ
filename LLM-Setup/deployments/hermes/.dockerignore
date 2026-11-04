@@ -1,0 +1,5 @@
+**
+!Dockerfile.research
+!config/
+!config/browser-package.json
+!config/browser-package-lock.json

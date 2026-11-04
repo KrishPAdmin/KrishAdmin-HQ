@@ -1,0 +1,68 @@
+"""Answer coverage, semantic extraction and isolated rendering regressions."""
+import json,unittest
+from unittest.mock import patch
+import broker,web_research
+
+class ResearchDepthTests(unittest.TestCase):
+    def test_youtube_uses_primary_header_not_recommended_channel(self):
+        data={'metadata':{'channelMetadataRenderer':{'title':'Example Lab','externalId':'UC-example'}},
+              'header':{'pageHeaderViewModel':{'metadataRows':[{'content':'2.34M subscribers'},{'accessibilityLabel':'2.34 million subscribers'}]}},
+              'contents':{'recommended':{'subscriberCountText':{'simpleText':'999M subscribers'}}}}
+        raw=('<script>var ytInitialData = '+json.dumps(data)+';</script>').encode()
+        text=web_research.structured_text(raw,'https://www.youtube.com/@example/about')
+        self.assertIn('Example Lab',text);self.assertIn('2.34M subscribers',text)
+        self.assertNotIn('999M',text);self.assertIn('approximate',text)
+        self.assertNotIn('PRIMARY CHANNEL',web_research.structured_text(raw,'https://example.org/fake'))
+
+    def test_missing_channel_count_does_not_take_recommendation(self):
+        data={'metadata':{'channelMetadataRenderer':{'title':'Example Lab'}},'contents':{'simpleText':'999M subscribers'}}
+        text=web_research.structured_text(('<script>ytInitialData = '+json.dumps(data)+'</script>').encode(),'https://youtube.com/@example')
+        self.assertIn('"subscriber_count_display": []',text);self.assertNotIn('999M',text)
+
+    def test_truncated_javascript_is_not_readable_evidence(self):
+        self.assertEqual(web_research.clean(b'<main>Visible</main><script>secret_not_evidence'), 'Visible')
+
+    def test_jsonld_and_page_description_survive_script_removal(self):
+        raw=b'<meta name="description" content="Example launch"><script type="application/ld+json">{"@type":"Product","name":"Example","offers":{"price":"42.50","priceCurrency":"CAD"}}</script>'
+        text=web_research.structured_text(raw,'https://example.org')
+        for value in ('Example launch','42.50','CAD'):self.assertIn(value,text)
+
+    def test_unicode_channel_excerpt_obeys_byte_budget(self):
+        text='YouTube PRIMARY CHANNEL HEADER: example '+('界'*7000)
+        page={'url':'https://youtube.com/@example','raw':b'fixture','text':text,'fetched_at':'now','download_truncated':False}
+        with patch('web_research.document',return_value=page):
+            result=web_research.collect('example',urls=[page['url']])
+        self.assertLessEqual(len(result['sources'][0]['excerpt'].encode()),6500)
+        self.assertTrue(result['sources'][0]['truncated'])
+
+    def test_renderer_failure_is_explicit_and_html_retained(self):
+        page={'url':'https://example.org','raw':b'<main>Readable fallback</main>','download_truncated':False,'fetched_at':'now'}
+        with patch('web_research.fetch',return_value=page),patch.dict('os.environ',{'HQ_RENDER_URL':'http://renderer/render'}),patch('urllib.request.urlopen',side_effect=TimeoutError):
+            result=web_research.read_page(page['url'],render=True)
+        self.assertEqual(result['text'],'Readable fallback');self.assertEqual(result['render_error'],'TimeoutError')
+        self.assertEqual(result['browser_receipt'],{})
+
+    def test_missing_fact_triggers_search_and_reassessment(self):
+        def packet(url,text):return {'status':'sources_collected','search':{},'sources':[{'url':url,'excerpt':text,'body_sha256':'body'}],'fetch_failures':[],'evidence_sha256':'initial'}
+        first=packet('https://example.org/intro','Company introduction')
+        second=packet('https://example.org/stats','Subscribers: about 2.34 million')
+        replies=[{'text':json.dumps({'sufficient':False,'missing':'Subscriber count','queries':['Example Lab subscriber statistics']})},
+                 {'text':json.dumps({'sufficient':True,'missing':'','queries':[]})},
+                 {'text':'About 2.34 million','backend':'amd-gpu','run_id':'checked'}]
+        with patch('broker.collect_web',side_effect=[first,second]) as collect,patch('broker.run_worker',side_effect=replies),patch('broker.audit'):
+            result=broker.research_request({'question':'Example Lab subscriber count'})
+        self.assertEqual(collect.call_count,2);self.assertEqual(result['status'],'completed')
+        self.assertEqual(result['evidence']['research_status'],'supported')
+        self.assertEqual(len(result['evidence']['search_attempts']),2)
+        self.assertTrue(result['evidence']['search_summary']['coverage']['sufficient'])
+
+    def test_unanswered_research_is_partial_not_completed(self):
+        p={'status':'sources_collected','search':{},'sources':[{'url':'https://example.org','excerpt':'Introduction'}],'fetch_failures':[],'evidence_sha256':'initial'}
+        replies=[{'text':'{"sufficient":false,"missing":"Count","queries":["Example statistics"]}'},
+                 {'text':'{"sufficient":false,"missing":"Count","queries":[]}'},
+                 {'text':'Count remains unavailable','backend':'amd-gpu','run_id':'checked'}]
+        with patch('broker.collect_web',return_value=p),patch('broker.run_worker',side_effect=replies),patch('broker.audit'):
+            result=broker.research_request({'question':'Example count'})
+        self.assertEqual(result['status'],'partial');self.assertEqual(result['evidence']['research_status'],'partial')
+
+if __name__=='__main__':unittest.main()

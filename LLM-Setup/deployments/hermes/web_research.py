@@ -1,5 +1,5 @@
 """Public web search and source collection on HQ; never on a compute host."""
-import datetime,hashlib,html,http.client,ipaddress,json,re,socket,ssl,xml.etree.ElementTree as ET
+import os,datetime,hashlib,html,http.client,ipaddress,json,re,socket,ssl,time,xml.etree.ElementTree as ET
 from urllib.parse import urlsplit,urlunsplit,urljoin,quote,parse_qs
 from html.parser import HTMLParser
 
@@ -18,7 +18,7 @@ def fetch(url,limit=300000,redirects=3):
                 except BaseException:raw.close();raise
         conn=Pinned(host,timeout=12,context=ssl.create_default_context())
         try:
-            conn.request('GET',urlunsplit(('','',p.path or '/',p.query,'')),headers={'User-Agent':'KrishAdmin-HQ-Research/1.0','Accept':'text/html,application/rss+xml,application/xml,text/plain','Accept-Encoding':'identity'})
+            conn.request('GET',urlunsplit(('','',p.path or '/',p.query,'')),headers={'User-Agent':'KrishAdmin-HQ-Research/1.0','Accept':'text/html,application/rss+xml,application/xml,application/json,text/plain,*/*;q=0.5','Accept-Encoding':'identity'})
             r=conn.getresponse()
             if r.status in (301,302,303,307,308):
                 if step==redirects:raise ValueError('Too many redirects')
@@ -27,17 +27,86 @@ def fetch(url,limit=300000,redirects=3):
                 url=urljoin(url,location);continue
             if r.status!=200:raise ValueError('HTTP '+str(r.status))
             content_type=r.getheader('Content-Type','')
-            if not any(t in content_type for t in ('text/','application/rss+xml','application/xml','application/json')):raise ValueError('Unsupported document format')
+            if not any(t in content_type for t in ('text/','application/rss+xml','application/xml','application/json','application/javascript','application/x-javascript')):raise ValueError('Unsupported document format')
             raw=r.read(limit+1)
-            return {'url':url,'raw':raw[:limit],'download_truncated':len(raw)>limit,'fetched_at':now()}
+            return {'url':url,'raw':raw[:limit],'content_type':content_type,'response_headers':{k:r.getheader(k) for k in ('access-control-allow-origin','content-language') if r.getheader(k)},'download_truncated':len(raw)>limit,'fetched_at':now()}
         finally:conn.close()
 
 def clean(raw):
-    text=raw.decode('utf-8',errors='replace');text=re.sub(r'<(script|style)\b[^>]*>.*?</\1>',' ',text,flags=re.S|re.I)
+    text=raw.decode('utf-8',errors='replace');text=re.sub(r'<(script|style)\b[^>]*>.*?(?:</\1>|$)',' ',text,flags=re.S|re.I)
     main=re.search(r'<main\b[^>]*>(.*?)</main>',text,flags=re.S|re.I)
     if main:text=main.group(1)
     text=re.sub(r'<(nav|header|footer)\b[^>]*>.*?</\1>',' ',text,flags=re.S|re.I)
     return re.sub(r'\s+',' ',html.unescape(re.sub(r'<[^>]*>',' ',text))).strip()
+
+def structured_text(raw,url):
+    """Read semantic page data without executing scripts or mixing related entities."""
+    text=raw.decode('utf-8',errors='replace');host=(urlsplit(url).hostname or '').lower();parts=[]
+    if host in ('youtube.com','www.youtube.com','m.youtube.com') and re.match(r'^/(?:@[^/]+|channel/[^/]+)(?:/|$)',urlsplit(url).path):
+        for match in re.finditer(r'(?:var\s+)?ytInitialData\s*=\s*',text):
+            try:data,_=json.JSONDecoder().raw_decode(text[match.end():])
+            except ValueError:continue
+            meta=data.get('metadata',{}).get('channelMetadataRenderer',{})
+            # Only this page's header. Recommended/featured channels have different counts.
+            header=data.get('header',{});strings=[]
+            def walk(value,depth=0):
+                if depth>18:return
+                if isinstance(value,dict):
+                    for k,v in value.items():
+                        if k in ('content','simpleText','accessibilityLabel') and isinstance(v,str) and len(v)<200:strings.append(v)
+                        elif isinstance(v,(dict,list)):walk(v,depth+1)
+                elif isinstance(value,list):
+                    for v in value[:100]:walk(v,depth+1)
+            walk(header)
+            counts=list(dict.fromkeys(s for s in strings if re.search(r'\d.*subscribers?\b',s,re.I)))
+            title=meta.get('title');channel_id=meta.get('externalId')
+            if title:
+                parts.append('YouTube PRIMARY CHANNEL HEADER: '+json.dumps({'channel_name':title,'channel_id':channel_id,'subscriber_count_display':counts,'header_text':list(dict.fromkeys(s for s in strings if s.startswith('@') or re.search(r'\d.*videos?\b',s,re.I)))},ensure_ascii=False))
+                parts.append('Public YouTube subscriber counts are rounded/abbreviated. Report the displayed number as approximate, with the fetch timestamp; do not invent an exact private count.')
+            break
+    class Semantic(HTMLParser):
+        def __init__(self):super().__init__();self.ld=False;self.data=[];self.blocks=[];self.meta=[]
+        def handle_starttag(self,tag,attrs):
+            a=dict(attrs)
+            if tag=='script' and a.get('type','').lower()=='application/ld+json':self.ld=True;self.data=[]
+            if tag=='meta' and (a.get('property') or a.get('name')) in ('og:title','og:description','description','article:published_time','article:modified_time'):self.meta.append((a.get('property') or a.get('name'))+': '+a.get('content','')[:1200])
+        def handle_data(self,data):
+            if self.ld:self.data.append(data)
+        def handle_endtag(self,tag):
+            if tag=='script' and self.ld:self.blocks.append(''.join(self.data));self.ld=False
+    parser=Semantic();parser.feed(text);parts.extend(parser.meta[:8])
+    allowed={'@type','name','headline','description','datePublished','dateModified','price','priceCurrency','availability','ratingValue','ratingCount','reviewCount','userInteractionCount','interactionType','subscriberCount','numberOfItems','value','unitText','author','publisher','url'}
+    def semantic(value,depth=0):
+        if depth>10:return []
+        result=[]
+        if isinstance(value,dict):
+            for k,v in value.items():
+                if k in allowed and isinstance(v,(str,int,float,bool)):result.append(k+': '+str(v)[:1500])
+                elif isinstance(v,(dict,list)):result.extend(semantic(v,depth+1))
+        elif isinstance(value,list):
+            for v in value[:30]:result.extend(semantic(v,depth+1))
+        return result[:100]
+    for block in parser.blocks[:8]:
+        try:parts.append('Structured page metadata (may describe multiple entities): '+'; '.join(semantic(json.loads(block))))
+        except (ValueError,RecursionError):pass
+    return '\n'.join(parts)[:18000]
+
+def document(url,render=False):
+    host=(urlsplit(url).hostname or '').lower()
+    limit=8*1024*1024 if host in ('youtube.com','www.youtube.com','m.youtube.com') else 2*1024*1024
+    page=fetch(url,limit=limit);semantic=structured_text(page['raw'],page['url'])
+    text=semantic+'\n'+clean(page['raw']) if semantic else clean(page['raw'])
+    page['extraction']='HTML + semantic metadata'
+    if render and not os.environ.get('HQ_RENDER_URL'):page['render_error']='Browser renderer is not configured'
+    if (render or len(text.strip())<120 or len(text.strip())<500 and b'<script' in page['raw'].lower()) and os.environ.get('HQ_RENDER_URL'):
+        try:
+            import urllib.request
+            req=urllib.request.Request(os.environ['HQ_RENDER_URL'],data=json.dumps({'url':page['url']}).encode(),headers={'Content-Type':'application/json'})
+            with urllib.request.urlopen(req,timeout=55) as response:rendered=json.load(response)
+            if rendered.get('text'):
+                text=semantic+'\n'+rendered['text'];page['extraction']='browser DOM + semantic metadata';page['render']=rendered
+        except Exception as error:page['render_error']=type(error).__name__
+    page['text']=text;return page
 
 def focused_query(query):
     """Remove common task-writing instructions, preserving the research subject."""
@@ -97,19 +166,20 @@ def search_web(query):
             'relevance_warning':bool(terms and results and max(map(relevance,results))<max(1,len(terms)*.65)),
             'attempts':attempts,'results':results[:10],'collector':'HQ','limitations':'Search listings are untrusted discovery links. Read sources before making factual claims.'}
 
-def read_page(url,offset=0,limit=4000,find=None):
+def read_page(url,offset=0,limit=4000,find=None,render=False):
     if type(offset) is not int or offset<0 or type(limit) is not int or not 1<=limit<=8000:raise ValueError('Use offset >= 0 and limit 1–8000')
-    page=fetch(url);text=clean(page['raw'])
+    page=document(url,render=render);text=page['text']
     if find is not None:
         if not isinstance(find,str) or not 1<=len(find)<=120:raise ValueError('find must be 1–120 characters')
         position=text.lower().find(find.lower(),offset)
         if position<0:return {'url':page['url'],'status':'text_not_found','download_truncated':page['download_truncated'],'collector':'HQ'}
         offset=position
     chunk=text[offset:offset+limit]
-    if not text:raise ValueError('No readable text; JavaScript-only, authenticated and image pages are not supported')
+    if not text:raise ValueError('No readable text after available extraction; authenticated, challenged or image pages may be unavailable')
     return {'url':page['url'],'fetched_at':page['fetched_at'],'body_sha256':hashlib.sha256(page['raw']).hexdigest(),
             'text':chunk,'offset':offset,'next_offset':offset+len(chunk) if offset+len(chunk)<len(text) else None,
-            'download_truncated':page['download_truncated'],'collector':'HQ','untrusted_source':True}
+            'download_truncated':page['download_truncated'],'extraction':page['extraction'],'render_error':page.get('render_error'),
+            'browser_receipt':{k:v for k,v in page.get('render',{}).items() if k!='text'},'collector':'HQ','untrusted_source':True}
 
 def weather(location,country_code=None):
     """Current modeled conditions and three-day forecast, collected only on HQ."""
@@ -153,12 +223,13 @@ def collect(query,urls=None):
         primary=host.startswith('docs.') or host.endswith(('.gov','.edu','.gov.uk','.gc.ca')) or any(host==h or host.endswith('.'+h) for h in ('apple.com','python.org','nvidia.com','amd.com','microsoft.com','kernel.org','ollama.com','nousresearch.com','modelcontextprotocol.io','open-meteo.com'))
         return (100 if primary else 0)+sum(10 for term in set(terms) if term in path)+(8 if 'specs' in path or 'technical' in path else 0)
     documents=[];failures=[];queue=[(u,0) for u in (urls or [])];seen=set();attempts=0
-    while queue and attempts<6:
+    deadline=time.monotonic()+60
+    while queue and attempts<10 and time.monotonic()<deadline:
         url,depth=queue.pop(0)
         if url in seen:continue
         seen.add(url);attempts+=1
         try:
-            page=fetch(url);text=clean(page['raw'])
+            page=document(url);text=page['text']
             if len(text)<80:raise ValueError('Page has insufficient readable text')
             if terms and not any(re.search(r'\b'+re.escape(term)+r'\b',text,re.I) for term in terms):
                 raise ValueError('Source does not mention the search subject')
@@ -172,12 +243,16 @@ def collect(query,urls=None):
                     if any(x in parts.path.lower() for x in ('/shop','/buy','/cart','/login','/checkout')):continue
                     if linked not in seen and score(linked)>score(page['url']):links.append(linked)
                 if links:queue.insert(0,(max(set(links),key=lambda u:(score(u),-len(u))),depth+1))
-        except Exception as e:failures.append({'url':url,'error_type':type(e).__name__})
+        except Exception as e:failures.append({'url':url,'error_type':type(e).__name__,'reason':str(e)[:160]})
     documents.sort(key=lambda x:x[0],reverse=True);sources=[]
-    selected=documents[:2]
+    # Explicitly retain useful semantic channel statistics ahead of navigation pages.
+    documents.sort(key=lambda x:('YouTube PRIMARY CHANNEL HEADER:' in x[2] and 'subscriber_count_display": ["' in x[2],x[0]),reverse=True)
+    selected=documents[:3]
     for i,(_,page,text) in enumerate(selected):
         budget=6500 if i==0 else 1500
-        if i==0 and ('specs' in urlsplit(page['url']).path or 'technical' in urlsplit(page['url']).path):
+        if 'YouTube PRIMARY CHANNEL HEADER:' in text:
+            excerpt=text[:budget]
+        elif i==0 and ('specs' in urlsplit(page['url']).path or 'technical' in urlsplit(page['url']).path):
             spans=[text[:1250]]
             for anchor,width in [('Chip ',300),('Camera ',300),('Power and Battery',350),('Cellular and Wireless',200)]:
                 found=text.find(anchor)
@@ -197,7 +272,10 @@ def collect(query,urls=None):
                 if len(anchors)==3:break
             excerpt=(text[:200]+' […] '+' […] '.join(text[p:p+2100] for p in sorted(anchors))) if anchors else text
             excerpt=excerpt.encode()[:budget].decode('utf-8',errors='ignore')
-        sources.append({'url':page['url'],'fetched_at':page['fetched_at'],'body_sha256':hashlib.sha256(page['raw']).hexdigest(),'excerpt':excerpt,'truncated':page['download_truncated'] or len(excerpt)<len(text)})
+        excerpt=excerpt.encode()[:budget].decode('utf-8',errors='ignore')
+        sources.append({'url':page['url'],'fetched_at':page['fetched_at'],'body_sha256':hashlib.sha256(page['raw']).hexdigest(),'excerpt':excerpt,'extraction':page.get('extraction'),
+                        'browser_receipt':{k:v for k,v in page.get('render',{}).items() if k!='text'},'render_error':page.get('render_error'),
+                        'truncated':page['download_truncated'] or len(excerpt)<len(text) or page.get('render',{}).get('truncated',False)})
     packet={'collector':'HQ gateway; no requests issued by AMD-GPU','collected_at':now(),'search':search,'sources':sources,'fetch_failures':failures,
             'status':'sources_collected' if sources else 'no_source_evidence','limitations':'Search results can be irrelevant or incomplete. Excerpts are partial. Absence from results is not proof a product does not exist. Distinguish official announcements, rumors and uncertain names; cite fetched URLs.'}
     packet['evidence_sha256']=hashlib.sha256(json.dumps(packet,sort_keys=True).encode()).hexdigest()

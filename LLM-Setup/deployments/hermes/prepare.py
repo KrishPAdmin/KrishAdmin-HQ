@@ -62,6 +62,17 @@ def main():
             './observations:/observations:ro','./run/diagnostics:/diagnostic-socket:ro','/var/lib/hq-observations:/backup-observations:ro','../paperclip/data/hq-locks:/locks',
             '../../secrets/nvidia-gpu-api.txt:/run/secrets/nvidia-gpu-token:ro','../../secrets/amd-gpu-api.txt:/run/secrets/amd-gpu-token:ro',
             '../../secrets/nvidia-gpu-server.crt:/run/secrets/nvidia-gpu-ca.crt:ro']}
+    services['broker']['environment']={'HQ_RENDER_URL':'http://renderer:8080/render'}
+    services['broker']['networks']['research_internal']={}
+    services['render-fetch']={**common,'entrypoint':['python','/app/render_fetch.py'],'mem_limit':'256m',
+        'networks':['research_internal','egress'],
+        'volumes':['./render_fetch.py:/app/render_fetch.py:ro','./web_research.py:/app/web_research.py:ro']}
+    services['renderer']={**common,'image':'hq-research-browser:1.0.0','build':{'context':'.','dockerfile':'Dockerfile.research'},
+        'entrypoint':['node','/app/render_server.mjs'],'user':'pwuser','mem_limit':'1g','pids_limit':256,
+        'tmpfs':['/tmp:rw,nosuid,size=512m'],'shm_size':'128m','networks':['research_internal'],
+        'security_opt':['no-new-privileges:true','seccomp=./config/browser-seccomp.json'],
+        'volumes':['./render_server.mjs:/app/render_server.mjs:ro'],
+        'healthcheck':{'test':['CMD','node','-e',"fetch('http://localhost:8080/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"],'interval':'20s','timeout':'5s','retries':3}}
     services['discord-egress']={**common,'entrypoint':['python','/app/discord_egress.py'],'mem_limit':'128m',
         'profiles':['discord'],'networks':['private','egress'],'volumes':['./discord_egress.py:/app/discord_egress.py:ro'],
         'healthcheck':{'disable':True}}
@@ -71,7 +82,7 @@ def main():
             './plugin:/profile/plugins/hq-operations:ro','./access/concierge:/run/access/identity:ro',
             './access/discord-token:/run/access/discord-token:ro','./run/github:/github-socket:ro','./access/github-origin:/run/access/github-origin:ro'], 'healthcheck':{'disable':True}}
     (ROOT/'compose.yaml').write_text(json.dumps({'name':'hq-hermes','services':services,
-        'networks':{'private':{'internal':True},'egress':{},'paperclip':{'external':True,'name':'hq-paperclip_default'}}},indent=2)+'\n')
+        'networks':{'private':{'internal':True},'research_internal':{'internal':True},'egress':{},'paperclip':{'external':True,'name':'hq-paperclip_default'}}},indent=2)+'\n')
     (ROOT/'release.json').write_text(json.dumps({'version':'v0.22.6','revision':'f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab','image':IMAGE},indent=2)+'\n')
     print('Prepared deployment, separate profiles and private credentials; Discord remains disabled until enrollment.')
 if __name__=='__main__':main()
