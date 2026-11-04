@@ -11,7 +11,7 @@
 | Allowed operator | `900000000000000004` |
 | Allowed friend | `900000000000000005` |
 
-The configured policy restricts the allowed users/channel, disables DMs, requires a bot account mention, and disables history backfill. The local tool surface remains eleven operations. Native `/help` can list upstream commands and skills that are not part of this deployment's supported workflow; use this guide for supported commands. Live wrong-user/channel/DM denial tests remain an acceptance item.
+The configured policy restricts the allowed users/channel, disables DMs, requires a bot account mention, and disables history backfill. The tool surface includes eleven native operations and six MCP tools; see [Internet and long-context workflows](mcp.md). Native `/help` can list upstream commands and skills that are not part of this deployment's supported workflow; use this guide for supported commands. Live wrong-user/channel/DM denial tests remain an acceptance item.
 
 ## Allowed users
 

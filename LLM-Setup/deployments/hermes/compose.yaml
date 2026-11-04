@@ -680,6 +680,9 @@
       ],
       "volumes": [
         "./broker.py:/app/broker.py:ro",
+        "./task_updates.py:/app/task_updates.py:ro",
+        "./profiles/concierge/discord-enrollment.json:/discord-enrollment.json:ro",
+        "./web_research.py:/app/web_research.py:ro",
         "./health_rules.py:/app/health_rules.py:ro",
         "./capabilities.py:/app/capabilities.py:ro",
         "./team.py:/app/team.py:ro",
@@ -689,15 +692,12 @@
         "./state:/state",
         "./config:/config:ro",
         "./observations:/observations:ro",
+        "./run/diagnostics:/diagnostic-socket:ro",
         "/var/lib/hq-observations:/backup-observations:ro",
         "../paperclip/data/hq-locks:/locks",
         "../../secrets/nvidia-gpu-api.txt:/run/secrets/nvidia-gpu-token:ro",
         "../../secrets/amd-gpu-api.txt:/run/secrets/amd-gpu-token:ro",
-        "../../secrets/nvidia-gpu-server.crt:/run/secrets/nvidia-gpu-ca.crt:ro",
-        "./run/diagnostics:/diagnostic-socket:ro",
-        "./web_research.py:/app/web_research.py:ro",
-        "./task_updates.py:/app/task_updates.py:ro",
-        "./profiles/concierge/discord-enrollment.json:/discord-enrollment.json:ro"
+        "../../secrets/nvidia-gpu-server.crt:/run/secrets/nvidia-gpu-ca.crt:ro"
       ]
     },
     "discord-egress": {
@@ -791,6 +791,7 @@
       },
       "volumes": [
         "./gateway_start.py:/app/gateway_start.py:ro",
+        "./mcp_server.py:/app/mcp_server.py:ro",
         "./profiles/concierge:/profile",
         "./plugin:/profile/plugins/hq-operations:ro",
         "./access/concierge:/run/access/identity:ro",

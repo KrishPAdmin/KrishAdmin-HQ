@@ -1,5 +1,5 @@
 name: hq-operations
-version: 2.3.0
+version: 2.4.0
 description: Restricted HQ observations, Paperclip task intake and HQ-collected research with AMD-GPU analysis.
 provides_tools:
   - hq_status

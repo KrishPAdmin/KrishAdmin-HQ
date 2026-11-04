@@ -19,6 +19,8 @@ This is the documentation outline and entry point for the installed Hermes/Disco
 | [11. Acceptance and remaining work](acceptance.md) | What was verified and what still needs a decision |
 | [12. Suits team and expanded capabilities](capabilities.md) | Named agents/models, coding, files, research, drafts and arithmetic |
 
+| [15. Internet, MCP and long-context work](mcp.md) | Search, weather, checkers, upload workflows, AMD-GPU context and limitations |
+
 ## Find the right action
 
 - Something looks wrong: run `python3 hq.py doctor`, then read [troubleshooting](troubleshooting.md).

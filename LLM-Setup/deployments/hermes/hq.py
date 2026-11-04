@@ -9,7 +9,7 @@ from team import TEAM
 GUIDES={'index':'index.md','quickstart':'quickstart.md','architecture':'architecture.md',
         'operations':'operations.md','monitoring':'monitoring.md','discord':'discord.md',
         'backups':'backups.md','security':'security.md','troubleshooting':'troubleshooting.md',
-        'recovery':'recovery.md','reference':'reference.md','acceptance':'acceptance.md','capabilities':'capabilities.md','diagnostics':'diagnostics.md','github':'github.md'}
+        'recovery':'recovery.md','reference':'reference.md','acceptance':'acceptance.md','capabilities':'capabilities.md','diagnostics':'diagnostics.md','github':'github.md','mcp':'mcp.md'}
 def main():
     p=argparse.ArgumentParser(description='HQ operations: status and diagnostics are read-only; submit creates a read-only Paperclip task.')
     p.add_argument('operation',choices=['status','alerts','history','doctor','report','guide','health','backup','triage','research','submit','task-status','analyze','files','knowledge','compute','team','calculate','diagnostics'])
@@ -51,13 +51,13 @@ def main():
     elif a.operation in ('analyze','team'):
         text=a.text
         if a.text_file:
-            if a.text_file.stat().st_size>12000:p.error('--text-file must be at most 12000 bytes; supply a smaller excerpt')
+            if a.text_file.stat().st_size>50000:p.error('--text-file must be at most 50000 bytes; supply a smaller excerpt')
             text=a.text_file.read_text()
         body={'kind':a.kind or 'plan','question':a.question,'text':text,'file_id':a.file_id,'offset':a.offset,'limit':a.file_limit}
         route='/analyze'
         if a.operation=='team':
             route='/team';body.update(action='delegate' if a.agent else 'roster',agent=a.agent,compute=a.compute,urls=a.url)
-    elif a.operation=='research':route,body='/research',{'urls':a.url or [],'question':a.question}
+    elif a.operation=='research':route,body='/research',{'urls':a.url or None,'question':a.question,'query':a.query or None}
     elif a.operation=='submit':
         if not a.request_id:p.error('--request-id is required for durable deduplication')
         route,body='/task',{'action':'submit','kind':a.kind or 'health','agent':a.agent,'description':a.question,'request_id':a.request_id}

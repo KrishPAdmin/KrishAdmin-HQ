@@ -17,11 +17,12 @@ class Handler(BaseHTTPRequestHandler):
         if not LOCK.acquire(False):return self.send(429,{'error':'specialist busy'})
         try:
             size=int(self.headers.get('Content-Length',0))
-            if not 0<size<=60000:raise ValueError('Invalid request size')
+            if not 0<size<=120000:raise ValueError('Invalid request size')
             body=json.loads(self.rfile.read(size));kind=body.get('task_kind','plan')
-            system,prompt=prompt_for(kind,body['question'],body['evidence'])
+            budget={'jessica':56000,'louis':24000,'harvey':6000}.get(NAME,24000)
+            system,prompt=prompt_for(kind,body['question'],body['evidence'],max_bytes=budget)
             system=ROLE['persona']+' '+system
-            if len((system+prompt).encode())>6500:raise ValueError('Named-specialist prompt exceeds conservative context budget; use a smaller excerpt')
+            if len((system+prompt).encode())>budget+1000:raise ValueError('Named-specialist prompt exceeds conservative context budget; use a smaller excerpt')
             request=urllib.request.Request('http://broker:8080/v1/chat/completions',
                 data=json.dumps({'model':ROLE['model'],'messages':[{'role':'system','content':system},{'role':'user','content':prompt}],
                                  'max_tokens':ROLE['max_tokens']}).encode(),
@@ -29,7 +30,7 @@ class Handler(BaseHTTPRequestHandler):
             start=time.monotonic()
             with urllib.request.urlopen(request,timeout=500) as response:result=json.load(response)
             value={'agent':NAME,'name':ROLE['name'],'backend':ROLE['backend'],'model':ROLE['model'],'text':result['choices'][0]['message']['content'],
-                   'run_id':result['id'],'seconds':round(time.monotonic()-start,3),'tools':[],'agent_host':'HQ gateway','task_kind':kind,'usage':result['usage']}
+                   'run_id':result['id'],'compute_receipt':result.get('hq_receipt'),'seconds':round(time.monotonic()-start,3),'tools':[],'agent_host':'HQ gateway','task_kind':kind,'usage':result['usage']}
             folder=Path('/profile/runs');folder.mkdir(exist_ok=True)
             path=folder/(str(uuid.uuid4())+'.json');path.write_text(json.dumps({k:v for k,v in value.items() if k!='text'},indent=2)+'\n');path.chmod(0o600)
             self.send(200,value)

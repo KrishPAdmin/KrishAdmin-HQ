@@ -51,7 +51,7 @@ Louis completed Paperclip task KRI-319 with actual AMD-GPU evidence and left it 
 
 The regression suite passes 49 Hermes tests and 2 n8n backup tests. See `validation/suits-acceptance.json`, `team-benchmark-live.json`, `suits-paperclip-result.json`, `file-formats-live.json`, `discord-friend-access.json`, and the concierge’s `concierge-validation-files.json` / `concierge-validation-team.json`. Current service and observation checks are in `validation/doctor-after-suits.json`.
 
-A real user-upload-and-download exchange in Discord remains to be checked; the successful file test used a known cached fixture and the real coordinator tools. Research supports approved explicit HTTPS URLs, not unrestricted search. Code/configuration drafts are review artifacts; no arbitrary code execution or automatic deployment is enabled. Existing token-rotation, off-host-backup, full-recovery and recurring-backup decisions above remain open.
+A real user-upload-and-download exchange in Discord remains to be checked; the successful file test used a known cached fixture and the real coordinator tools. Research now supports public search, readable HTTPS sources and weather; see [MCP workflows](mcp.md) for current validation and limits. Code/configuration drafts are review artifacts; no arbitrary code execution or automatic deployment is enabled. Existing token-rotation, off-host-backup, full-recovery and recurring-backup decisions above remain open.
 
 
 ## Task follow-ups and process interpretation repair — 2026-11-03 UTC
@@ -64,3 +64,9 @@ A real user-upload-and-download exchange in Discord remains to be checked; the s
 - Receipts: `validation/task-and-process-repair.json`, `validation/task-notification-live.json`, `validation/task-link-browser.json`, `validation/amd-gpu-process-sample.json`, and `profiles/concierge/validation-process-request.json`.
 
 The managed research regression also passed: the real concierge called Jessica → HQ source search/fetch → Rachel, returned the fetched specification citations and disclosed excerpt limits. The corrected short tool-call handling cannot silently substitute a roster for delegation. See `profiles/concierge/validation-managed-research.json` and `validation/managed-research-receipts.json`.
+
+## Internet/MCP and long-context acceptance (2026-11-03 local time)
+
+The maintained test suite passes 96 checks. Native Hermes exposes two MCP servers with six tools alongside the eleven native tools. Toronto weather, public research, AMD-GPU checker/automation execution and native attachment-fixture review completed. Actual syntax validation ran for the Python fixture; binary documents correctly skip unsupported syntax validation. Jessica recovered all three markers from a 12,369-token input at a 65,536-token allocation. Native compaction processed 26,769 tokens on AMD-GPU and reduced 157 KB of synthetic history to about 66 KB. Both receipts reported the entire loaded allocation in VRAM. Ordinary file analysis used a 32,768-token allocation. AMD-GPU inference-container network metadata remains internal; no external research requests were executed there.
+
+These checks do not establish perfect model answers, maximum-window accuracy, arbitrary code execution, or a real post-update user attachment exchange. Current limits and repeatable validation commands are in [the MCP runbook](mcp.md).

@@ -27,7 +27,7 @@ class PolicyTests(unittest.TestCase):
         with patch.object(Path,'read_text',return_value='["docs.python.org"]'),patch('broker.socket.getaddrinfo',return_value=[(2,1,6,'',('127.0.0.1',443))]):
             with self.assertRaises(PermissionError):broker.research(['https://docs.python.org/'])
     def test_live_analyst_cannot_collect(self):
-        for route,body in [('/status',{}),('/research',{'urls':['https://docs.python.org/']}),('/task',{'action':'submit'}),('/files',{'action':'list'}),('/analyze',{}),('/team',{'action':'roster'}),('/knowledge',{'section':'index'}),('/draft',{}),('/compute',{}),('/calculate',{'expression':'1+1'}),('/diagnostics',{'target':'amd-gpu','check':'gpu'})]:
+        for route,body in [('/web/weather',{'location':'Toronto'}),('/web/search',{'query':'test'}),('/web/read',{'url':'https://example.org'}),('/workbench',{'action':'check_system','target':'hq'}),('/status',{}),('/research',{'urls':['https://docs.python.org/']}),('/task',{'action':'submit'}),('/files',{'action':'list'}),('/analyze',{}),('/team',{'action':'roster'}),('/knowledge',{'section':'index'}),('/draft',{}),('/compute',{}),('/calculate',{'expression':'1+1'}),('/diagnostics',{'target':'amd-gpu','check':'gpu'})]:
             req=urllib.request.Request('http://127.0.0.1:18880'+route,data=json.dumps(body).encode(),headers={'Authorization':'Bearer '+(ROOT/'access/analyst').read_text().strip()})
             with self.assertRaises(urllib.error.HTTPError) as caught:urllib.request.urlopen(req)
             self.assertEqual(caught.exception.code,403)

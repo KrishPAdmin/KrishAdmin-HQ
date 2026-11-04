@@ -69,9 +69,9 @@ Attach a file to your authorized Discord message and mention the bot. Hermes cac
 
 Limits: 5 MiB per supported upload; 100,000 extracted characters; a read returns at most 4,000 characters and a next_offset. Compressed Office documents are bounded by member count and expanded size. Parsing uses a separate service/subprocess with memory, CPU and time limits. Uploads are cached and may expire; they are not a permanent document archive.
 
-Scanned/image-only PDFs need OCR, which is not enabled. Images, audio, video, ZIP archives, executable binaries and encrypted PDFs are not handled by this reader. Do not upload credential files. Native text attachments may also be included in the authorized conversation context by Hermes.
+Scanned/image-only PDFs need OCR, which is not enabled. Images, audio, video, ZIP archives, executable binaries and encrypted PDFs are not handled by this reader. Do not upload credential files. The native attachment handoff now supplies file IDs; bounded readers handle the text.
 
-A returned slice is not a complete review of a large file. The tools disclose the source hash, reviewed range, next_offset and extraction_truncated flag. Ask for additional sections when necessary. Specialist prompts use a conservative 6,000-byte budget (named personas permit a small additional allowance) to avoid silent context truncation at the configured 8,192-token AMD-GPU context. Oversized input is rejected with a request to split it.
+A returned slice is not a complete review of a large file. The tools disclose the source hash, reviewed range, next_offset and extraction_truncated flag. Ask for additional sections when necessary. Ordinary AMD-GPU analysis uses a 32K context and conservative 24,000-byte prompt budget. Jessica uses 64K and a 56,000-byte prompt budget; larger hq_analyze inputs route to her automatically. Harvey retains a 6,000-byte prompt budget. Oversized source slices are rejected with a request to split them.
 
 ## Coding, configuration and automation
 
@@ -103,7 +103,7 @@ Eleven actual tools are registered: `hq_status`, `hq_task`, `hq_research`, `hq_a
 
 Thirteen new workflow skills cover code review, automation, uploaded files, knowledge, planning, team coordination, each named character, and fixed host diagnostics. Skills are operating instructions; their capabilities come from these implemented tools and services. The existing health, task and research skills remain.
 
-Rachel’s research now performs public web search on HQ, then fetches and follows relevant source/specification links before analysis. Public requests use HTTPS with public-address validation on every redirect; private/LAN destinations are blocked. The older generic `hq_research` tool still accepts only its approved documentation origins. Additional Proxmox, NAS, UniFi and power-control integrations still require scoped enrollment and approved operations.
+Rachel’s research now performs public web search on HQ, then fetches and follows relevant source/specification links before analysis. Public requests use HTTPS with public-address validation on every redirect; private/LAN destinations are blocked. The general `hq_research` tool now accepts public research questions and optional HTTPS sources, with AMD-GPU synthesis. Additional Proxmox, NAS, UniFi and power-control integrations still require scoped enrollment and approved operations.
 
 ## Verification
 
@@ -112,3 +112,7 @@ All six specialists returned real model-backed responses on their assigned GPUs.
 These tests verify the backend pipeline. A real user upload and download in the Discord client remains the final platform acceptance check; no unsolicited test message was sent to your server.
 
 See [fixed host and SSH diagnostics](diagnostics.md) for the new on-demand checks and three Paperclip checker agents. AMD-GPU collection now uses the operator-selected password authentication; the inference workers still have no credentials or host tools.
+
+## Current research and context update
+
+The original short-input limits are superseded by [MCP and long-context workflows](mcp.md): general public search and direct page retrieval are enabled; ordinary synthesis/reviews default to AMD-GPU, Qwen/Louis use 32K, Jessica uses 64K, and long histories compact through AMD-GPU. Fixed workbench checkers, upload validation/review and automation planning are available as MCP tools.

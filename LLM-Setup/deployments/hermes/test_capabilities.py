@@ -23,7 +23,7 @@ class CapabilityTests(unittest.TestCase):
             body={'model':role['model'],'messages':[{'role':'user','content':'test'}],'tools':[{'function':{'name':'hq_status'}}]}
             with self.assertRaises(PermissionError):broker.validate_inference(name,body)
     def test_large_input_rejected_without_truncation(self):
-        with self.assertRaisesRegex(ValueError,'no content was silently truncated'):prompt_for('code_review','review',{'text':'x'*7000})
+        with self.assertRaisesRegex(ValueError,'no content was silently truncated'):prompt_for('code_review','review',{'text':'x'*60000})
     def test_upload_paths_and_symlinks_rejected(self):
         with tempfile.TemporaryDirectory() as d,patch.object(file_service,'ROOT',Path(d)):
             for name in ('/etc/passwd','../../access/discord-token','doc_aaaaaaaaaaaa_../secret.py'):
@@ -40,8 +40,8 @@ class CapabilityTests(unittest.TestCase):
             p=Path(d)/'test.py';p.write_text("raise RuntimeError('DO NOT EXECUTE')")
             self.assertIn('DO NOT EXECUTE',file_service.extract(p)['text'])
     def test_analysis_defaults_to_amd_gpu_and_preserves_file_scope(self):
-        chunk={'file_id':'doc_aaaaaaaaaaaa_code.py','sha256':'hash','text':'print(1)','offset':0,'next_offset':8,'extracted_characters':100,'extraction_truncated':False}
-        with patch.object(broker,'uploaded',return_value=chunk),patch.object(broker,'run_worker',return_value={'backend':'amd-gpu'}) as run:
+        chunk={'file_id':'doc_aaaaaaaaaaaa_code.py','sha256':'hash','text':'print(1)','offset':0,'next_offset':8,'extracted_characters':100,'extraction_truncated':False,'validation':{'status':'passed'}}
+        with patch.object(broker,'uploaded',return_value=chunk),patch.object(broker,'run_worker',return_value={'backend':'amd-gpu','run_id':'fixture'}) as run,patch.object(broker,'audit'):
             result=broker.analyze({'kind':'code_review','question':'review','file_id':chunk['file_id']})
             self.assertEqual(run.call_args.args[0],'analyst')
             self.assertEqual(result['evidence']['reviewed_span']['next_offset'],8)

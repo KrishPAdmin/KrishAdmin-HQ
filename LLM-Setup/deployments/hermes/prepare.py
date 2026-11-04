@@ -25,7 +25,7 @@ def main():
         config={'group_sessions_per_user':True,'thread_sessions_per_user':True,'model':{'default':model,'provider':'custom','base_url':'http://broker:8080/v1','context_length':32768 if profile=='analyst' else 65536},
             'platform_toolsets':{'cli':[],'discord':['hq_ops'] if profile=='concierge' else []},
             'plugins':{'enabled':['hq-operations','discord-platform'] if profile=='concierge' else []},
-            'agent':{'max_turns':5},'compression':{'enabled':False},'memory':{'memory_enabled':False,'user_profile_enabled':False},
+            'agent':{'max_turns':12},'compression':{'enabled':False},'memory':{'memory_enabled':False,'user_profile_enabled':False},
             'tools':{'tool_search':{'enabled':'off'}},'timeouts':{'tools':{'sequential_call':540,'concurrent_batch':540}},
             'platforms':{'discord':{'enabled':False,'extra':{'dm_policy':'disabled','group_policy':'allowlist','group_allow_from':[],
                 'allow_admin_from':[],'group_allow_admin_from':[],'user_allowed_commands':['status'],'group_user_allowed_commands':['status']}}},
@@ -33,7 +33,15 @@ def main():
             'display':{'tool_progress':'off'}}
         cfg=home/'config.yaml'
         if not cfg.exists():cfg.write_text(json.dumps(config,indent=2)+'\n')
-        if profile=='concierge':continue
+        if profile=='concierge':
+            config=json.loads(cfg.read_text())
+            config['mcp_servers']={name:{'command':'python','args':['/app/mcp_server.py',name],'tools':{'include':names,'resources':False,'prompts':False},'timeout':540} for name,names in {'research':['search','read_page','weather'],'workbench':['check_system','review_file','plan_automation']}.items()}
+            config['platform_toolsets']['discord']=['hq_ops','mcp-research','mcp-workbench']
+            config['agent']['max_turns']=12
+            config['compression']={'enabled':True,'threshold':0.75,'threshold_tokens':30000,'target_ratio':0.2,'protect_last_n':6,'proactive_prune_tokens':22000,'progress_notices':True}
+            config['auxiliary']={'compression':{'provider':'custom','base_url':'http://broker:8080/v1','model':TEAM['jessica']['model'],'api_key_env':'OPENAI_API_KEY','timeout':520,'no_progress_timeout':520,'context_length':65536}}
+            cfg.write_text(json.dumps(config,indent=2)+'\n')
+            continue
         services[profile]={**common,'entrypoint':['python','/app/worker.py'],
             'environment':{'HERMES_HOME':'/profile','HQ_PROFILE':profile,'PYTHONPATH':'/opt/hermes','PYTHONDONTWRITEBYTECODE':'1'},
             'volumes':['./worker.py:/app/worker.py:ro','./capabilities.py:/app/capabilities.py:ro',f'./profiles/{profile}:/profile',f'./access/{profile}:/run/access/identity:ro','./access/worker:/run/access/worker:ro']}
@@ -59,7 +67,7 @@ def main():
         'healthcheck':{'disable':True}}
     services['concierge']={**common,'entrypoint':['python','/app/gateway_start.py'],'profiles':['discord'],
         'environment':{'HERMES_HOME':'/profile','XDG_STATE_HOME':'/profile/runtime-state','XDG_CACHE_HOME':'/profile/cache','PYTHONPATH':'/opt/hermes','PYTHONDONTWRITEBYTECODE':'1','DISCORD_PROXY':'http://discord-egress:8888'},
-        'volumes':['./gateway_start.py:/app/gateway_start.py:ro','./profiles/concierge:/profile',
+        'volumes':['./gateway_start.py:/app/gateway_start.py:ro','./mcp_server.py:/app/mcp_server.py:ro','./profiles/concierge:/profile',
             './plugin:/profile/plugins/hq-operations:ro','./access/concierge:/run/access/identity:ro',
             './access/discord-token:/run/access/discord-token:ro','./run/github:/github-socket:ro','./access/github-origin:/run/access/github-origin:ro'], 'healthcheck':{'disable':True}}
     (ROOT/'compose.yaml').write_text(json.dumps({'name':'hq-hermes','services':services,

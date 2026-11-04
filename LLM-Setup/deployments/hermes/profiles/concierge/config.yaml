@@ -8,7 +8,9 @@
   "platform_toolsets": {
     "cli": [],
     "discord": [
-      "hq_ops"
+      "hq_ops",
+      "mcp-research",
+      "mcp-workbench"
     ]
   },
   "plugins": {
@@ -21,7 +23,13 @@
     "max_turns": 12
   },
   "compression": {
-    "enabled": false
+    "enabled": true,
+    "threshold": 0.75,
+    "threshold_tokens": 30000,
+    "target_ratio": 0.2,
+    "protect_last_n": 6,
+    "proactive_prune_tokens": 22000,
+    "progress_notices": true
   },
   "memory": {
     "memory_enabled": false,
@@ -60,7 +68,8 @@
           "hq-suits-team",
           "hq-tasks",
           "status",
-          "hq-github"
+          "hq-github",
+          "hq-workbench"
         ],
         "allowed_channels": [
           "900000000000000003"
@@ -107,5 +116,52 @@
     }
   },
   "group_sessions_per_user": true,
-  "thread_sessions_per_user": true
+  "thread_sessions_per_user": true,
+  "mcp_servers": {
+    "research": {
+      "command": "python",
+      "args": [
+        "/app/mcp_server.py",
+        "research"
+      ],
+      "tools": {
+        "include": [
+          "search",
+          "read_page",
+          "weather"
+        ],
+        "resources": false,
+        "prompts": false
+      },
+      "timeout": 540
+    },
+    "workbench": {
+      "command": "python",
+      "args": [
+        "/app/mcp_server.py",
+        "workbench"
+      ],
+      "tools": {
+        "include": [
+          "check_system",
+          "review_file",
+          "plan_automation"
+        ],
+        "resources": false,
+        "prompts": false
+      },
+      "timeout": 540
+    }
+  },
+  "auxiliary": {
+    "compression": {
+      "provider": "custom",
+      "base_url": "http://broker:8080/v1",
+      "model": "mixtral:8x22b-instruct-v0.1-q4_K_M",
+      "api_key_env": "OPENAI_API_KEY",
+      "timeout": 520,
+      "no_progress_timeout": 520,
+      "context_length": 65536
+    }
+  }
 }

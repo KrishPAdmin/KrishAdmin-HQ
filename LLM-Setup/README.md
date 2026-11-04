@@ -11,6 +11,7 @@ This is the **public source/configuration edition**, captured on 2026-11-03. It 
 | [Full runbook index](deployments/hermes/docs/index.md) | Architecture, operations, monitoring, recovery and acceptance |
 | [Discord prompt guide](deployments/hermes/docs/discord.md) | Copyable prompts, compute routing, permissions and automatic task updates |
 | [Suits team](deployments/hermes/docs/capabilities.md) | Models, hierarchy, delegated workflows and uploaded-file support |
+| [Internet, MCP and long-context work](deployments/hermes/docs/mcp.md) | Public search, weather, fixed workbench workflows, files and larger model windows |
 | [Owner-only GitHub](deployments/hermes/docs/github.md) | Read code, prepare a diff and publish an owner-confirmed review branch |
 | [Host diagnostics](deployments/hermes/docs/diagnostics.md) | Fixed GPU, CPU/process, service and storage checks |
 | [Deployment and recovery checklist](DEPLOYMENT.md) | Dependencies, configuration, secrets and restoration order |
@@ -51,7 +52,10 @@ flowchart TD
 
 - Mention-only Discord requests from enrolled users; separate owner-only GitHub authorization.
 - Actual specialist inference receipts identifying backend, model, timing and GPU residency.
+- Public web search, direct page reading and current weather through local MCP tools; ordinary research synthesis uses amd-gpu.
 - Jessica → HQ web collection → Rachel research with fetched-source citations.
+- Jessica 64K context, 32K general/coder analysis, and automatic conversation compaction on amd-gpu.
+- Repeatable checker, file-review and automation-design workflows with actual execution receipts.
 - Supported uploaded documents and code, bounded reads, syntax checks and draft files.
 - Paperclip tasks, Suits team UI, review cards, evidence attachments and correct task URLs.
 - Automatic Discord task-result follow-ups with retry/reconciliation and edit-in-place updates.

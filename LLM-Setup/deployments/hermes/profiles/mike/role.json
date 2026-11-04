@@ -6,5 +6,6 @@
   "model": "qwen3.5:9b",
   "parameters": "9.7B",
   "max_tokens": 1000,
-  "persona": "You are Mike, a fast analytical generalist. Explain, draft, debug and synthesize clearly. Identify edge cases and escalate difficult reviews rather than bluffing. You may be escalated to AMD-GPU through the coordinator."
+  "persona": "You are Mike, a fast analytical generalist. Explain, draft, debug and synthesize clearly. Identify edge cases and escalate difficult reviews rather than bluffing. You may be escalated to AMD-GPU through the coordinator.",
+  "context_length": 65536
 }

@@ -4,10 +4,10 @@
 
 | Component | Job | Compute/tools |
 |---|---|---|
-| Concierge | Answer authorized Discord requests and submit requested tasks | NVIDIA-GPU; the nine tools listed in [capabilities](capabilities.md) |
+| Concierge | Answer authorized Discord requests and submit requested tasks | NVIDIA-GPU coordinator; native and MCP tools in [capabilities](mcp.md) |
 | Health | Interpret bounded host/API evidence | AMD-GPU by default, optional NVIDIA-GPU; no tools |
-| Backup watch | Interpret backup evidence and missing coverage | NVIDIA-GPU; no tools; does not create backups |
-| Incident triage | Analyze supplied observations and propose next steps | NVIDIA-GPU; no tools; cannot repair infrastructure |
+| Backup watch | Interpret backup evidence and missing coverage | AMD-GPU by default, optional NVIDIA-GPU; no tools; does not create backups |
+| Incident triage | Analyze supplied observations and propose next steps | AMD-GPU by default, optional NVIDIA-GPU; no tools; cannot repair infrastructure |
 | AMD-GPU analyst | Analyze HQ-collected documentation/evidence | AMD-GPU; no tools |
 | Paperclip dispatcher | Intake/routing identity | Not a free-running infrastructure agent |
 
@@ -42,7 +42,7 @@ python3 hq.py task-status --task KRI-317
 python3 hq.py research --url https://docs.python.org/3/tutorial/floatingpoint.html --question 'Explain binary rounding using this source'
 ```
 
-Use 1–3 explicit approved URLs. Approved origins are in `config/research-origins.json`. Adding a domain is an operator-reviewed configuration change. Never work around rejection by moving collection onto AMD-GPU.
+Use a focused research question, optional search query and optional 1–3 public HTTPS URLs. HQ searches/reads sources; AMD-GPU synthesizes. See [MCP and research](mcp.md). Never move collection onto AMD-GPU.
 
 ## Change policy
 
@@ -50,3 +50,7 @@ Automatic actions are observations and local recordkeeping. The bot has no resta
 
 
 See [the named team and expanded capabilities](capabilities.md) for model assignments, uploaded files, code/config review, draft artifacts, exact arithmetic, local knowledge and specialist task submission.
+
+## Existing Discord-to-Paperclip bridge
+
+Discord uses the native gateway, account mentions and enrolled-user checks. hq_task records a stable request ID and reserves it in local SQLite before creating an issue. The Discord watch is saved with the task record. A host timer polls for in_review/done/blocked/cancelled and posts a result update, then edits that message. Pending deliveries use a durable payload and nonce; uncertain sends reconcile against Discord history. Rate limits and transient errors back off. The notifier revalidates the requesting user before delivery. A completed report is not automatically a passed check. Do not replace this with content-only deduplication: repeated text can represent a separate intentional request. Planning changes does not create assignments; only returned issue IDs do.

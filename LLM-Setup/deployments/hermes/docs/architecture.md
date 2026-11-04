@@ -29,13 +29,13 @@ flowchart LR
 
 Hermes v0.22.6 is pinned by revision and immutable image digest in `release.json`. The concierge and optional fast health/backup/triage runtimes run on HQ and use NVIDIA-GPU `qwen3.5:9b` at a per-request 65,536 context. Specialist health/backup/triage analysis defaults to the AMD-GPU analyst. The named team has separate fixed model assignments in [capabilities](capabilities.md). They do not run inside the GPU VM.
 
-The AMD-GPU analyst is a direct, tool-free Ollama analysis service on HQ, using `qwen2.5:72b-instruct-q8_0` at an 8,192 context. It is not a Hermes runtime: this installed Hermes release requires a larger context than the AMD-GPU model advertises. AMD-GPU receives bounded evidence, not collection tools.
+The AMD-GPU analyst is a direct, tool-free Ollama analysis service on HQ, using `qwen2.5:72b-instruct-q8_0` at a 32,768-token context. It is not a Hermes runtime: this installed Hermes release requires a larger context than the AMD-GPU model advertises. AMD-GPU receives bounded evidence, not collection tools.
 
-Public document fetching occurs on HQ. The generic documentation tool validates approved HTTPS origins and public DNS addresses, pins the selected address, validates TLS, refuses redirects, limits content, and records source hashes. Rachel's separate public research collector supports web search and follows a bounded number of public HTTPS source links and redirects, validating each destination. AMD-GPU receives evidence for analysis only.
+Public document fetching occurs on HQ. The general research and MCP tools validate public DNS addresses, pin the selected address, validate TLS and every redirect, limit content, and record source hashes. Public search, direct page reading and weather are collected on HQ. Jessica uses 64K context, including conversation compaction; see [MCP workflows](mcp.md). AMD-GPU receives evidence for analysis only.
 
 ## Network boundaries
 
-Agent containers join the internal Docker network. They have no SSH keys or Docker socket. Only the broker reaches inference services and approved research destinations. Discord traffic goes through an explicit-host CONNECT proxy. The broker's operator port is published only on `127.0.0.1:18880`.
+Agent containers join the internal Docker network. They have no SSH keys or Docker socket. Only the broker reaches inference services and public research destinations. Discord traffic goes through an explicit-host CONNECT proxy. The broker's operator port is published only on `127.0.0.1:18880`.
 
 The AMD-GPU collector now uses password SSH as krishadmin, as selected by the operator, and a fixed HQ command allowlist to invoke local measurement probes. Its account is not server-side restricted; the former forced-command key is not used by this transport. NVIDIA-GPU retains the forced-command observer. This workflow does not browse from AMD-GPU and does not establish a global outbound firewall policy for unrelated software on that host.
 

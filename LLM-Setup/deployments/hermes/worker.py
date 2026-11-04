@@ -32,7 +32,7 @@ class Handler(BaseHTTPRequestHandler):
                     headers={'Content-Type':'application/json','Authorization':'Bearer '+Path('/run/access/identity').read_text().strip()})
                 with urllib.request.urlopen(req,timeout=480) as res: result=json.load(res)
                 self.send(200,{'text':result['choices'][0]['message']['content'],'profile':KIND,'runtime':'Ollama evidence-only analysis',
-                    'run_id':result['id'],'model':MODEL,'backend':'amd-gpu','task_kind':body.get('task_kind','research'),'seconds':round(time.monotonic()-started,3),
+                    'run_id':result['id'],'compute_receipt':result.get('hq_receipt'),'model':MODEL,'backend':'amd-gpu','task_kind':body.get('task_kind','research'),'seconds':round(time.monotonic()-started,3),
                     'evidence_sha256':body['evidence'].get('evidence_sha256'),'tools':[],'agent_host':'HQ gateway','usage':result['usage']})
                 return
             agent=AIAgent(model=MODEL,provider='custom',api_mode='chat_completions',base_url='http://broker:8080/v1',

@@ -59,7 +59,10 @@ def extract(path):
 
 def validate_syntax(path):
     import ast,tomllib
-    text=path.read_text(encoding='utf-8-sig');suffix=path.suffix.lower()
+    suffix=path.suffix.lower()
+    if suffix not in ('.py','.json','.toml','.yaml','.yml'):
+        return {'status':'not_supported','scope':'Syntax checks support Python, JSON, TOML and YAML only','executed':False}
+    text=path.read_text(encoding='utf-8-sig')
     try:
         if suffix=='.py':ast.parse(text)
         elif suffix=='.json':json.loads(text)
@@ -88,7 +91,7 @@ def operation(body):
         result=subprocess.run([sys.executable,__file__,'--validate',str(path)],capture_output=True,text=True,timeout=20)
         if result.returncode:raise ValueError('Validation could not complete within limits')
         return {'file_id':path.name,'validation':json.loads(result.stdout)}
-    if type(offset) is not int or offset<0 or type(limit) is not int or not 1<=limit<=4000:raise ValueError('Use a nonnegative character offset and limit 1–4000')
+    if type(offset) is not int or offset<0 or type(limit) is not int or not 1<=limit<=50000:raise ValueError('Use a nonnegative character offset and limit 1–50000')
     result=subprocess.run([sys.executable,__file__,'--extract',str(path)],capture_output=True,text=True,timeout=20)
     if result.returncode:raise ValueError('Document could not be extracted within limits; encrypted, malformed and image-only documents are not supported')
     data=json.loads(result.stdout);text=data['text'];chunk=text[offset:offset+limit]

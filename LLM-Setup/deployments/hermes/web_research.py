@@ -1,6 +1,6 @@
 """Public web search and source collection on HQ; never on a compute host."""
 import datetime,hashlib,html,http.client,ipaddress,json,re,socket,ssl,xml.etree.ElementTree as ET
-from urllib.parse import urlsplit,urlunsplit,urljoin,quote
+from urllib.parse import urlsplit,urlunsplit,urljoin,quote,parse_qs
 from html.parser import HTMLParser
 
 def now():return datetime.datetime.now(datetime.timezone.utc).isoformat()
@@ -48,20 +48,92 @@ def focused_query(query):
     if 'official' in query.lower() and 'official' not in result.lower():result+=' official'
     return result or query
 
+def search_web(query):
+    """Search on HQ with independent providers; snippets are discovery, not evidence."""
+    if not isinstance(query,str) or not 1<=len(query)<=400:raise ValueError('Search query must be 1–400 characters')
+    query=focused_query(query);results=[];attempts=[]
+    class SearchLinks(HTMLParser):
+        def __init__(self):super().__init__();self.url=None;self.title=[];self.rows=[]
+        def handle_starttag(self,tag,attrs):
+            a=dict(attrs)
+            if tag=='a' and 'result__a' in a.get('class',''):
+                u=urljoin('https://html.duckduckgo.com',a.get('href',''))
+                self.url=parse_qs(urlsplit(u).query).get('uddg',[u])[0];self.title=[]
+        def handle_data(self,data):
+            if self.url:self.title.append(data)
+        def handle_endtag(self,tag):
+            if tag=='a' and self.url:
+                self.rows.append({'url':self.url,'title':''.join(self.title)[:180]});self.url=None
+    # Query both providers: a successful but irrelevant RSS response is not a useful fallback.
+    for provider,url in [('DuckDuckGo','https://html.duckduckgo.com/html/?q='+quote(query)),('Bing RSS','https://www.bing.com/search?format=rss&q='+quote(query))]:
+        try:
+            page=fetch(url,limit=150000)
+            if provider=='Bing RSS':
+                root=ET.fromstring(page['raw']);rows=[{'url':x.findtext('link',''),'title':html.unescape(x.findtext('title',''))[:180]} for x in root.findall('./channel/item')[:8]]
+            else:
+                parser=SearchLinks();parser.feed(page['raw'].decode('utf-8',errors='replace'));rows=parser.rows[:8]
+            rows=[r for r in rows if r['url'].startswith('https://')]
+            attempts.append({'provider':provider,'status':'results_found' if rows else 'no_results','fetched_at':page['fetched_at']})
+            for row in rows:
+                if row['url'] not in {r['url'] for r in results}:results.append({**row,'provider':provider})
+        except Exception as error:attempts.append({'provider':provider,'status':'failed','error_type':type(error).__name__})
+    terms=set(re.findall(r'[a-z0-9]{3,}',query.lower()))-{'the','and','for','official','current','research','documentation','specifications','specs','using','latest','what','are','how'}
+    def relevance(row):return sum(t in (row['title']+' '+row['url']).lower() for t in terms)
+    if terms and (not results or max(map(relevance,results))<max(1,len(terms)*.65)):
+        # RSS sometimes overweights the first word. Put a distinctive subject first,
+        # preserving the full original question in metadata and later analysis.
+        words=query.split()
+        refined=' '.join(words[1:]+words[:1]) if len(words)>1 else query
+        try:
+            page=fetch('https://www.bing.com/search?format=rss&q='+quote(refined),limit=150000)
+            root=ET.fromstring(page['raw']);rows=[{'url':x.findtext('link',''),'title':html.unescape(x.findtext('title',''))[:180],'provider':'Bing RSS refined'} for x in root.findall('./channel/item')[:8]]
+            rows=[r for r in rows if r['url'].startswith('https://')]
+            attempts.append({'provider':'Bing RSS refined','query':refined,'status':'results_found' if rows else 'no_results','fetched_at':page['fetched_at']})
+            for row in rows:
+                if row['url'] not in {r['url'] for r in results}:results.append(row)
+        except Exception as error:attempts.append({'provider':'Bing RSS refined','status':'failed','error_type':type(error).__name__})
+    results.sort(key=relevance,reverse=True)
+    return {'query':query,'provider':'DuckDuckGo + Bing RSS','status':'results_found' if results else 'failed' if all(a['status']=='failed' for a in attempts) else 'no_results',
+            'relevance_warning':bool(terms and results and max(map(relevance,results))<max(1,len(terms)*.65)),
+            'attempts':attempts,'results':results[:10],'collector':'HQ','limitations':'Search listings are untrusted discovery links. Read sources before making factual claims.'}
+
+def read_page(url,offset=0,limit=4000,find=None):
+    if type(offset) is not int or offset<0 or type(limit) is not int or not 1<=limit<=8000:raise ValueError('Use offset >= 0 and limit 1–8000')
+    page=fetch(url);text=clean(page['raw'])
+    if find is not None:
+        if not isinstance(find,str) or not 1<=len(find)<=120:raise ValueError('find must be 1–120 characters')
+        position=text.lower().find(find.lower(),offset)
+        if position<0:return {'url':page['url'],'status':'text_not_found','download_truncated':page['download_truncated'],'collector':'HQ'}
+        offset=position
+    chunk=text[offset:offset+limit]
+    if not text:raise ValueError('No readable text; JavaScript-only, authenticated and image pages are not supported')
+    return {'url':page['url'],'fetched_at':page['fetched_at'],'body_sha256':hashlib.sha256(page['raw']).hexdigest(),
+            'text':chunk,'offset':offset,'next_offset':offset+len(chunk) if offset+len(chunk)<len(text) else None,
+            'download_truncated':page['download_truncated'],'collector':'HQ','untrusted_source':True}
+
+def weather(location,country_code=None):
+    """Current modeled conditions and three-day forecast, collected only on HQ."""
+    if not isinstance(location,str) or not 1<=len(location)<=100:raise ValueError('Supply a city name up to 100 characters')
+    if country_code is not None and (not isinstance(country_code,str) or not re.fullmatch('[A-Za-z]{2}',country_code)):raise ValueError('country_code must be a two-letter country code')
+    geo_url='https://geocoding-api.open-meteo.com/v1/search?name='+quote(location)+'&count=5&language=en&format=json'
+    if country_code:geo_url+='&countryCode='+country_code.upper()
+    page=fetch(geo_url,limit=60000);places=json.loads(page['raw']).get('results',[])
+    if not places:return {'status':'location_not_found','location_query':location,'collector':'HQ'}
+    place=places[0]
+    url='https://api.open-meteo.com/v1/forecast?latitude='+str(float(place['latitude']))+'&longitude='+str(float(place['longitude']))+'&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&forecast_days=3&timezone=auto'
+    page=fetch(url,limit=60000);data=json.loads(page['raw'])
+    return {'status':'collected','collector':'HQ','fetched_at':page['fetched_at'],'location':{k:place.get(k) for k in ('name','admin1','country','latitude','longitude')},
+            'alternatives':[{k:p.get(k) for k in ('name','admin1','country')} for p in places[1:]],
+            **{k:data.get(k) for k in ('timezone','current','current_units','daily','daily_units')},'source_url':url,'attribution':'Weather data by Open-Meteo; modeled current conditions, not a guaranteed local station observation.',
+            'body_sha256':hashlib.sha256(page['raw']).hexdigest()}
+
 def collect(query,urls=None):
     if not isinstance(query,str) or not 1<=len(query)<=400:raise ValueError('Search query must be 1–400 characters')
     query=focused_query(query)
     if urls is not None and (not isinstance(urls,list) or not 1<=len(urls)<=3 or any(not isinstance(u,str) for u in urls)):raise ValueError('Supply 1–3 public HTTPS URLs')
     candidates=[];search={'provider':'Bing RSS','query':query,'status':'not_requested'}
     if not urls:
-        try:
-            page=fetch('https://www.bing.com/search?format=rss&q='+quote(query),limit=100000)
-            root=ET.fromstring(page['raw'])
-            for item in root.findall('./channel/item')[:6]:
-                url=item.findtext('link','');title=html.unescape(item.findtext('title',''))
-                if url.startswith('https://'):candidates.append({'url':url,'title':title[:180]})
-            search.update(status='results_found' if candidates else 'no_results',fetched_at=page['fetched_at'],response_sha256=hashlib.sha256(page['raw']).hexdigest(),results=candidates)
-        except Exception as e:search.update(status='failed',error_type=type(e).__name__)
+        search=search_web(query);candidates=search['results']
         # Fetch up to three search results, at most two per origin. Never claim snippets are full sources.
         urls=[];counts={}
         for item in candidates:
@@ -77,8 +149,9 @@ def collect(query,urls=None):
                 if href:self.links.append(href)
     terms=[t for t in re.findall(r'[a-z0-9]+',query.lower()) if len(t)>2 and t not in {'what','are','the','specifications','specs','research','please','find','current','official','and','for','with'}]
     def score(url):
-        path=urlsplit(url).path.lower()
-        return sum(10 for term in set(terms) if term in path)+(8 if 'specs' in path or 'technical' in path else 0)
+        parts=urlsplit(url);path=parts.path.lower();host=(parts.hostname or '').lower()
+        primary=host.startswith('docs.') or host.endswith(('.gov','.edu','.gov.uk','.gc.ca')) or any(host==h or host.endswith('.'+h) for h in ('apple.com','python.org','nvidia.com','amd.com','microsoft.com','kernel.org','ollama.com','nousresearch.com','modelcontextprotocol.io','open-meteo.com'))
+        return (100 if primary else 0)+sum(10 for term in set(terms) if term in path)+(8 if 'specs' in path or 'technical' in path else 0)
     documents=[];failures=[];queue=[(u,0) for u in (urls or [])];seen=set();attempts=0
     while queue and attempts<6:
         url,depth=queue.pop(0)
@@ -103,14 +176,27 @@ def collect(query,urls=None):
     documents.sort(key=lambda x:x[0],reverse=True);sources=[]
     selected=documents[:2]
     for i,(_,page,text) in enumerate(selected):
-        budget=2500 if i==0 else 350
+        budget=6500 if i==0 else 1500
         if i==0 and ('specs' in urlsplit(page['url']).path or 'technical' in urlsplit(page['url']).path):
             spans=[text[:1250]]
             for anchor,width in [('Chip ',300),('Camera ',300),('Power and Battery',350),('Cellular and Wireless',200)]:
                 found=text.find(anchor)
                 if found>=1250:spans.append(text[found:found+width])
             excerpt=' […] '.join(spans).encode()[:budget].decode('utf-8',errors='ignore')
-        else:excerpt=text.encode()[:budget].decode('utf-8',errors='ignore')
+        else:
+            # Include relevant passages from deeper in a page, rather than only navigation/intro.
+            candidates=[]
+            stems={t[:4] if len(t)>5 else t for t in terms}
+            for start in range(0,len(text),700):
+                window=text[start:start+2100].lower()
+                matched=sum(1 for term in stems if re.search(r'\b'+re.escape(term),window))+sum(2 for term in set(terms) if re.search(r'\b'+re.escape(term)+r'\b',window))
+                candidates.append((matched,start))
+            anchors=[]
+            for matched,start in sorted(candidates,key=lambda x:(-x[0],x[1])):
+                if matched and all(abs(start-p)>=2100 for p in anchors):anchors.append(start)
+                if len(anchors)==3:break
+            excerpt=(text[:200]+' […] '+' […] '.join(text[p:p+2100] for p in sorted(anchors))) if anchors else text
+            excerpt=excerpt.encode()[:budget].decode('utf-8',errors='ignore')
         sources.append({'url':page['url'],'fetched_at':page['fetched_at'],'body_sha256':hashlib.sha256(page['raw']).hexdigest(),'excerpt':excerpt,'truncated':page['download_truncated'] or len(excerpt)<len(text)})
     packet={'collector':'HQ gateway; no requests issued by AMD-GPU','collected_at':now(),'search':search,'sources':sources,'fetch_failures':failures,
             'status':'sources_collected' if sources else 'no_source_evidence','limitations':'Search results can be irrelevant or incomplete. Excerpts are partial. Absence from results is not proof a product does not exist. Distinguish official announcements, rumors and uncertain names; cite fetched URLs.'}

@@ -8,7 +8,7 @@ import urllib.request
 from health_rules import assess,age_seconds
 from capabilities import TASKS,prompt_for,calculate
 from team import TEAM
-from web_research import collect as collect_web
+from web_research import collect as collect_web,search_web,read_page,weather
 from task_updates import issue_url,origin_checked,subscribe
 
 STATE = Path('/state')
@@ -99,21 +99,26 @@ def validate_inference(role, body):
     if role not in ROLES: raise PermissionError('Unknown identity')
     backend=ROLES[role]
     allowed_model=TEAM[role]['model'] if role in TEAM else BACKENDS[backend][3]
+    # The concierge may send a tool-free history summary to Jessica's 64K model.
+    # Actual tool selection remains NVIDIA-GPU; no tool schemas or execution run on AMD-GPU.
+    if role=='concierge' and body.get('model')==TEAM['jessica']['model']:
+        backend='amd-gpu';allowed_model=TEAM['jessica']['model']
     if body.get('model')!=allowed_model: raise PermissionError('Model not permitted for this identity')
     messages=body.get('messages')
-    if not isinstance(messages,list) or not messages or len(messages)>80: raise ValueError('Invalid messages')
-    if len(json.dumps(messages))>100000: raise ValueError('Context too large')
+    if not isinstance(messages,list) or not messages or len(messages)>2000: raise ValueError('Invalid messages')
+    if len(json.dumps(messages).encode())>600000: raise ValueError('Request exceeds the 600000-byte transport limit; compact history or split the source')
     if (backend=='amd-gpu' or role in TEAM) and (body.get('tools') or body.get('functions') or any(m.get('role') in ('tool','function') or m.get('tool_calls') for m in messages)):
         raise PermissionError('AMD-GPU is evidence-only; tools and tool execution transcripts are prohibited')
     if backend=='nvidia-gpu':
         names={t.get('function',{}).get('name') for t in body.get('tools',[])}
-        if names-{'hq_status','hq_task','hq_research','hq_analyze','hq_files','hq_knowledge','hq_draft','hq_team','hq_calculate','hq_diagnostics','hq_github'}: raise PermissionError('Tool outside HQ allowlist')
+        if names-{'hq_status','hq_task','hq_research','hq_analyze','hq_files','hq_knowledge','hq_draft','hq_team','hq_calculate','hq_diagnostics','hq_github',
+                  'mcp__research__search','mcp__research__read_page','mcp__research__weather','mcp__workbench__check_system','mcp__workbench__review_file','mcp__workbench__plan_automation'}: raise PermissionError('Tool outside HQ allowlist')
     return backend
 
 def inference(role, body):
     backend=validate_inference(role,body)
     url, secret, ca, model=BACKENDS[backend]
-    model=TEAM[role]['model'] if role in TEAM else model
+    model=body['model']
     messages=json.loads(json.dumps(body['messages']))
     for message in messages:
         if message.get('content') is None:message['content']=''
@@ -121,7 +126,7 @@ def inference(role, body):
             args=call.get('function',{}).get('arguments')
             if isinstance(args,str):call['function']['arguments']=json.loads(args)
     native={'model':model,'messages':messages,'stream':False,
-        'options':{'temperature':0.1,'num_ctx':8192 if backend=='amd-gpu' else 65536,'num_predict':min(1800,int(body.get('max_tokens') or body.get('max_completion_tokens') or 1200))}}
+        'options':{'temperature':0.1,'num_ctx':context_length(model,backend),'num_predict':min(4096 if role=='concierge' and backend=='amd-gpu' else 1800,int(body.get('max_tokens') or body.get('max_completion_tokens') or 1200))}}
     if backend=='nvidia-gpu': native['think']=False
     if body.get('tools'): native['tools']=body['tools']
     start=time.monotonic(); rid=str(uuid.uuid4())
@@ -157,9 +162,18 @@ def inference(role, body):
             item['id']='call_'+uuid.uuid4().hex[:20];item['type']='function'
             if not isinstance(item['function'].get('arguments'),str): item['function']['arguments']=json.dumps(item['function'].get('arguments',{}))
     return {'id':rid,'object':'chat.completion','created':int(time.time()),'model':model,
+        'hq_receipt':{'run_id':rid,'backend':backend,'model':model,'context_length':receipt['context_length'],'input_tokens':receipt['input_tokens'],'output_tokens':receipt['output_tokens'],'vram_bytes':receipt['vram_bytes'],'time':receipt['time']},
         'choices':[{'index':0,'message':message,'finish_reason':'tool_calls' if message.get('tool_calls') else 'stop'}],
         'usage':{'prompt_tokens':receipt['input_tokens'] or 0,'completion_tokens':receipt['output_tokens'] or 0,
                  'total_tokens':(receipt['input_tokens'] or 0)+(receipt['output_tokens'] or 0)}}
+
+def context_length(model,backend):
+    if backend=='nvidia-gpu' or model==TEAM['jessica']['model']:return 65536
+    if model in (BACKENDS['amd-gpu'][3],TEAM['louis']['model']):return 32768
+    return 8192
+
+def specialist_budget(name):
+    return {'jessica':56000,'louis':24000,'harvey':6000}.get(name,24000)
 
 def research(urls):
     """Fixed public origins, pinned DNS result, TLS verification, no redirects or cookies."""
@@ -216,20 +230,90 @@ def analysis_packet(body):
     if kind in ('health','backup','triage'):packet=evidence(kind)
     else:
         text=body.get('text','')
-        if not isinstance(text,str) or len(text.encode('utf-8'))>12000:raise ValueError('Supplied text exceeds 12000 bytes; use a smaller excerpt')
+        if not isinstance(text,str) or len(text.encode('utf-8'))>50000:raise ValueError('Supplied text exceeds 50000 bytes; use a smaller excerpt')
         packet={'kind':kind,'collected_at':now(),'text':text}
     if body.get('file_id'):
         file=uploaded({'action':'read','file_id':body['file_id'],'offset':body.get('offset',0),'limit':body.get('limit',3000)})
         packet['file']={k:file[k] for k in ('file_id','sha256','extraction_truncated','extracted_characters')}
         packet['text']=file['text']
         packet['reviewed_span']={'offset':file['offset'],'characters':len(file['text']),'next_offset':file['next_offset']}
+        packet['validation']=uploaded({'action':'validate','file_id':body['file_id']})['validation']
     packet['evidence_sha256']=digest(packet)
     return kind,question,packet
 
 def analyze(body):
     kind,question,packet=analysis_packet(body)
-    result=run_worker('analyst',packet,question,kind)
-    return {'evidence':packet,'analysis':result,'compute':'AMD-GPU; tools and file handling remain on HQ'}
+    if len(json.dumps(packet,ensure_ascii=False).encode())+len(question.encode())>20000:
+        prompt_for(kind,question,packet,max_bytes=56000)
+        result=request('http://jessica:8080/run',{'question':question,'evidence':packet,'task_kind':kind},TOKENS.joinpath('worker').read_text().strip(),timeout=520)
+    else:result=run_worker('analyst',packet,question,kind)
+    if body.get('file_id'):
+        audit('file_analysis',file_sha256=packet['file']['sha256'],validation_status=packet['validation']['status'],run_id=result['run_id'],backend=result['backend'],reviewed_span=packet['reviewed_span'])
+    return {'compute_receipt':result.get('compute_receipt',{'run_id':result.get('run_id'),'backend':result.get('backend'),'model':result.get('model')}),
+            'analysis':result,'evidence':packet,'compute':'AMD-GPU; tools and file handling remain on HQ'}
+
+def research_request(body):
+    question=body.get('question') or body.get('query')
+    if not isinstance(question,str) or not question.strip():raise ValueError('A research question is required')
+    packet=collect_web(body.get('query') or question,body.get('urls'))
+    packet['research_status']=packet['status']
+    packet['search_summary']={k:v for k,v in packet['search'].items() if k!='results'}
+    if not packet['sources']:
+        audit('web_research',status=packet['status'],evidence_sha256=packet['evidence_sha256'])
+        return {'evidence':packet,'analysis':None,'status':'research_incomplete','reason':'No readable sources collected; use search/read tools or a supplied public source URL. Do not guess an answer.'}
+    for attempt in range(12):
+        try:prompt_for('research',question,packet);break
+        except ValueError as error:
+            if 'prompt budget' not in str(error):raise
+            source=max(packet['sources'],key=lambda s:len(s['excerpt'].encode()))
+            if len(source['excerpt'].encode())<=200:raise
+            source['excerpt']=source['excerpt'].encode()[:max(200,int(len(source['excerpt'].encode())*.8))].decode('utf-8',errors='ignore');source['truncated']=True
+    packet['evidence_sha256']=digest({k:v for k,v in packet.items() if k!='evidence_sha256'})
+    result=run_worker('analyst',packet,question,'research')
+    audit('web_research',status=packet['status'],backend=result['backend'],run_id=result['run_id'],urls=[s['url'] for s in packet['sources']],evidence_sha256=packet['evidence_sha256'])
+    return {'evidence':packet,'analysis':result,'status':'completed','workflow':'HQ search and source retrieval -> AMD-GPU analysis'}
+
+def workbench(body):
+    """Repeatable evidence workflows; never run model-selected commands."""
+    action=body.get('action')
+    if action=='review_file':
+        if not body.get('file_id'):raise ValueError('An uploaded file_id is required')
+        result=analyze({'kind':body.get('kind','code_review'),'question':body.get('question') or 'Review this file for concrete issues and propose fixes. State the coverage of this slice.',
+                        'file_id':body['file_id'],'offset':body.get('offset',0),'limit':3000})
+        return {**result,'validation':result['evidence']['validation'],'next_offset':result['evidence']['reviewed_span']['next_offset'],'workflow':'HQ extraction and syntax validation -> AMD-GPU review','executed_code':False}
+    if action=='plan_automation':
+        result=team_request({'action':'delegate','agent':'louis','kind':'automation','question':body.get('question',''),'text':body.get('text','')})
+        result['artifact']=draft({'title':'automation-plan','extension':'md','content':result['analysis']['text']})
+        result['status']='draft_only_not_executed'
+        return result
+    if action!='check_system':raise ValueError('Unknown workbench operation')
+    target=body.get('target');checks=body.get('checks') or ['overview','gpu']
+    if target not in ('hq','nvidia-gpu','amd-gpu') or not isinstance(checks,list) or not 1<=len(checks)<=3 or any(c not in ('overview','gpu','processes','services','storage') for c in checks):raise ValueError('Select one enrolled target and 1–3 fixed checks')
+    results=[]
+    for check in dict.fromkeys(checks):
+        try:result=diagnostics({'target':target,'check':check})
+        except Exception as error:result={'target':target,'check':check,'status':'unavailable','error_type':type(error).__name__}
+        # Preserve per-command failures and evidence hashes, while limiting raw output.
+        summary={k:result[k] for k in ('target','check','checked_at_utc','status','reason','evidence_sha256') if k in result}
+        summary['checks']={}
+        for name,value in result.get('checks',{}).items():
+            if not isinstance(value,dict):continue
+            item={k:value[k] for k in ('status','exit_code','sample_seconds','reason') if k in value}
+            if 'rows' in value:item['rows']=value['rows'][:5];item['rows_omitted']=max(0,len(value['rows'])-5)
+            if 'output' in value:item['output_excerpt']=value['output'][:350];item['truncated']=value.get('truncated',False) or len(value['output'])>350
+            summary['checks'][name]=item
+        results.append(summary)
+    text=json.dumps(results,ensure_ascii=False,separators=(',',':'))
+    # A large bundle remains available to the user; do not silently feed partial JSON to the model.
+    if len(text.encode())>4200:
+        for result in results:
+            for item in result['checks'].values():
+                if 'output_excerpt' in item:item['output_excerpt']=item['output_excerpt'][:100];item['truncated']=True
+                if 'rows' in item:item['rows']=item['rows'][:3];item['rows_omitted']='only first 3 retained'
+        text=json.dumps(results,ensure_ascii=False,separators=(',',':'))
+    question=body.get('question') or 'Interpret these fresh fixed diagnostic checks. Separate confirmed issues, unavailable checks, and next steps. CPU activity is not GPU inference proof.'
+    result=analyze({'kind':'diagnostics','question':question,'text':text})
+    return {**result,'checks':results,'workflow':'HQ fixed diagnostics -> AMD-GPU analysis','changes_made':False,'limitations':'Measurements precede the analysis run. No complete health, thermal-throttling, memory-leak or safe-temperature certification. No thresholds were supplied. Counters with unspecified units are opaque; do not compare them with percent utilization.'}
 
 def team_request(body):
     body=dict(body)
@@ -272,7 +356,7 @@ def team_request(body):
         audit('web_research',status=packet['status'],search_status=packet['search']['status'],urls=[s['url'] for s in packet['sources']],evidence_sha256=packet['evidence_sha256'])
         if not packet['sources']:
             return {'evidence':packet,'analysis':None,'status':'research_incomplete','reason':'No readable sources collected. Do not report completed research or guess an answer.'}
-    prompt_for(kind,question,packet)
+    prompt_for(kind,question,packet,max_bytes=specialist_budget(name))
     if name=='mike' and body.get('compute')=='amd-gpu':
         result=run_worker('analyst',packet,'As Mike, handle this escalation: '+question,kind)
         result['agent']='mike';result['escalated']=True
@@ -281,14 +365,17 @@ def team_request(body):
     audit('delegation',agent=name,backend=result['backend'],model=result['model'],run_id=result['run_id'],evidence_sha256=packet['evidence_sha256'])
     return {'evidence':packet,'analysis':result}
 
-KNOWLEDGE={'index','quickstart','architecture','operations','monitoring','discord','backups','security','troubleshooting','recovery','reference','acceptance','capabilities','diagnostics','github'}
+KNOWLEDGE={'index','quickstart','architecture','operations','monitoring','discord','backups','security','troubleshooting','recovery','reference','acceptance','capabilities','diagnostics','github','mcp'}
 def knowledge(body):
     section=body.get('section');query=body.get('query','')
     if section:
         if section not in KNOWLEDGE:raise ValueError('Unknown runbook section')
         path=Path('/knowledge')/(section+'.md')
         if path.is_symlink():raise ValueError('Runbook symlink refused')
-        text=path.read_text();return {'section':section,'text':text[:16000],'truncated':len(text)>16000}
+        offset=body.get('offset',0);limit=body.get('limit',16000)
+        if type(offset) is not int or offset<0 or type(limit) is not int or not 1<=limit<=16000:raise ValueError('Use offset >= 0 and limit 1–16000')
+        text=path.read_text();chunk=text[offset:offset+limit]
+        return {'section':section,'text':chunk,'offset':offset,'next_offset':offset+len(chunk) if offset+len(chunk)<len(text) else None,'truncated':offset>0 or offset+len(chunk)<len(text)}
     if not isinstance(query,str) or not 1<=len(query)<=160:raise ValueError('Supply a search query or section')
     matches=[];terms=query.lower().split()
     for name in sorted(KNOWLEDGE):
@@ -409,7 +496,7 @@ class Handler(BaseHTTPRequestHandler):
             role=next((r for r in ROLES if hmac.compare_digest(auth,TOKENS.joinpath(r).read_text().strip())),None)
             if not role: raise PermissionError('Authentication required')
             length=int(self.headers.get('Content-Length',0))
-            if not 0<length<=150000: raise ValueError('Invalid body size')
+            if not 0<length<=768000: raise ValueError('Invalid body size')
             body=json.loads(self.rfile.read(length))
             if self.path=='/v1/chat/completions':
                 value=inference(role,body)
@@ -425,6 +512,11 @@ class Handler(BaseHTTPRequestHandler):
             if self.path=='/diagnostics' and role=='paperclip':return self.send(200,diagnostics(body))
             if self.path=='/team' and role=='paperclip':return self.send(200,team_request(body))
             if role in ('concierge','operator'):
+                if self.path=='/web/weather':return self.send(200,weather(body.get('location'),body.get('country_code')))
+                if self.path=='/web/search':return self.send(200,search_web(body.get('query')))
+                if self.path=='/web/read':return self.send(200,read_page(body.get('url'),body.get('offset',0),body.get('limit',4000),body.get('find')))
+                if self.path=='/workbench':return self.send(200,workbench(body))
+                if self.path=='/research':return self.send(200,research_request(body))
                 if self.path=='/diagnostics':return self.send(200,diagnostics(body))
                 if self.path=='/analyze':return self.send(200,analyze(body))
                 if self.path=='/files':return self.send(200,uploaded(body))
@@ -435,9 +527,6 @@ class Handler(BaseHTTPRequestHandler):
                 if self.path=='/calculate':return self.send(200,calculate(body.get('expression')))
             if self.path=='/status': return self.send(200,evidence('health'))
             if self.path=='/task' and role in ('concierge','operator'):return self.send(200,task(body))
-            if self.path=='/research':
-                packet=research(body['urls']);result=run_worker('analyst',packet,body.get('question','Summarize the evidence with source URLs.'))
-                return self.send(200,{'evidence':packet,'analysis':result})
             if self.path=='/run' and role in ('operator','paperclip'):
                 kind=body['kind']; packet=evidence(kind)
                 if kind not in ('health','backup','triage'): raise PermissionError('Worker not allowed')
