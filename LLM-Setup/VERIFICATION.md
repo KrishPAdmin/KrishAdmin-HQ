@@ -39,3 +39,7 @@ The live source passes 161 Hermes regression checks and 48 Paperclip Python chec
 Harvey's context was changed to 4,096 for an actual GPU-backed run, then restored to 8,192 and verified with another run. Pi's alias changed to 8,192 with its model template hash preserved, then returned to 16,384. The context settings file returned to all defaults. CLI failure/rollback and native-size validation are covered. No claim is made that NVIDIA GPU can fit its model's advertised 262,144-token maximum in VRAM.
 
 The live dashboard's AMD values are joined by PCI address; ROCm card0/card1 do not match Linux DRM card numbers. Actual memory and power readings were checked for both cards. Backups, personal Google OAuth, external-agent state and Herdr readiness are displayed with their existing limitations.
+
+## Owner DM GitHub access repair
+
+The live Hermes suite passes 176 checks. GitHub now accepts the enrolled owner in a verified one-to-one Discord DM as well as the main channel. Tests reject group DMs, other channels, wrong recipients, forged authors, other users and replayed requests; the main channel still requires a bot mention. Exact proposal-specific push confirmation and branch-only writes remain enforced. A native Hermes replay of the original access question used the real recent owner DM, read both repositories through the signed service, and answered successfully. No validation message was sent to Discord.

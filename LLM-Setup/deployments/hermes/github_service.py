@@ -38,14 +38,20 @@ def authenticate(envelope,db,workspace=False):
         channel=discord('GET','/channels/'+channel_id)
         if channel.get('type')!=1 or {r['id'] for r in channel.get('recipients',[])}!={origin['user_id']}:
             raise PermissionError('Google Workspace requires a one-to-one DM with the requesting user')
-    elif origin.get('user_id')!=policy['owner_id'] or origin.get('chat_id')!=policy['channel_id']:
-        raise PermissionError('GitHub operations are owner-only in the enrolled channel')
+    else:
+        if origin.get('user_id')!=policy['owner_id']:raise PermissionError('GitHub operations are owner-only')
+        if origin.get('chat_id')!=policy['channel_id']:
+            channel_id=origin.get('chat_id','')
+            if not re.fullmatch(r'\d{17,22}',channel_id):raise PermissionError('Use the enrolled channel or your one-to-one DM')
+            channel=discord('GET','/channels/'+channel_id)
+            if channel.get('type')!=1 or {r['id'] for r in channel.get('recipients',[])}!={policy['owner_id']}:
+                raise PermissionError('GitHub outside the enrolled channel requires a verified one-to-one DM with the owner')
     message_id=origin.get('message_id','')
     if not re.fullmatch(r'\d{17,22}',message_id):raise PermissionError('Live Discord message required')
     message=discord('GET','/channels/'+origin['chat_id']+'/messages/'+message_id)
     if message.get('author',{}).get('id')!=origin['user_id'] or message.get('author',{}).get('bot'):
         raise PermissionError('Discord author does not match the authenticated user')
-    if not workspace and not any(x.get('id')==policy['application_id'] for x in message.get('mentions',[])):raise PermissionError('Mention the bot account')
+    if not workspace and origin['chat_id']==policy['channel_id'] and not any(x.get('id')==policy['application_id'] for x in message.get('mentions',[])):raise PermissionError('Mention the bot account')
     if time.time()-((int(message_id)>>22)+1420070400000)/1000>3600:raise PermissionError('Send a fresh owner request')
     try:db.execute('INSERT INTO nonces VALUES (?,?)',(nonce,time.time()));db.execute('DELETE FROM nonces WHERE created<?',(time.time()-86400,));db.commit()
     except sqlite3.IntegrityError:raise PermissionError('Replayed request') from None
@@ -90,7 +96,7 @@ def load(db,pid,owner):
 
 def view(p):
     return {k:p[k] for k in ('id','repo','base_branch','base_commit','branch','digest','status','diff','checks','url') if k in p}|{
-        'push_instruction':'Mention the bot and send: github push '+p['id']+' '+p['digest'][:12],
+        'push_instruction':'Send in your one-to-one DM, or mention the bot in the enrolled main channel: github push '+p['id']+' '+p['digest'][:12],
         'execution':'Syntax checks only; repository code/tests were not executed.'}
 
 def execute(body,owner,message,db):

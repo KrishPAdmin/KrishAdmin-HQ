@@ -41,6 +41,37 @@ class GitHubTests(unittest.TestCase):
         with patch.object(service,'discord') as network:
             with self.assertRaises(PermissionError):service.authenticate(e,self.db)
             network.assert_not_called()
+    def dm_envelope(self,user=None):
+        e=self.signed(user);e['origin']['chat_id']='900000000000000011'
+        e['signature']=hmac.new(b'test-signing-key',service.canonical({k:v for k,v in e.items() if k!='signature'}),hashlib.sha256).hexdigest()
+        return e
+    def test_owner_dm_verified_without_mention_and_replay_denied(self):
+        e=self.dm_envelope();message=self.message();message['mentions']=[]
+        channel={'type':1,'recipients':[{'id':self.policy['owner_id']}]}
+        with patch.object(service,'discord',side_effect=[channel,message,channel,message]) as network:
+            self.assertEqual(service.authenticate(e,self.db)[0],self.policy['owner_id'])
+            self.assertEqual(network.call_args_list[0].args,('GET','/channels/'+e['origin']['chat_id']))
+            with self.assertRaises(PermissionError):service.authenticate(e,self.db)
+    def test_other_channels_and_wrong_dm_recipient_denied(self):
+        channels=[{'type':0},{'type':3,'recipients':[{'id':self.policy['owner_id']}]},
+                  {'type':1,'recipients':[]},{'type':1,'recipients':[{'id':'someone-else'}]},
+                  {'type':1,'recipients':[{'id':self.policy['owner_id']},{'id':'someone-else'}]}]
+        for channel in channels:
+            with self.subTest(channel=channel),patch.object(service,'discord',return_value=channel) as network:
+                with self.assertRaises(PermissionError):service.authenticate(self.dm_envelope(),self.db)
+                self.assertEqual(network.call_count,1)
+    def test_friend_dm_denied_before_network(self):
+        with patch.object(service,'discord') as network:
+            with self.assertRaises(PermissionError):service.authenticate(self.dm_envelope('900000000000000005'),self.db)
+            network.assert_not_called()
+    def test_owner_dm_still_checks_message_author(self):
+        message=self.message();message['author']['id']='900000000000000005'
+        with patch.object(service,'discord',side_effect=[{'type':1,'recipients':[{'id':self.policy['owner_id']}]},message]):
+            with self.assertRaises(PermissionError):service.authenticate(self.dm_envelope(),self.db)
+    def test_main_channel_still_requires_mention(self):
+        message=self.message();message['mentions']=[]
+        with patch.object(service,'discord',return_value=message):
+            with self.assertRaises(PermissionError):service.authenticate(self.signed(),self.db)
     def api(self,repo,path,method='GET',body=None):
         if path=='':return {'default_branch':'main'}
         if path=='git/ref/heads/main':return {'object':{'sha':'base-commit'}}

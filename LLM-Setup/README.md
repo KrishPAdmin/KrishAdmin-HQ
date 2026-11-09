@@ -50,7 +50,7 @@ flowchart TD
 
 ## What works
 
-- Mention-only Discord requests from enrolled users; separate owner-only GitHub authorization.
+- Enrolled Discord users can use mentions in the main channel or personal DMs; GitHub remains owner-only in the main channel or verified owner DM.
 - Actual specialist inference receipts identifying backend, model, timing and GPU residency.
 - Public web search, direct page reading and current weather through local MCP tools; ordinary research synthesis uses amd-gpu.
 - Jessica → HQ web collection → Rachel research with fetched-source citations.

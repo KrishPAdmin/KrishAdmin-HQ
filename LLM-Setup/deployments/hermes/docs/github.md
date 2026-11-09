@@ -6,7 +6,7 @@ The Discord owner (enrollment `owner_id`, currently `900000000000000004`) can in
 
 As of 2026-11-09, `hq_github` also supports `project_status`: open issues and PRs (up to 30 each), recent workflow runs (10), and recent commits (5), with source URLs and timestamps. This is repository activity, not a guarantee of deployment or project completion. The two-repository owner-only boundary is unchanged. Personal Google access uses a separate, per-user DM workflow described in [workspace.md](workspace.md).
 
-Mention the bot account in the main private channel:
+Send these requests in your one-to-one DM with the bot (no mention needed), or mention the bot account in the enrolled main channel:
 
 ```text
 @KrishAdmin-HQ-LLM Show my connected GitHub repositories using hq_github.
@@ -15,7 +15,7 @@ Mention the bot account in the main private channel:
 @KrishAdmin-HQ-LLM Read LLM-Setup/deployments/hermes/team.py in my private repo. Have Louis review it, then prepare a small proposed improvement. Show the diff and checks before publishing.
 ```
 
-The returned proposal includes its ID, digest, base commit, changed files, diff and checks. To publish that exact proposal, send a new mention message containing the returned instruction:
+The returned proposal includes its ID, digest, base commit, changed files, diff and checks. To publish that exact proposal, send a new message containing the returned instruction in your DM, or mention the bot in the enrolled main channel:
 
 ```text
 @KrishAdmin-HQ-LLM github push PROPOSAL_ID DIGEST_PREFIX
@@ -35,9 +35,9 @@ Publication creates a new `hq-bot/…` branch. The default branch is unchanged. 
 
 ## Authorization and operation
 
-`hq_github` reads the caller's real Hermes session, rejects non-owners before opening a socket and signs the request with a private origin key. `github_service.py` verifies the signature, timestamp, one-use nonce, enrolled channel and independently fetched Discord author/account mention. Requests use recent owner messages; claims such as “I am krishadmin” have no effect. Owner/friend conversation sessions are separated in both channels and threads. GitHub operations themselves are restricted to the enrolled main channel.
+`hq_github` reads the caller's real Hermes session, rejects non-owners before opening a socket and signs the request with a private origin key. `github_service.py` verifies the signature, timestamp, one-use nonce, enrolled channel or independently fetched one-to-one DM recipients, and the actual Discord message author. Bot mentions are required only in the main channel. Requests use recent owner messages; claims such as “I am krishadmin” have no effect. Owner/friend conversation sessions are separated in both channels and threads. Group DMs, other guild channels/threads, other users and forged message authors are refused.
 
-Responses are ordinary messages visible to members of that private channel. Owner-only command authorization is not private-message delivery. Do not request sensitive repository excerpts in a channel whose members should not see them.
+Replies stay in the requesting conversation. Use your one-to-one DM for private repository excerpts; replies in the enrolled main channel remain visible to its members.
 
 The host service uses a private mode-0600 Unix socket. Only the concierge mounts that socket and the origin signing key. Specialist models have neither GitHub authentication nor this socket. GitHub CLI calls use fixed endpoints and structured stdin, with no model-controlled shell command. Repository allowlists and write scope are enforced by the service. Its existing CLI credential has broader account permissions than the tool exposes; this is application enforcement, not a separately issued least-privilege GitHub App token.
 
