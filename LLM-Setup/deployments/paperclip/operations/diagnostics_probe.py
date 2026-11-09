@@ -50,6 +50,32 @@ def run(argv):
         return {'status':'observed' if p.returncode==0 else 'unavailable','exit_code':p.returncode,'command':argv,'output':text,'truncated':len(p.stdout)>len(text)}
     except (OSError,subprocess.TimeoutExpired) as e:return {'status':'unavailable','command':argv[0],'reason':type(e).__name__}
 
+def amd_sensors(root=Path('/sys/class/drm')):
+    """Fixed kernel counters; VRAM bytes, utilization percent, power microwatts."""
+    rows=[]
+    for card in sorted(root.glob('card[0-9]*')):
+        if not card.name[4:].isdigit():continue
+        device=card/'device'
+        try:
+            if (device/'vendor').read_text().strip()!='0x1002':continue
+        except OSError:continue
+        row={'card':card.name,'pci_bus_id':device.resolve().name.lower()}
+        for key,file in [('memory_used_bytes','mem_info_vram_used'),('memory_total_bytes','mem_info_vram_total'),('utilization_percent','gpu_busy_percent')]:
+            try:row[key]=int((device/file).read_text().strip())
+            except (OSError,ValueError):row[key]=None
+        row.update(power_watts=None,power_limit_watts=None,power_source=None)
+        for hwmon in sorted((device/'hwmon').glob('hwmon*')):
+            try:
+                if (hwmon/'name').read_text().strip()!='amdgpu':continue
+            except OSError:continue
+            for file in ('power1_average','power1_input'):
+                try:row['power_watts']=int((hwmon/file).read_text().strip())/1_000_000;row['power_source']=file;break
+                except (OSError,ValueError):pass
+            try:row['power_limit_watts']=int((hwmon/'power1_cap').read_text().strip())/1_000_000
+            except (OSError,ValueError):pass
+        rows.append(row)
+    return {'status':'observed' if rows else 'unavailable','cards':rows,'source':'Linux amdgpu sysfs; read-only'}
+
 def collect(check):
     if check not in CHECKS:raise ValueError('Unsupported fixed diagnostic check')
     out={'schema_version':1,'check':check,'checked_at_utc':datetime.datetime.now(datetime.timezone.utc).isoformat(),'hostname':platform.node(),'kernel':platform.release(),'executor':'fixed local read-only probe','checks':{}}
@@ -59,7 +85,8 @@ def collect(check):
         if shutil.which('nvidia-smi'):
             out['checks']['nvidia']=run(['nvidia-smi','--query-gpu=index,name,driver_version,pci.bus_id,temperature.gpu,utilization.gpu,memory.used,memory.total,power.draw','--format=csv,noheader'])
         if shutil.which('rocm-smi',path='/usr/bin:/bin:/opt/rocm/bin'):
-            out['checks']['amd']=run(['rocm-smi','--showdriverversion','--showproductname','--showtemp','--showuse','--showmemuse','--json'])
+            out['checks']['amd']=run(['rocm-smi','--showdriverversion','--showproductname','--showbus','--showtemp','--showuse','--showmemuse','--json'])
+            out['checks']['amd_sensors']=amd_sensors()
         versions={}
         for path in ['/sys/module/nvidia/version','/sys/module/amdgpu/version','/opt/rocm/.info/version']:
             try:versions[path]=Path(path).read_text()[:200].strip()

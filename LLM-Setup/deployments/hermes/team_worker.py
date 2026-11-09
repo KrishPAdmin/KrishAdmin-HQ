@@ -4,6 +4,7 @@ from pathlib import Path
 from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
 from team import TEAM
 from capabilities import prompt_for
+from context_settings import prompt_budget
 NAME=os.environ['HQ_PROFILE'];ROLE=TEAM[NAME];LOCK=threading.Lock()
 
 class Handler(BaseHTTPRequestHandler):
@@ -19,7 +20,7 @@ class Handler(BaseHTTPRequestHandler):
             size=int(self.headers.get('Content-Length',0))
             if not 0<size<=120000:raise ValueError('Invalid request size')
             body=json.loads(self.rfile.read(size));kind=body.get('task_kind','plan')
-            budget={'jessica':56000,'louis':24000,'harvey':6000}.get(NAME,24000)
+            budget=prompt_budget(NAME)
             system,prompt=prompt_for(kind,body['question'],body['evidence'],max_bytes=budget)
             system=ROLE['persona']+' '+system
             if len((system+prompt).encode())>budget+1000:raise ValueError('Named-specialist prompt exceeds conservative context budget; use a smaller excerpt')

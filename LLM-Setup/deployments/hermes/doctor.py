@@ -46,7 +46,7 @@ def diagnose():
         add('conversation_compaction',config.get('compression',{}).get('enabled') is True and config.get('auxiliary',{}).get('compression',{}).get('model')==TEAM['jessica']['model'],
             'History compaction enabled with the AMD-GPU Jessica model.')
     except Exception as error:add('agent_workflow_configuration',False,type(error).__name__)
-    for name in ('paperclip-observations.timer','hq-hermes-evidence.timer','hq-hermes-monitor.timer','hq-hermes-diagnostics.service','hq-hermes-task-notifications.timer','hq-hermes-github.service'):
+    for name in ('paperclip-observations.timer','hq-hermes-evidence.timer','hq-hermes-stack.timer','hq-hermes-monitor.timer','hq-hermes-diagnostics.service','hq-hermes-task-notifications.timer','hq-hermes-github.service'):
         result=subprocess.run(['systemctl','--user','is-active',name],capture_output=True,text=True,timeout=5)
         add('timer:'+name,result.returncode==0,result.stdout.strip() or 'unknown')
     try:

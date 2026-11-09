@@ -61,3 +61,11 @@ Policy is stored privately under data/hq-control/<companyId>.json; provider secr
 ## Suits UI validation
 
 Version 0.1.2 adds the team view without new plugin capabilities. Validation is under `validation/suits-ui/`: the API roster, browser checks and desktop/mobile screenshots. The focused tests cover company scoping, credential omission, routing/hierarchy mismatch reporting, and native environment bindings. Native agent IDs and existing task assignments are preserved.
+
+## Full stack and live GPU view (2026-11-09)
+
+Overview now includes all registered agents, runtime services, context windows, model maxima, integration readiness, repositories, skills, recent reports, findings and backup observations. Live GPUs polls fixed read-only probes every five seconds for NVIDIA-GPU and both AMD-GPU cards: utilization, used/total VRAM, power and temperature. Missing/stale data is explicit; pause/resume and recent utilization traces are available. PCI bus identity joins AMD counters so Linux card numbering cannot mix cards.
+
+Context windows are managed on HQ with `python3 ../hermes/contextctl.py show`, `set TARGET TOKENS`, `set TARGET TOKENS --apply`, `reset TARGET --apply`, and `rollback SNAPSHOT_ID --apply`. The source runbooks are `../hermes/docs/contexts.md` and `../hermes/docs/dashboard.md`. Dashboard context controls are instructional/read-only by operator preference. No personal Google contents or credentials are shown.
+
+The inventory snapshot is company-scoped and refreshed by hq-hermes-stack.timer independently of the host-observation timer. Live GPU API access additionally requires an enrolled lab operator. This update uses the existing plugin capability set; no new native capability grant is requested.

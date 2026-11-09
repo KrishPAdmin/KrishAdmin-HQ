@@ -4,6 +4,7 @@ from pathlib import Path
 from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
 from run_agent import AIAgent
 from capabilities import prompt_for
+from context_settings import prompt_budget
 
 KIND=os.environ['HQ_PROFILE'];LOCK=threading.Lock()
 MODEL='qwen2.5:72b-instruct-q8_0' if KIND=='analyst' else 'qwen3.5:9b'
@@ -24,7 +25,7 @@ class Handler(BaseHTTPRequestHandler):
             body=json.loads(self.rfile.read(length));started=time.monotonic();rid=str(uuid.uuid4())
             prompt=json.dumps({'question':body['question'],'evidence':body['evidence']},sort_keys=True)
             if KIND=='analyst':
-                system,prompt=prompt_for(body.get('task_kind','research'),body['question'],body['evidence'])
+                system,prompt=prompt_for(body.get('task_kind','research'),body['question'],body['evidence'],max_bytes=prompt_budget('analyst'))
                 # Installed AMD-GPU model advertises 32K; current Hermes requires >=64K.
                 # This is deliberately a direct, tool-free inference service, not a Hermes agent.
                 req=urllib.request.Request('http://broker:8080/v1/chat/completions',

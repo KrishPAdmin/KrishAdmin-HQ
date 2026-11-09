@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "contexts": {
+    "concierge": 65536,
+    "jessica": 65536,
+    "harvey": 8192,
+    "mike": 65536,
+    "louis": 32768,
+    "rachel": 65536,
+    "donna": 65536,
+    "analyst": 32768,
+    "health": 65536,
+    "backup": 65536,
+    "triage": 65536,
+    "paperclip-coordinator": 8192,
+    "paperclip-nvidia-gpu": 8192,
+    "paperclip-amd-gpu": 8192,
+    "pi": 16384
+  },
+  "experimental": []
+}

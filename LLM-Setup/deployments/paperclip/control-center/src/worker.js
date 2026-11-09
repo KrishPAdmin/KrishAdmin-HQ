@@ -2,6 +2,7 @@ import {definePlugin,runWorker} from '@paperclipai/plugin-sdk';
 import fs from 'node:fs/promises';
 import crypto from 'node:crypto';
 import {teamView} from './team.js';
+import {stackView} from './stack.js';
 import {load,save,audit,validatePolicy,validateSystem,getCertificate,proxmoxRead,fail,UUID} from './core.js';
 let ctx;let queue=Promise.resolve();
 const serialized=fn=>{const result=queue.then(fn);queue=result.catch(()=>{});return result;};
@@ -36,11 +37,20 @@ const plugin=definePlugin({async setup(c){ctx=c;},async onHealth(){return {statu
  async onApiRequest(r){return serialized(async()=>{try{
   const d=await load(r.companyId),b=r.body||{},actor=r.actor;
   if(actor.actorType==='user'&&r.routeKey!=='overview'&&!(d.operatorUserIds||[]).includes(actor.userId||actor.actorId))fail('Only the configured lab operators can change controls or access local systems.',403);
+  if(r.routeKey==='gpu-telemetry'){
+   let manifest=null;try{manifest=JSON.parse(await fs.readFile('/paperclip/hq-hermes/team.json','utf8'));}catch{}
+   if(manifest?.company_id!==r.companyId)fail('No GPU telemetry is enrolled for this company.',403);
+   const token=(await fs.readFile('/paperclip/hq-hermes/bridge-token','utf8')).trim();
+   const response=await fetch('http://hq-hermes-broker:8080/gpu-telemetry',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:'{}',signal:AbortSignal.timeout(12000)});
+   if(!response.ok)fail('GPU telemetry is currently unavailable.',503);
+   return {status:200,body:await response.json()};
+  }
   if(r.routeKey==='overview'){
    if(actor.actorType==='agent')return {status:200,body:{externalAI:d.externalAI,autoEscalate:d.autoEscalate,maxSteps:d.maxSteps,agent:d.agents[actor.agentId]||{},systems:d.systems.filter(s=>s.allowedAgents.includes(actor.agentId)).map(s=>({id:s.id,name:s.name,kind:s.kind,readAccess:s.readAccess}))}};
    const agents=await ctx.agents.list({companyId:r.companyId,limit:100,offset:0});
    let manifest=null;try{manifest=JSON.parse(await fs.readFile('/paperclip/hq-hermes/team.json','utf8'));}catch{}
-   return {status:200,body:{...d,agentsList:agents.map(a=>({id:a.id,name:a.name,status:a.status,adapterType:a.adapterType,title:a.title,reportsTo:a.reportsTo})),team:teamView(manifest,agents,r.companyId),hostSnapshot:await companySnapshot(d)}};
+   let stack=null;try{stack=JSON.parse(await fs.readFile('/paperclip/hq-hermes/stack.json','utf8'));}catch{}
+   return {status:200,body:{...d,agentsList:agents.map(a=>({id:a.id,name:a.name,status:a.status,adapterType:a.adapterType,title:a.title,reportsTo:a.reportsTo})),team:teamView(manifest,agents,r.companyId),stack:stackView(stack,r.companyId),hostSnapshot:await companySnapshot(d)}};
   }
   const agents=await ctx.agents.list({companyId:r.companyId,limit:100,offset:0});const ids=new Set(agents.map(a=>a.id));
   if(r.routeKey==='codex-status')return {status:200,body:await workerRequest('/login/status',{})};

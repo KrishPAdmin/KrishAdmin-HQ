@@ -98,3 +98,9 @@ The latest sources include GPU container recovery and early residency checks, me
 Per-user Gmail/Calendar code is included, with private DM access and separate confirmation for sends/event changes. **Individual OAuth is still required**; no live Google account is connected by this export. See [Google setup](deployments/hermes/docs/workspace.md).
 
 [Herdr.dev integration guidance](deployments/hermes/docs/herdr.md) uses terminal panes on HQ with the existing broker and Suits services. Herdr itself has not been installed or validated on the host. See [the repair record](deployments/hermes/docs/repair-2026-11-09.md) and [Discord delivery behavior](deployments/hermes/docs/discord.md) for evidence and remaining limits.
+
+## Context controls and live dashboard
+
+[Every local runtime's context window](deployments/hermes/docs/contexts.md) is documented, with a validated HQ CLI for previewing, applying and rolling back changes. The Discord bot reads actual context settings instead of guessing model limits. Default allocations were retained after control tests.
+
+[Control Center](deployments/hermes/docs/dashboard.md) includes the entire registered agent inventory and a live GPU view with per-card utilization, VRAM, power and temperatures. GPU telemetry refreshes separately from the five-minute integration inventory. Unknown, stale and incomplete readings stay explicit.

@@ -49,14 +49,17 @@
         "HERMES_HOME": "/profile",
         "HQ_PROFILE": "health",
         "PYTHONPATH": "/opt/hermes",
-        "PYTHONDONTWRITEBYTECODE": "1"
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "HQ_CONTEXT_CONFIG": "/config/context-windows.json"
       },
       "volumes": [
         "./worker.py:/app/worker.py:ro",
         "./capabilities.py:/app/capabilities.py:ro",
         "./profiles/health:/profile",
         "./access/health:/run/access/identity:ro",
-        "./access/worker:/run/access/worker:ro"
+        "./access/worker:/run/access/worker:ro",
+        "./context_settings.py:/app/context_settings.py:ro",
+        "./config:/config:ro"
       ]
     },
     "backup": {
@@ -107,14 +110,17 @@
         "HERMES_HOME": "/profile",
         "HQ_PROFILE": "backup",
         "PYTHONPATH": "/opt/hermes",
-        "PYTHONDONTWRITEBYTECODE": "1"
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "HQ_CONTEXT_CONFIG": "/config/context-windows.json"
       },
       "volumes": [
         "./worker.py:/app/worker.py:ro",
         "./capabilities.py:/app/capabilities.py:ro",
         "./profiles/backup:/profile",
         "./access/backup:/run/access/identity:ro",
-        "./access/worker:/run/access/worker:ro"
+        "./access/worker:/run/access/worker:ro",
+        "./context_settings.py:/app/context_settings.py:ro",
+        "./config:/config:ro"
       ]
     },
     "triage": {
@@ -165,14 +171,17 @@
         "HERMES_HOME": "/profile",
         "HQ_PROFILE": "triage",
         "PYTHONPATH": "/opt/hermes",
-        "PYTHONDONTWRITEBYTECODE": "1"
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "HQ_CONTEXT_CONFIG": "/config/context-windows.json"
       },
       "volumes": [
         "./worker.py:/app/worker.py:ro",
         "./capabilities.py:/app/capabilities.py:ro",
         "./profiles/triage:/profile",
         "./access/triage:/run/access/identity:ro",
-        "./access/worker:/run/access/worker:ro"
+        "./access/worker:/run/access/worker:ro",
+        "./context_settings.py:/app/context_settings.py:ro",
+        "./config:/config:ro"
       ]
     },
     "analyst": {
@@ -223,14 +232,17 @@
         "HERMES_HOME": "/profile",
         "HQ_PROFILE": "analyst",
         "PYTHONPATH": "/opt/hermes",
-        "PYTHONDONTWRITEBYTECODE": "1"
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "HQ_CONTEXT_CONFIG": "/config/context-windows.json"
       },
       "volumes": [
         "./worker.py:/app/worker.py:ro",
         "./capabilities.py:/app/capabilities.py:ro",
         "./profiles/analyst:/profile",
         "./access/analyst:/run/access/identity:ro",
-        "./access/worker:/run/access/worker:ro"
+        "./access/worker:/run/access/worker:ro",
+        "./context_settings.py:/app/context_settings.py:ro",
+        "./config:/config:ro"
       ]
     },
     "jessica": {
@@ -279,7 +291,8 @@
       ],
       "environment": {
         "HQ_PROFILE": "jessica",
-        "PYTHONDONTWRITEBYTECODE": "1"
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "HQ_CONTEXT_CONFIG": "/config/context-windows.json"
       },
       "volumes": [
         "./team_worker.py:/app/team_worker.py:ro",
@@ -287,7 +300,9 @@
         "./capabilities.py:/app/capabilities.py:ro",
         "./profiles/jessica:/profile",
         "./access/jessica:/run/access/identity:ro",
-        "./access/worker:/run/access/worker:ro"
+        "./access/worker:/run/access/worker:ro",
+        "./context_settings.py:/app/context_settings.py:ro",
+        "./config:/config:ro"
       ]
     },
     "harvey": {
@@ -336,7 +351,8 @@
       ],
       "environment": {
         "HQ_PROFILE": "harvey",
-        "PYTHONDONTWRITEBYTECODE": "1"
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "HQ_CONTEXT_CONFIG": "/config/context-windows.json"
       },
       "volumes": [
         "./team_worker.py:/app/team_worker.py:ro",
@@ -344,7 +360,9 @@
         "./capabilities.py:/app/capabilities.py:ro",
         "./profiles/harvey:/profile",
         "./access/harvey:/run/access/identity:ro",
-        "./access/worker:/run/access/worker:ro"
+        "./access/worker:/run/access/worker:ro",
+        "./context_settings.py:/app/context_settings.py:ro",
+        "./config:/config:ro"
       ]
     },
     "mike": {
@@ -393,7 +411,8 @@
       ],
       "environment": {
         "HQ_PROFILE": "mike",
-        "PYTHONDONTWRITEBYTECODE": "1"
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "HQ_CONTEXT_CONFIG": "/config/context-windows.json"
       },
       "volumes": [
         "./team_worker.py:/app/team_worker.py:ro",
@@ -401,7 +420,9 @@
         "./capabilities.py:/app/capabilities.py:ro",
         "./profiles/mike:/profile",
         "./access/mike:/run/access/identity:ro",
-        "./access/worker:/run/access/worker:ro"
+        "./access/worker:/run/access/worker:ro",
+        "./context_settings.py:/app/context_settings.py:ro",
+        "./config:/config:ro"
       ]
     },
     "louis": {
@@ -450,7 +471,8 @@
       ],
       "environment": {
         "HQ_PROFILE": "louis",
-        "PYTHONDONTWRITEBYTECODE": "1"
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "HQ_CONTEXT_CONFIG": "/config/context-windows.json"
       },
       "volumes": [
         "./team_worker.py:/app/team_worker.py:ro",
@@ -458,7 +480,9 @@
         "./capabilities.py:/app/capabilities.py:ro",
         "./profiles/louis:/profile",
         "./access/louis:/run/access/identity:ro",
-        "./access/worker:/run/access/worker:ro"
+        "./access/worker:/run/access/worker:ro",
+        "./context_settings.py:/app/context_settings.py:ro",
+        "./config:/config:ro"
       ]
     },
     "rachel": {
@@ -507,7 +531,8 @@
       ],
       "environment": {
         "HQ_PROFILE": "rachel",
-        "PYTHONDONTWRITEBYTECODE": "1"
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "HQ_CONTEXT_CONFIG": "/config/context-windows.json"
       },
       "volumes": [
         "./team_worker.py:/app/team_worker.py:ro",
@@ -515,7 +540,9 @@
         "./capabilities.py:/app/capabilities.py:ro",
         "./profiles/rachel:/profile",
         "./access/rachel:/run/access/identity:ro",
-        "./access/worker:/run/access/worker:ro"
+        "./access/worker:/run/access/worker:ro",
+        "./context_settings.py:/app/context_settings.py:ro",
+        "./config:/config:ro"
       ]
     },
     "donna": {
@@ -564,7 +591,8 @@
       ],
       "environment": {
         "HQ_PROFILE": "donna",
-        "PYTHONDONTWRITEBYTECODE": "1"
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "HQ_CONTEXT_CONFIG": "/config/context-windows.json"
       },
       "volumes": [
         "./team_worker.py:/app/team_worker.py:ro",
@@ -572,7 +600,9 @@
         "./capabilities.py:/app/capabilities.py:ro",
         "./profiles/donna:/profile",
         "./access/donna:/run/access/identity:ro",
-        "./access/worker:/run/access/worker:ro"
+        "./access/worker:/run/access/worker:ro",
+        "./context_settings.py:/app/context_settings.py:ro",
+        "./config:/config:ro"
       ]
     },
     "files": {
@@ -681,6 +711,7 @@
       ],
       "volumes": [
         "./broker.py:/app/broker.py:ro",
+        "./gpu_telemetry.py:/app/gpu_telemetry.py:ro",
         "./task_updates.py:/app/task_updates.py:ro",
         "./profiles/concierge/discord-enrollment.json:/discord-enrollment.json:ro",
         "./web_research.py:/app/web_research.py:ro",
@@ -698,10 +729,12 @@
         "../paperclip/data/hq-locks:/locks",
         "../../secrets/nvidia-gpu-api.txt:/run/secrets/nvidia-gpu-token:ro",
         "../../secrets/amd-gpu-api.txt:/run/secrets/amd-gpu-token:ro",
-        "../../secrets/nvidia-gpu-server.crt:/run/secrets/nvidia-gpu-ca.crt:ro"
+        "../../secrets/nvidia-gpu-server.crt:/run/secrets/nvidia-gpu-ca.crt:ro",
+        "./context_settings.py:/app/context_settings.py:ro"
       ],
       "environment": {
-        "HQ_RENDER_URL": "http://renderer:8080/render"
+        "HQ_RENDER_URL": "http://renderer:8080/render",
+        "HQ_CONTEXT_CONFIG": "/config/context-windows.json"
       }
     },
     "render-fetch": {

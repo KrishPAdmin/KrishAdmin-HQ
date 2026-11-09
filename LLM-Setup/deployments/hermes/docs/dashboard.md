@@ -1,0 +1,15 @@
+# Full stack dashboard and live GPU view
+
+Open [Control Center](https://paperclip.example.invalid/KRI/control-center). Overview is the default tab. Live GPUs provides a focused view of the NVIDIA-GPU and both AMD-GPU cards.
+
+Each GPU card shows driver-reported compute utilization (%), VRAM used/total (GiB), memory allocation percentage, power draw (W), temperature, and a recent utilization trace of up to 60 samples. AMD-GPU also exposes junction/memory temperatures and its reported power cap. The view polls every five seconds and can be paused. Missing values remain unavailable, and samples older than 30 seconds or interrupted by an API failure are marked stale. History is browser-local and resets when the panel is remounted; it is not a retained monitoring database.
+
+Collection uses fixed read-only diagnostics on the hosts, with no model inference. NVIDIA uses nvidia-smi. AMD combines explicit ROCm utilization/temperature fields with amdgpu sysfs memory-byte and power-microwatt counters. ROCm and Linux DRM numbering differ on this host, so values are joined by PCI bus address. Opaque GFX activity counters are never treated as percentages. GPU power is not whole-host wall power, and idle utilization does not imply unused VRAM or complete hardware health.
+
+The rest of Overview includes every registered Paperclip agent, all HQ Docker services, including stopped containers, configured and loaded context allocations, installed model maxima, CLI context-control instructions, both GitHub repositories, recent task/report links, HQ skills, integration readiness, current alerts and backup observations. Suits cards also show context and output budgets. Cloud & MCP distinguishes the per-user Discord Google connector from independent Paperclip catalog connections.
+
+Inventory refreshes through a dedicated five-minute HQ stack timer, separate from host evidence collection; the page checks for a newer snapshot every 30 seconds. Inventory older than ten minutes is marked stale. GPU samples use a separate short cache and collect only while requested; they are not the five-minute host snapshot. Snapshot content is company-scoped. Live GPU access requires an enrolled lab operator in that company. No Google account addresses, message/calendar contents, credentials or raw adapter environment are added to the snapshot.
+
+Readiness is explicit: configured tools are not automatically a connected cloud account. Individual Google OAuth, Herdr installation, live external-provider acceptance, off-host backup coverage and complete application restoration remain separate checks. Existing error states remain visible, including an external agent's Paperclip error state. Recent tasks are limited to ten; links open the full project/task views.
+
+Validation includes all three real GPU cards with current driver readings, native plugin API authorization, company/staleness unit tests, and authenticated desktop/mobile browser checks for inventory, polling, pause/resume and six Suits cards. The browser checks perform no control writes.

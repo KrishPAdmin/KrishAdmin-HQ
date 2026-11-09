@@ -46,3 +46,6 @@ Historical setup notes are preserved in the setup archive (local runtime/history
 - [Skills review](skills-review.md) — selected public skills and MCP candidates.
 - [Herdr with local AI](herdr.md) — recommended terminal layout and existing HQ CLI workflows.
 - [November 9 repair record](repair-2026-11-09.md) — GPU repair, integrations, evidence and remaining limits.
+
+- [Context windows and controls](contexts.md) — complete runtime table, CLI changes and rollback.
+- [Full stack and live GPU dashboard](dashboard.md) — current telemetry, inventory and readiness.

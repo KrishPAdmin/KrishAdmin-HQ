@@ -12,11 +12,11 @@
     },
     {
       "path": "DEPLOYMENT.md",
-      "sha256": "5c3ffcc38ac901e8b0fb6f206a1776de6bd7ccac24927a71b4c255fc0c4f9fb1"
+      "sha256": "49bd8cec65198fc212b5f902525d42f2f44c9be4e2ec45fa54471d30e03a9d7d"
     },
     {
       "path": "README.md",
-      "sha256": "1a159a19c63c66a74264ca0eb7a2bfd23ca070b0bf9e6f9f9d4e6349a4e6f3ff"
+      "sha256": "9d0a02fde689de8f37bafa2858e9ea9bf15f661b31d33f88e981ca03fa78e67d"
     },
     {
       "path": "THIRD-PARTY.md",
@@ -24,7 +24,7 @@
     },
     {
       "path": "VERIFICATION.md",
-      "sha256": "4da5d4ecc5006716549f0853a385ea077b3b49d71f2024f88675db9394a6f6da"
+      "sha256": "6206f38e2df83f86847ae81a90a91ec2e57a2e92aa14cc7890ef557cf60193eb"
     },
     {
       "path": "config/network-audit.json",
@@ -80,7 +80,7 @@
     },
     {
       "path": "deployments/hermes/broker.py",
-      "sha256": "e14abe4cfc850eb23c01f687bf81db970ae12693d726563d62aeba0242e11737"
+      "sha256": "753b7f4b809d4b67f9b5e7a3b92909a887bf07d4dd36b48e49133c2895641df9"
     },
     {
       "path": "deployments/hermes/capabilities.py",
@@ -92,7 +92,7 @@
     },
     {
       "path": "deployments/hermes/compose.yaml",
-      "sha256": "57faa69e5ffb9f9568ec8cddba71ffc26bd2bc6c35a5af8fa18fbb6ba006d4d7"
+      "sha256": "5a7a87dccf1acdf7f77e3aba1ef4fed78f6c5eb1bff67145a60f6f5227052cf3"
     },
     {
       "path": "deployments/hermes/config/browser-package-lock.json",
@@ -105,6 +105,10 @@
     {
       "path": "deployments/hermes/config/browser-seccomp.json",
       "sha256": "db79731b5583689fd739eea3f114a8274f66080d45f2b1cba1b753794682ff44"
+    },
+    {
+      "path": "deployments/hermes/config/context-windows.json",
+      "sha256": "6b85a56df605953662c175328ed90838b5f0a5f564b16089e2cd4f9086aa3a5a"
     },
     {
       "path": "deployments/hermes/config/paperclip.json",
@@ -121,6 +125,14 @@
     {
       "path": "deployments/hermes/config/routines.json",
       "sha256": "d6ab1ead44fd1605116b1a698d2ab3e4c8e8ffb01e3f0f1e28eb4b9fe5e59dc6"
+    },
+    {
+      "path": "deployments/hermes/context_settings.py",
+      "sha256": "4644a88cec224540f649101565145f287e463a39b9da155617bfaf35519590e1"
+    },
+    {
+      "path": "deployments/hermes/contextctl.py",
+      "sha256": "e7f2b769a4bf8cb903b68e69deb74987c953457266411665561e494746426aea"
     },
     {
       "path": "deployments/hermes/diagnostics_service.py",
@@ -147,6 +159,14 @@
       "sha256": "4317141a2a73f565ea36ef716f9eeab33ed6dd09f05e1e0b709e8a0d9c245a5b"
     },
     {
+      "path": "deployments/hermes/docs/contexts.md",
+      "sha256": "bc8b39dc7c381ca6ee37119bfa5bc64ac6e9f9a5ee250ffaf4d86d7c9cbc3b24"
+    },
+    {
+      "path": "deployments/hermes/docs/dashboard.md",
+      "sha256": "c686fbba90f17b7a75861c3907621dd5fd3a97609ec025c6235b222cbf95e2b7"
+    },
+    {
       "path": "deployments/hermes/docs/diagnostics.md",
       "sha256": "c8c5d8a3e474e48c203215ea9d153f19a2a128aab927c2343c7c837e7d9c9f6c"
     },
@@ -164,7 +184,7 @@
     },
     {
       "path": "deployments/hermes/docs/index.md",
-      "sha256": "17f37b7529e4916e8a7f60b427bfde4aeb6645e1a708ffb453779122ec709219"
+      "sha256": "6ed3a5c6c1dd0d1c2a72b7446b2feaefbb2f3d5a17d0e7ad141270ebac416fad"
     },
     {
       "path": "deployments/hermes/docs/mcp.md",
@@ -212,7 +232,7 @@
     },
     {
       "path": "deployments/hermes/doctor.py",
-      "sha256": "35c8314a17acecc2d267b91557849def92044c993c130b282b37fcee37651965"
+      "sha256": "5b7c936cbd5b23a89045c4975f2ca57021c68af9a1ce30b4fd055b006b680b19"
     },
     {
       "path": "deployments/hermes/enroll_amd_gpu_observer.py",
@@ -243,12 +263,16 @@
       "sha256": "0f648636a65d6b238b7ddb08d17e7fd9cb8cba73a1db4163464470e804813114"
     },
     {
+      "path": "deployments/hermes/gpu_telemetry.py",
+      "sha256": "e962f7d331f04529051abf7b10ca3cb53479123a7fef07d9cdbd755219589aee"
+    },
+    {
       "path": "deployments/hermes/health_rules.py",
       "sha256": "e4d9bd5eeb6a64e923400c0677ab78ea015eaf5aa99295f161cb684be5ec57fd"
     },
     {
       "path": "deployments/hermes/hq.py",
-      "sha256": "97ae6c82b3275ed5dcaac155d2f077509aae0b180fe97a1af7b8577855b0c8ed"
+      "sha256": "574e051f99825734cb69b4a09a823168bae76764ea6054af79a2dddeb5ccce66"
     },
     {
       "path": "deployments/hermes/hq_client.py",
@@ -268,7 +292,7 @@
     },
     {
       "path": "deployments/hermes/plugin/__init__.py",
-      "sha256": "ef1a83ffef7e448c40aab63f4273da574e13f15f250506a7fb2cb264d3d01449"
+      "sha256": "7cf624c91a1af26e31d5e4fe752b3bb81d03f47ff034450bd49d8ca8b05af04a"
     },
     {
       "path": "deployments/hermes/plugin/attachments.py",
@@ -284,7 +308,7 @@
     },
     {
       "path": "deployments/hermes/prepare.py",
-      "sha256": "fdacadd0faa4a1dd6d998cff407594b5415a67c0f1fbb163f30ba9a28b42b780"
+      "sha256": "670346d4f7de43c0b5469059656c20916abee83547d1af0761a52ded32739100"
     },
     {
       "path": "deployments/hermes/profiles/analyst/SOUL.md",
@@ -308,7 +332,7 @@
     },
     {
       "path": "deployments/hermes/profiles/concierge/SOUL.md",
-      "sha256": "67a353993511d5aada28183054f7fbdf46ee82f6d81e40288cc8db4f66c6415f"
+      "sha256": "4bb4e1c34de872a87d582c20b97ad682e031b60e898facb1cb389d314187c986"
     },
     {
       "path": "deployments/hermes/profiles/concierge/config.yaml",
@@ -491,6 +515,10 @@
       "sha256": "d892266ce320c79e59e48a3b5c7de10f2ad8a0af0ce11e1eb430aea965e20f0f"
     },
     {
+      "path": "deployments/hermes/stack_status.py",
+      "sha256": "afb5c13b385eb3d7139a635c66496177b99d872a5357e392469a17aa6f75d06d"
+    },
+    {
       "path": "deployments/hermes/systemd/hq-backup-maintenance.service",
       "sha256": "e8c95bd41e11320cab87f9dbbbeadb2178f817ebb097a9abe219e9ad16e253e4"
     },
@@ -531,6 +559,14 @@
       "sha256": "986b4a8a3d8a21f05a782f3809528fddd06b8a6fba7dfc9319bdabf753c16921"
     },
     {
+      "path": "deployments/hermes/systemd/hq-hermes-stack.service",
+      "sha256": "3a1c96fda03b3bd65fdb6fc384b2a43aa7607c3328d4ce416621be9540cbaa9b"
+    },
+    {
+      "path": "deployments/hermes/systemd/hq-hermes-stack.timer",
+      "sha256": "19663f4dcbe1decefde964f0f3236e1fa684ffdcf0dec3011b85b75158db46c6"
+    },
+    {
       "path": "deployments/hermes/systemd/hq-hermes-task-notifications.service",
       "sha256": "a76b2b5df7df130d7c7658731823352056927f650e2e5a412677a3f270c5c812"
     },
@@ -544,11 +580,11 @@
     },
     {
       "path": "deployments/hermes/team.py",
-      "sha256": "82fbd529620ea705f2951237aa7b21b812dbcda9194e1c5081deb57a8b45028b"
+      "sha256": "97bfb5c23cfadaaa95d7e0bf45ecfe676ee0e239957d9d56aa6b193ac569614a"
     },
     {
       "path": "deployments/hermes/team_worker.py",
-      "sha256": "3932e4f1ccff7b4858815827fbdc777c0a56d33e63b3b7fba7d4fc126c06ec6c"
+      "sha256": "cd31ea8b03664199cf01bc388c591e57c380ab886b6913132c2fa1bb4ed52cab"
     },
     {
       "path": "deployments/hermes/test_boundaries.py",
@@ -557,6 +593,10 @@
     {
       "path": "deployments/hermes/test_capabilities.py",
       "sha256": "a7af2148a68bae852af97019f425a07ae12d07d930897d2d2de5875b2775aa72"
+    },
+    {
+      "path": "deployments/hermes/test_context_telemetry.py",
+      "sha256": "1dff846530101cd21bde8c6bcd9e00e4fc434e63a74f81fedda2dc294080ad9e"
     },
     {
       "path": "deployments/hermes/test_diagnostics_research.py",
@@ -644,7 +684,7 @@
     },
     {
       "path": "deployments/hermes/worker.py",
-      "sha256": "c542929952963fdb30ed84af0f98d3e1ab2c7a639bb5c7b459bd876a7026d98e"
+      "sha256": "102a6d226ce10811e838f71eb223c1eeb37c6808841ec0c7e9ed445832ad0355"
     },
     {
       "path": "deployments/n8n/.env.example",
@@ -824,7 +864,7 @@
     },
     {
       "path": "deployments/paperclip/agents/local_agent.py",
-      "sha256": "4babdd92a5721e9baa6bb962d76a4d6911393a125dd473a720bfeab4c8090140"
+      "sha256": "6b14ff85766a96f8cb085bbe4d25245d677b6a57f4ca10ac09fe88b804ef9753"
     },
     {
       "path": "deployments/paperclip/agents/mcp_qa_fixture.py",
@@ -872,7 +912,7 @@
     },
     {
       "path": "deployments/paperclip/control-center/OPERATOR-GUIDE.md",
-      "sha256": "a6196d2a11f666556f70e4e77ab5ed85df75ae1d68c84fef7a1f5a3cbda0edd5"
+      "sha256": "55d20879f396ea2fd7b90914ac8193c5cb168657b4094c767742d5513312431e"
     },
     {
       "path": "deployments/paperclip/control-center/build.cjs",
@@ -884,7 +924,7 @@
     },
     {
       "path": "deployments/paperclip/control-center/package.json",
-      "sha256": "1a52692bbc99eb7c77cfff1ef621030df42a2a88864b26a3d4739696017c370b"
+      "sha256": "4b536787a4108c7b2bba86f8b911e741a98feff5abda9b8a80dce9669eb57e7c"
     },
     {
       "path": "deployments/paperclip/control-center/seed/install-observer.sh",
@@ -899,8 +939,16 @@
       "sha256": "ef73580077045070ef2ef0540a17e5e3df3651701f7e02a3e0d546ec4a21de8b"
     },
     {
+      "path": "deployments/paperclip/control-center/src/dashboard.jsx",
+      "sha256": "03fdb27377468c901c0170975947b8d8da461530eeb976bb84ef8c350692806f"
+    },
+    {
       "path": "deployments/paperclip/control-center/src/manifest.js",
-      "sha256": "2cbdb77fa1f2fb2a755ae9f8f45aa375aa6487d2c0dd4b5f55c5d72ed326b2fe"
+      "sha256": "983c2b8373e6705c191de7a66e958412068d596b384014b1e0fc81c22c4564e5"
+    },
+    {
+      "path": "deployments/paperclip/control-center/src/stack.js",
+      "sha256": "f24a09a609a0886ba6981ee42d5fae7b2470ecdffb34ce8c644b4d981f290a1b"
     },
     {
       "path": "deployments/paperclip/control-center/src/team.js",
@@ -908,11 +956,15 @@
     },
     {
       "path": "deployments/paperclip/control-center/src/ui.jsx",
-      "sha256": "5704156130a384f7918bd09106c8c3eb9ac4be83886dfd02f4568d102b8e6d2f"
+      "sha256": "9ef8f94bc92ee382e2c4d738ee510df10d3f3dfcf241472de5bc893d7221b139"
     },
     {
       "path": "deployments/paperclip/control-center/src/worker.js",
-      "sha256": "76e34df2be66ef0057f4a27336f25d07cee479f8d96e859d2a147e5e7422de35"
+      "sha256": "eab8772169c974741c9be15d419da47f2e1d917f5b96141c4bd4efbdd19cac60"
+    },
+    {
+      "path": "deployments/paperclip/control-center/stack.test.js",
+      "sha256": "22438d1b4bac2468be00bacb845596c763062dd28f437b6b1ea8e60bb2267d00"
     },
     {
       "path": "deployments/paperclip/control-center/team.test.js",
@@ -932,7 +984,7 @@
     },
     {
       "path": "deployments/paperclip/operations/diagnostics_probe.py",
-      "sha256": "f84fe15db430e2f64456ed9dfe1f997bd665a09a113c06876dc49fe3d4e46f38"
+      "sha256": "d804e2234b95c4d813d99df70f34cfa09073ef88b5ab46979ec1b101f2b4dc49"
     },
     {
       "path": "deployments/paperclip/operations/host_probe.py",
@@ -940,7 +992,7 @@
     },
     {
       "path": "deployments/paperclip/operations/install-observer.sh",
-      "sha256": "cd5b30b19b5c82eb9a4d1292353b54eadcf6fa7a91c2fa0113e516b2a3f3eded"
+      "sha256": "0d9dd6a1f0b7293d442adc1ee5bbaca805819412f08eb365a0320e75e07b773c"
     },
     {
       "path": "deployments/paperclip/operations/inventory.json",
@@ -993,6 +1045,10 @@
     {
       "path": "deployments/paperclip/setup_operations.py",
       "sha256": "28c03ff30d2743dec3a88317c5a936dabb343751c503983f2046a24c96aeb973"
+    },
+    {
+      "path": "deployments/paperclip/test_context_control.py",
+      "sha256": "cfea21eb2bf3bd339628efbbcf6c37a1ca52b871ce8879ae862e4728e7c3635e"
     },
     {
       "path": "deployments/paperclip/test_control_center.py",

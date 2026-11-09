@@ -15,4 +15,5 @@ TEAM={
 
 # Actual per-request context allocation, also exported with role metadata.
 for _name,_role in TEAM.items():
-    _role["context_length"]={"jessica":65536,"harvey":8192,"louis":32768}.get(_name,65536)
+    from context_settings import window
+    _role["context_length"]=window(_name)

@@ -1,0 +1,9 @@
+[Unit]
+Description=Refresh the company-scoped HQ stack dashboard snapshot
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /home/operator/krishadmin-hq/deployments/hermes/stack_status.py
+TimeoutStartSec=180
+UMask=0077
+NoNewPrivileges=true

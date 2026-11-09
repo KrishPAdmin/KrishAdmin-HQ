@@ -3,6 +3,7 @@ import json,os,secrets
 import yaml
 from pathlib import Path
 from team import TEAM
+import context_settings as contexts
 ROOT=Path(__file__).resolve().parent
 IMAGE='nousresearch/hermes-agent@sha256:d27689bc6e8581ec884a7227c9101fdaebf6c853cff8859020dac14f21452b4d'
 
@@ -14,6 +15,12 @@ def main():
         if not p.exists():p.write_text(secrets.token_urlsafe(32)+'\n')
     p=ROOT/'config/research-origins.json'
     if not p.exists():p.write_text(json.dumps(['hermes-agent.nousresearch.com','docs.discord.com','docs.python.org','pve.proxmox.com','docs.n8n.io'],indent=2)+'\n')
+    context_file=ROOT/'config/context-windows.json'
+    if not context_file.exists():context_file.write_text(json.dumps(contexts.defaults(),indent=2)+'\n')
+    context_config=contexts.load(context_file)
+    context_mirror=ROOT.parent/'paperclip/data/hq-hermes/context-windows.json'
+    context_mirror.parent.mkdir(parents=True,exist_ok=True)
+    context_mirror.write_text(json.dumps(context_config,indent=2)+'\n')
     common={'image':IMAGE,'restart':'unless-stopped','init':True,'user':'1000:1000','read_only':True,
         'tmpfs':['/tmp:rw,noexec,nosuid,size=256m'],'cap_drop':['ALL'],'security_opt':['no-new-privileges:true'],
         'pids_limit':128,'mem_limit':'1g','cpus':1.0,'networks':['private'],
@@ -34,8 +41,10 @@ def main():
             'display':{'tool_progress':'off'}}
         cfg=home/'config.yaml'
         if not cfg.exists():cfg.write_text(json.dumps(config,indent=2)+'\n')
+        config=yaml.safe_load(cfg.read_text())
+        config['model']['context_length']=contexts.window(profile,context_config)
+        cfg.write_text(json.dumps(config,indent=2)+'\n')
         if profile=='concierge':
-            config=yaml.safe_load(cfg.read_text())
             enrollment=home/'discord-enrollment.json'
             if enrollment.exists():
                 enrolled=json.loads(enrollment.read_text())
@@ -47,8 +56,8 @@ def main():
             config['mcp_servers']={name:{'command':'python','args':['/app/mcp_server.py',name],'tools':{'include':names,'resources':False,'prompts':False},'timeout':540} for name,names in {'research':['search','read_page','weather'],'workbench':['check_system','review_file','plan_automation']}.items()}
             config['platform_toolsets']['discord']=['hq_ops','mcp-research','mcp-workbench']
             config['agent']['max_turns']=12
-            config['compression']={'enabled':True,'threshold':0.75,'threshold_tokens':30000,'target_ratio':0.2,'protect_last_n':6,'proactive_prune_tokens':22000,'progress_notices':True}
-            config['auxiliary']={'compression':{'provider':'custom','base_url':'http://broker:8080/v1','model':TEAM['jessica']['model'],'api_key_env':'OPENAI_API_KEY','timeout':520,'no_progress_timeout':520,'context_length':65536}}
+            config['compression']=contexts.compression(context_config)
+            config['auxiliary']={'compression':{'provider':'custom','base_url':'http://broker:8080/v1','model':TEAM['jessica']['model'],'api_key_env':'OPENAI_API_KEY','timeout':520,'no_progress_timeout':520,'context_length':contexts.window('jessica',context_config)}}
             cfg.write_text(json.dumps(config,indent=2)+'\n')
             continue
         services[profile]={**common,'entrypoint':['python','/app/worker.py'],
@@ -66,7 +75,7 @@ def main():
         'volumes':['./file_service.py:/app/file_service.py:ro','./profiles/concierge/cache/documents:/uploads:ro','./access/worker:/run/access/worker:ro']}
     services['broker']={**common,'entrypoint':['python','/app/broker.py'],'mem_limit':'512m',
         'ports':['127.0.0.1:18880:8080'],'networks':{'private':{},'egress':{},'paperclip':{'aliases':['hq-hermes-broker']}},
-        'volumes':['./broker.py:/app/broker.py:ro','./task_updates.py:/app/task_updates.py:ro','./profiles/concierge/discord-enrollment.json:/discord-enrollment.json:ro','./web_research.py:/app/web_research.py:ro','./health_rules.py:/app/health_rules.py:ro','./capabilities.py:/app/capabilities.py:ro','./team.py:/app/team.py:ro',
+        'volumes':['./broker.py:/app/broker.py:ro','./gpu_telemetry.py:/app/gpu_telemetry.py:ro','./task_updates.py:/app/task_updates.py:ro','./profiles/concierge/discord-enrollment.json:/discord-enrollment.json:ro','./web_research.py:/app/web_research.py:ro','./health_rules.py:/app/health_rules.py:ro','./capabilities.py:/app/capabilities.py:ro','./team.py:/app/team.py:ro',
             './docs:/knowledge:ro','./profiles/concierge/cache/documents/drafts:/drafts','./access:/run/access:ro','./state:/state','./config:/config:ro',
             './observations:/observations:ro','./run/diagnostics:/diagnostic-socket:ro','/var/lib/hq-observations:/backup-observations:ro','../paperclip/data/hq-locks:/locks',
             '../../secrets/nvidia-gpu-api.txt:/run/secrets/nvidia-gpu-token:ro','../../secrets/amd-gpu-api.txt:/run/secrets/amd-gpu-token:ro',
@@ -90,8 +99,12 @@ def main():
         'volumes':['./gateway_start.py:/app/gateway_start.py:ro','./mcp_server.py:/app/mcp_server.py:ro','./profiles/concierge:/profile',
             './plugin:/profile/plugins/hq-operations:ro','./access/concierge:/run/access/identity:ro',
             './access/discord-token:/run/access/discord-token:ro','./run/github:/github-socket:ro','./access/github-origin:/run/access/github-origin:ro'], 'healthcheck':{'disable':True}}
+    for service in ('broker','health','backup','triage','analyst',*TEAM):
+        services[service].setdefault('environment',{})['HQ_CONTEXT_CONFIG']='/config/context-windows.json'
+        services[service]['volumes'].append('./context_settings.py:/app/context_settings.py:ro')
+        if service!='broker':services[service]['volumes'].append('./config:/config:ro')
     (ROOT/'compose.yaml').write_text(json.dumps({'name':'hq-hermes','services':services,
         'networks':{'private':{'internal':True},'research_internal':{'internal':True},'egress':{},'paperclip':{'external':True,'name':'hq-paperclip_default'}}},indent=2)+'\n')
     (ROOT/'release.json').write_text(json.dumps({'version':'v0.22.6','revision':'f0d94882e89ab8d4098b5bb2f166adfb9ee0a0ab','image':IMAGE},indent=2)+'\n')
-    print('Prepared deployment, separate profiles and private credentials; Discord remains disabled until enrollment.')
+    print('Prepared deployment, separate profiles and private credentials; existing Discord enrollment was preserved.')
 if __name__=='__main__':main()

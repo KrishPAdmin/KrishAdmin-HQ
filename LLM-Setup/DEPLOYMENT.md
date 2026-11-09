@@ -40,3 +40,9 @@ For the research browser, provision Docker build access to the pinned Playwright
 Read [individual Google setup](deployments/hermes/docs/workspace.md) before enabling Gmail/Calendar; each user needs their own OAuth enrollment. Do not reuse another user's credentials. The exported configuration uses placeholders and cannot authorize Google on its own.
 
 Read [Herdr integration guidance](deployments/hermes/docs/herdr.md) for an operator terminal setup. The source snapshot does not install Herdr. Discord long replies require Attach Files permission in each destination; Paperclip links retain the application's normal authentication requirements.
+
+## Context and telemetry services
+
+Mount the new context_settings.py, gpu_telemetry.py and read-only context configuration through the generated Hermes Compose file. Keep the configuration directory mount, so atomic CLI changes are visible without stale single-file mounts. Preserve per-request broker context settings and profile metadata together.
+
+Install/enable systemd/hq-hermes-stack.service and its timer for the company dashboard snapshot. This is separate from evidence refresh. Upgrade the fixed AMD diagnostic probe for exact VRAM/power metrics and PCI identity. Rebuild/reload Control Center 0.1.3 using its existing plugin upgrade path. The dashboard does not need a new external telemetry service. See the context and dashboard runbooks for application, rollback, privacy boundaries and validation.

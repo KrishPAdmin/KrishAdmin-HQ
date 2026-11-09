@@ -29,6 +29,15 @@ class ApiError(RuntimeError):
         self.code = code
         super().__init__(message)
 
+def configured_context(mode,backend,path=Path('/paperclip/hq-hermes/context-windows.json')):
+    if not path.exists():return 8192
+    data=json.loads(path.read_text())
+    key='paperclip-coordinator' if mode=='coordinator' else 'paperclip-'+backend
+    tokens=data['contexts'][key]
+    maximum=32768 if backend=='amd-gpu' else 262144
+    if type(tokens) is not int or tokens%1024 or not 4096<=tokens<=maximum:raise ValueError('Invalid configured Paperclip context allocation')
+    return tokens
+
 
 def request(url, method="GET", body=None, headers=None, context=None, timeout=30):
     req = urllib.request.Request(url, method=method,
@@ -85,7 +94,7 @@ class Agent:
             if messages and messages[0].get('role') == 'system': messages[0]['content'] += '\nOperator preferences: ' + extra[:6000]
         ctx = ssl.create_default_context(cafile=ca) if ca else None
         body = {"model": model, "messages": messages, "stream": False,
-                "options": {"temperature": 0.1, "num_ctx": 8192, "num_predict": min(4096, max(128, int(settings.get("maxOutputTokens", 1200))))}}
+                "options": {"temperature": 0.1, "num_ctx": configured_context(self.mode,self.backend), "num_predict": min(4096, max(128, int(settings.get("maxOutputTokens", 1200))))}}
         if self.backend == "nvidia-gpu":
             body["think"] = False
         if schema:

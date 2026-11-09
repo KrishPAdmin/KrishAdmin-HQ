@@ -10,6 +10,9 @@ from capabilities import TASKS,prompt_for,calculate
 from team import TEAM
 from web_research import collect as collect_web,search_web,read_page,weather
 from task_updates import issue_url,origin_checked,subscribe,reply_footer
+import context_settings as contexts
+from gpu_telemetry import LiveGPU
+GPU_VIEW=LiveGPU(lambda target:diagnostics({'target':target,'check':'gpu'}))
 
 STATE = Path('/state')
 TOKENS = Path('/run/access')
@@ -231,9 +234,77 @@ def completed_research_reply(body):
             'hq_receipt':receipt,'choices':[{'index':0,'message':{'role':'assistant','content':text},'finish_reason':'stop'}],
             'usage':{'prompt_tokens':0,'completion_tokens':0,'total_tokens':0}}
 
+def context_status(include_native=False):
+    settings=contexts.load();systems={name:gpu(name) for name in BACKENDS}
+    roles={name:{'backend':r['backend'],'model':r['model']} for name,r in TEAM.items()}
+    roles.update({name:{'backend':'amd-gpu' if name in ('analyst','paperclip-amd-gpu') else 'nvidia-gpu',
+                        'model':BACKENDS['amd-gpu' if name in ('analyst','paperclip-amd-gpu') else 'nvidia-gpu'][3]} for name in contexts.DEFAULTS if name not in roles})
+    roles['pi']['model']='paperclip-qwen3.5:9b'
+    native={};rows=[]
+    for name,role in roles.items():
+        backend=role['backend'];model=role['model'];key=(backend,model)
+        cap=contexts.MAXIMUM[name];error=None
+        if include_native:
+            if key not in native:
+                url,secret,ca,_=BACKENDS[backend]
+                try:
+                    data=request(url+'/api/show',{'model':model},Path(secret).read_text().strip(),ca,timeout=15)
+                    caps=[v for k,v in data.get('model_info',{}).items() if k.endswith('.context_length') and type(v) is int]
+                    native[key]=(min(caps) if caps else None,None)
+                except Exception:native[key]=(None,'Native model metadata unavailable')
+            cap,error=native[key]
+        loaded=next((m for m in systems[backend].get('loaded_models',[]) if m['name']==model),{})
+        rows.append({'target':name,**role,'configured_tokens':contexts.window(name,settings),'model_max_tokens':cap,
+                     'maximum_source':'live model metadata' if include_native else 'model metadata verified 2026-11-09',
+                     'loaded_context_tokens':loaded.get('context_length'),'loaded_vram_bytes':loaded.get('size_vram'),
+                     'minimum_tokens':contexts.MINIMUM[name],'experimental':name in settings['experimental'],
+                     'input_byte_budget':contexts.prompt_budget(name,settings) if name in TEAM or name=='analyst' else None,
+                     'metadata_error':error})
+    return {'checked_at':now(),'settings':settings,'agents':rows,'systems':list(systems.values()),
+            'compression':contexts.compression(settings),'conversation_usage':{'status':'not_measured','reason':'This status check does not tokenize the current Discord conversation. Loaded context is allocation, not tokens used.'},
+            'scope':'Configured per-request limits. Models sharing a backend can have different windows; larger allocations can reload a model and consume more VRAM.'}
+
+def context_reply(body):
+    if 'hq_status' not in {t.get('function',{}).get('name') for t in body.get('tools',[])}:return None
+    messages=body['messages'];index=next((i for i in range(len(messages)-1,-1,-1) if messages[i].get('role')=='user'),None)
+    if index is None or not isinstance(messages[index].get('content'),str):return None
+    prompt=' '.join(re.sub(r'[^a-z0-9 ]',' ',messages[index]['content'].lower()).split())
+    if prompt not in {'what is the current context window sitting at','what is the current context window','what is my context window',
+                       'what is our context window','what s the context window','show context windows','show current context window',
+                       'show context status','what are the context windows for each agent','what is the current context window and usage'}:return None
+    calls=set();result=None
+    for message in messages[index+1:]:
+        for call in message.get('tool_calls',[]):
+            try:args=json.loads(call.get('function',{}).get('arguments','{}'))
+            except (ValueError,TypeError):continue
+            if call.get('function',{}).get('name')=='hq_status' and args.get('view')=='context':calls.add(call.get('id'))
+        if message.get('role')=='tool' and message.get('tool_call_id') in calls:
+            try:result=json.loads(message['content'])
+            except (ValueError,TypeError):result={'error':'Context status unreadable'}
+    if result is None:
+        message={'role':'assistant','content':'','tool_calls':[{'id':'call_'+uuid.uuid4().hex[:20],'type':'function','function':{'name':'hq_status','arguments':'{"view":"context"}'}}]};finish='tool_calls'
+    else:
+        rows={r['target']:r for r in result.get('agents',[])};coordinator=rows.get('concierge')
+        if not coordinator:text='Current context settings could not be read. No context size or usage is confirmed.'
+        else:
+            n=coordinator['configured_tokens'];allocation=coordinator['loaded_context_tokens']
+            lines=['**Current context windows**',f'Discord coordinator (Donna): **{n:,} tokens** ({n/1024:g}K), using `{coordinator["model"]}` on NVIDIA-GPU.',
+                   'Current loaded NVIDIA-GPU model allocation: '+(f'{allocation:,} tokens.' if allocation else 'not loaded; the configured window applies on the next model request.'),
+                   'Suits specialists:']
+            lines.extend(f'• {name.title()}: {rows[name]["configured_tokens"]:,} tokens — {rows[name]["backend"].upper()}' for name in TEAM if name in rows)
+            if 'analyst' in rows:lines.append(f'Deep analyst / Mike escalation: {rows["analyst"]["configured_tokens"]:,} tokens on AMD-GPU.')
+            lines.append(f'Conversation compaction is configured at {result["compression"]["threshold_tokens"]:,} tokens, using Jessica; history may be summarized before the full window is reached.')
+            lines.append('These are limits and allocations, not tokens currently used. Exact used/remaining tokens for this Discord session are not measured by this status check.')
+            lines.append('Checked: '+result.get('checked_at','unavailable'));text='\n'.join(lines)
+        message={'role':'assistant','content':text};finish='stop'
+    return {'id':'context_'+uuid.uuid4().hex,'object':'chat.completion','created':int(time.time()),'model':body['model'],
+            'choices':[{'index':0,'message':message,'finish_reason':finish}],'usage':{'prompt_tokens':0,'completion_tokens':0,'total_tokens':0}}
+
 def inference(role, body):
     backend=validate_inference(role,body)
     if role=='concierge' and backend=='nvidia-gpu':
+        context=context_reply(body)
+        if context is not None:return context
         measured=measured_status(body)
         if measured is not None:return measured
         research_reply=completed_research_reply(body)
@@ -246,8 +317,9 @@ def inference(role, body):
         for call in message.get('tool_calls') or []:
             args=call.get('function',{}).get('arguments')
             if isinstance(args,str):call['function']['arguments']=json.loads(args)
+    configured_context=contexts.window(contexts.target_for(role,model,backend))
     native={'model':model,'messages':messages,'stream':False,
-        'options':{'temperature':0.1,'num_ctx':context_length(model,backend),'num_predict':min(4096 if role=='concierge' and backend=='amd-gpu' else 1800,int(body.get('max_tokens') or body.get('max_completion_tokens') or 1200))}}
+        'options':{'temperature':0.1,'num_ctx':configured_context,'num_predict':min(4096 if role=='concierge' and backend=='amd-gpu' else 1800,int(body.get('max_tokens') or body.get('max_completion_tokens') or 1200))}}
     if backend=='nvidia-gpu': native['think']=False
     if body.get('tools'): native['tools']=body['tools']
     start=time.monotonic(); rid=str(uuid.uuid4())
@@ -259,11 +331,11 @@ def inference(role, body):
                 time.sleep(.25)
         queued=time.monotonic()-start
         loaded=request(url+'/api/ps',token=Path(secret).read_text().strip(),ca=ca,timeout=10).get('models',[])
-        if not any(m.get('name')==model for m in loaded):
+        if not any(m.get('name')==model and m.get('context_length')==configured_context for m in loaded):
             # Load without evaluating the user's potentially large prompt. Fail
             # before spending minutes generating on CPU after a driver failure.
             request(url+'/api/generate',{'model':model,'prompt':'','stream':False,
-                    'keep_alive':'10m','options':{'num_ctx':context_length(model,backend)}},
+                    'keep_alive':'10m','options':{'num_ctx':configured_context}},
                     Path(secret).read_text().strip(),ca,timeout=180)
             loaded=request(url+'/api/ps',token=Path(secret).read_text().strip(),ca=ca,timeout=10).get('models',[])
         require_gpu(loaded,model,role,backend)
@@ -277,7 +349,7 @@ def inference(role, body):
         prompt_sha256=digest(body['messages']), tool_count=len(native.get('tools',[])),
         queue_seconds=round(queued,3),seconds=round(time.monotonic()-start,3),
         input_tokens=response.get('prompt_eval_count'),output_tokens=response.get('eval_count'),
-        loaded_bytes=resident.get('size'),vram_bytes=resident.get('size_vram'),context_length=resident.get('context_length'),
+        loaded_bytes=resident.get('size'),vram_bytes=resident.get('size_vram'),context_length=resident.get('context_length'),requested_context_length=configured_context,
         load_seconds=round((response.get('load_duration') or 0)/1e9,3),
         generation_seconds=round((response.get('eval_duration') or 0)/1e9,3),
         generation_tokens_per_second=round((response.get('eval_count') or 0)/max((response.get('eval_duration') or 1)/1e9,.001),2),
@@ -295,12 +367,11 @@ def inference(role, body):
                  'total_tokens':(receipt['input_tokens'] or 0)+(receipt['output_tokens'] or 0)}}
 
 def context_length(model,backend):
-    if backend=='nvidia-gpu' or model==TEAM['jessica']['model']:return 65536
-    if model in (BACKENDS['amd-gpu'][3],TEAM['louis']['model']):return 32768
-    return 8192
+    name=next((name for name,r in TEAM.items() if r['model']==model),None)
+    return contexts.window(name or ('analyst' if backend=='amd-gpu' else 'concierge'))
 
 def specialist_budget(name):
-    return {'jessica':56000,'louis':24000,'harvey':6000}.get(name,24000)
+    return contexts.prompt_budget(name)
 
 def research(urls):
     """Fixed public origins, pinned DNS result, TLS verification, no redirects or cookies."""
@@ -495,7 +566,7 @@ def team_request(body):
     if body['action']=='delegate' and not body.get('question') and body.get('search_query'):
         body['question']=body['search_query']
     if body['action']=='roster':
-        return {'agents':{name:{k:v for k,v in role.items() if k!='persona'} for name,role in TEAM.items()},
+        return {'agents':{name:{**{k:v for k,v in role.items() if k!='persona'},'context_length':contexts.window(name)} for name,role in TEAM.items()},
                 'coordinator':'Donna persona in the Hermes Discord gateway on HQ; tool calls and delegation stay on HQ',
                 'approval':'The human operator authorizes production changes.'}
     if body.get('action')!='delegate' or body.get('agent') not in TEAM:raise ValueError('Choose roster or delegate to a named team member')
@@ -539,7 +610,7 @@ def team_request(body):
     audit('delegation',agent=name,backend=result['backend'],model=result['model'],run_id=result['run_id'],evidence_sha256=packet['evidence_sha256'])
     return {'evidence':packet,'analysis':result}
 
-KNOWLEDGE={'index','quickstart','architecture','operations','monitoring','discord','backups','security','troubleshooting','recovery','reference','acceptance','capabilities','diagnostics','github','mcp','workspace'}
+KNOWLEDGE={'index','quickstart','architecture','operations','monitoring','discord','backups','security','troubleshooting','recovery','reference','acceptance','capabilities','diagnostics','github','mcp','workspace','contexts','dashboard','herdr'}
 def knowledge(body):
     section=body.get('section');query=body.get('query','')
     if section:
@@ -684,8 +755,10 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_response(200);self.send_header('Content-Type','text/event-stream');self.send_header('Content-Length',str(len(raw)));self.end_headers();self.wfile.write(raw);return
             if role=='analyst' or role in TEAM: raise PermissionError('Specialist identities are inference-only; collection and delegation run on HQ coordinator')
             if self.path=='/diagnostics' and role=='paperclip':return self.send(200,diagnostics(body))
+            if self.path=='/gpu-telemetry' and role in ('paperclip','operator','concierge'):return self.send(200,GPU_VIEW.get())
             if self.path=='/team' and role=='paperclip':return self.send(200,team_request(body))
             if role in ('concierge','operator'):
+                if self.path=='/context':return self.send(200,context_status(include_native=body.get('include_native') is True and role=='operator'))
                 if self.path=='/web/weather':return self.send(200,weather(body.get('location'),body.get('country_code')))
                 if self.path=='/web/search':return self.send(200,search_web(body.get('query')))
                 if self.path=='/web/read':return self.send(200,read_page(body.get('url'),body.get('offset',0),body.get('limit',4000),body.get('find'),body.get('render',False)))
