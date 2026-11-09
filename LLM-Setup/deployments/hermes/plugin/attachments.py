@@ -25,6 +25,8 @@ def install():
     for cls in classes:_patch(cls)
 
 def _patch(DiscordAdapter):
+    from .delivery import patch_delivery
+    patch_delivery(DiscordAdapter)
     original=DiscordAdapter._collect_attachment_media
     if getattr(original,'_hq_bounded',False):return
     async def bounded(self,attachments):

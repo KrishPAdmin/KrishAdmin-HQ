@@ -2,7 +2,7 @@
 
 A Discord front desk, the **Suits specialist team**, local GPU inference, Paperclip task tracking, fixed host diagnostics, and owner-only GitHub code proposals.
 
-This is the **public source/configuration edition**, captured on 2026-11-03. It uses generic GPU aliases, documentation-only network addresses and example identity values. Configure your own environment before running it. Credentials, conversations, uploads, databases, backups and mutable application state are deliberately excluded. This is a source recovery reference, not a complete application-data backup.
+This is the **public source/configuration edition**, captured on 2026-11-09. It uses generic GPU aliases, documentation-only network addresses and example identity values. Configure your own environment before running it. Credentials, conversations, uploads, databases, backups and mutable application state are deliberately excluded. This is a source recovery reference, not a complete application-data backup.
 
 ## Start here
 
@@ -90,3 +90,11 @@ LLM-Setup/
 See [THIRD-PARTY.md](THIRD-PARTY.md) for upstream projects. Existing repository content outside `LLM-Setup/` is preserved.
 
 Public research now checks whether sources answer the question, makes follow-up searches, extracts embedded channel/structured metadata, and supports an isolated read-only browser for JavaScript pages. See the [research and MCP runbook](deployments/hermes/docs/mcp.md#8-research-depth-and-dynamic-pages).
+
+## November 9 stack update
+
+The latest sources include GPU container recovery and early residency checks, measured status/temperature replies, queued Suits workers, source-reviewed research, and bounded project tracking for the two HQ repositories. Paperclip replies end with report links. Ordinary long Discord replies use a full Markdown attachment after three formatted chunks or 6,000 conservative text units; shorter replies split normally.
+
+Per-user Gmail/Calendar code is included, with private DM access and separate confirmation for sends/event changes. **Individual OAuth is still required**; no live Google account is connected by this export. See [Google setup](deployments/hermes/docs/workspace.md).
+
+[Herdr.dev integration guidance](deployments/hermes/docs/herdr.md) uses terminal panes on HQ with the existing broker and Suits services. Herdr itself has not been installed or validated on the host. See [the repair record](deployments/hermes/docs/repair-2026-11-09.md) and [Discord delivery behavior](deployments/hermes/docs/discord.md) for evidence and remaining limits.

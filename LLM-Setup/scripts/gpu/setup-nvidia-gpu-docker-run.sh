@@ -135,7 +135,7 @@ docker volume create homelab-fast-ai-models
 if ! docker container inspect homelab-fast-ollama >/dev/null 2>&1; then
   docker run -d --name homelab-fast-ollama \
     --label homelab.fast-ai=docker-run-v1 \
-    --restart unless-stopped --gpus all \
+    --restart unless-stopped --device nvidia.com/gpu=all \
     --network homelab-fast-ai --network-alias ollama \
     -e OLLAMA_HOST=0.0.0.0:11434 \
     -e OLLAMA_CONTEXT_LENGTH=4096 \

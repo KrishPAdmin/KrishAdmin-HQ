@@ -32,13 +32,14 @@ class WorkbenchTests(unittest.TestCase):
 
     def test_weather_resolves_country_and_keeps_timestamp_units_source(self):
         geo={'raw':json.dumps({'results':[{'name':'Toronto','country':'Canada','latitude':43.7,'longitude':-79.4}]}).encode()}
-        report={'raw':json.dumps({'current':{'time':'2026-11-04T01:00','temperature_2m':12},'current_units':{'temperature_2m':'°C'}}).encode(),'fetched_at':'now'}
+        report={'raw':json.dumps({'current':{'time':'2026-11-04T01:00','temperature_2m':12,'weather_code':3},'current_units':{'temperature_2m':'°C'}}).encode(),'fetched_at':'now'}
         with patch('web_research.fetch',side_effect=[geo,report]) as fetch:
             result=web_research.weather('Toronto','CA')
         self.assertIn('countryCode=CA',fetch.call_args_list[0].args[0])
         self.assertEqual(result['current']['time'],'2026-11-04T01:00')
         self.assertEqual(result['current_units']['temperature_2m'],'°C')
         self.assertTrue(result['source_url'].startswith('https://api.open-meteo.com/'))
+        self.assertEqual(result['weather_description'],'Overcast')
 
     def test_public_research_without_sources_never_infers(self):
         p={'status':'no_source_evidence','sources':[],'search':{},'evidence_sha256':'x'}

@@ -21,13 +21,14 @@ agent=AIAgent(model='qwen3.5:9b',provider='custom',api_mode='chat_completions',b
 names=[t.get('function',t).get('name') for t in agent.tools]
 expected={'mcp__research__search','mcp__research__read_page','mcp__workbench__check_system','mcp__workbench__review_file','mcp__workbench__plan_automation'}
 assert expected.issubset(names),names
-assert len(names)==17,names
+assert len(names)==18 and 'hq_workspace' in names,names
 from gateway.platform_registry import platform_registry
 from gateway.config import Platform,load_gateway_config
 adapter=platform_registry.create_adapter('discord',load_gateway_config().platforms[Platform.DISCORD])
 assert adapter is not None
 loaded=type(adapter)
 assert getattr(loaded._collect_attachment_media,'_hq_bounded',False),'Actual gateway adapter was not patched'
+assert getattr(loaded.send,'_hq_reports',False),'Actual gateway report delivery was not patched'
 
 if mode=='discovery':
     print(json.dumps({'tools':names,'actual_discord_adapter_bounded':True,'messages_sent':0}));sys.exit(0)
@@ -47,13 +48,15 @@ elif mode=='file':
     file_id=asyncio.run(fixture())
     prompt='Review the uploaded Python file for bugs using AMD-GPU, including a syntax check. Keep the answer short. Uploaded file_id: '+file_id
 elif mode=='research':
-    prompt='Research how Python asyncio TaskGroup handles child task failures using current official documentation. Use AMD-GPU for the analysis, cite the source URL, and keep the answer under 180 words.'
+    prompt='Research how Python asyncio TaskGroup handles child task failures, including sibling cancellation and which exceptions are raised when the context exits. Use current official documentation and AMD-GPU analysis, cite the source URL, and keep the answer under 180 words.'
 elif mode=='subscriber':
     prompt='What is the latest subscriber count on Linus Tech Tips YouTube channel?'
 elif mode=='checker':
     prompt='Run the AMD-GPU checker workflow with GPU and processes checks and interpret the fresh results using AMD-GPU. Include the actual compute receipt; do not create a Paperclip task.'
 elif mode=='automation':
     prompt='Ask Louis to design a small idempotent disk-space checker automation for internal work. Include dry-run behavior and validation. Use AMD-GPU, keep it concise, and do not deploy it.'
+elif mode=='temperatures':
+    prompt='Can you give me a status update, and give me the temps my systems are sitting at? Keep it concise.'
 else:raise ValueError('Unknown validation mode')
 start=time.monotonic()
 result=agent.run_conversation(prompt,system_message=Path('/profile/SOUL.md').read_text())
@@ -68,6 +71,7 @@ elif mode=='file':
 elif mode=='research':
     assert any(e['tool']=='hq_research' for e in events)
     assert 'docs.python.org' in out['response']
+    assert 'ExceptionGroup' in out['response'] and 'cancel' in out['response'].lower(), 'Research did not answer the requested behavior'
 elif mode=='subscriber':
     import re
     assert any(e['tool'] in ('hq_research','mcp__research__read_page') for e in events)
@@ -79,3 +83,7 @@ elif mode=='checker':
     assert any(e['tool'] in ('mcp__workbench__check_system','hq_diagnostics') for e in events)
     assert not any(x in out['response'].lower() for x in ('gpu healthy','no leak detected','no thermal throttling observed','safe operating range','above 70','observed and healthy','normal operating range','not currently serving')), 'Unsupported diagnostic conclusion'
 elif mode=='automation':assert any(e['tool']=='mcp__workbench__plan_automation' or e['tool']=='hq_team' for e in events)
+elif mode=='temperatures':
+    assert any(e['tool']=='hq_status' and e['arguments'].get('view')=='temperatures' for e in events)
+    assert any(e['tool']=='hq_status' and e['arguments'].get('view','full')=='full' for e in events)
+    assert '**Current system measurements**' in out['response'], 'Measured status response was not used'

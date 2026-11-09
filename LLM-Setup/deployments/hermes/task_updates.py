@@ -7,6 +7,29 @@ def issue_url(identifier):
     if not re.fullmatch(r'KRI-\d+',identifier):raise ValueError('Invalid task identifier')
     return 'https://paperclip.example.invalid/KRI/issues/'+identifier
 
+def reply_footer(messages,content):
+    """Use successful, correlated task tool results from this turn only."""
+    start=next((i for i in range(len(messages)-1,-1,-1) if messages[i].get('role')=='user'),len(messages))
+    calls=set();tasks=[]
+    for message in messages[start+1:]:
+        if message.get('role')=='assistant':
+            calls.update(c['id'] for c in message.get('tool_calls',[]) if c.get('id') and c.get('function',{}).get('name')=='hq_task')
+        if message.get('role')!='tool' or message.get('tool_call_id') not in calls:continue
+        try:
+            result=json.loads(message['content'])
+            if not isinstance(result,dict) or result.get('error'):continue
+            task=result.get('task','');url=issue_url(task)
+            if result.get('url')!=url:continue
+        except (ValueError,TypeError,KeyError):continue
+        if task not in tasks:tasks.append(task)
+    if not tasks:return content
+    footer='\n'.join('Paperclip report '+task+': '+issue_url(task) for task in tasks)
+    return content.rstrip()+'\n\n'+footer
+
+def clip_units(text,limit):
+    """Conservative UTF-16 budget also handles astral emoji."""
+    return text.encode('utf-16-le')[:max(0,limit)*2].decode('utf-16-le',errors='ignore')
+
 def schema(db):
     db.execute('''CREATE TABLE IF NOT EXISTS task_watches (
         issue_id TEXT NOT NULL, channel_id TEXT NOT NULL, user_id TEXT NOT NULL,
@@ -76,5 +99,9 @@ def render(result,user_id,marker,secrets=()):
     elif result.get('agent_comment'):
         lines.append('Agent report (excerpt):\n'+clean(result['agent_comment'],secrets)[:650])
     if packet.get('collected_at'):lines.append('Evidence collected: '+clean(packet['collected_at'],secrets))
-    lines.extend([issue_url(result['task']),'-# Task update reference: '+marker])
-    return {'content':'\n\n'.join(lines)[:1950],'allowed_mentions':{'parse':[],'users':[user_id],'replied_user':False},'flags':4}
+    footer='-# Task update reference: '+marker+'\n\nPaperclip report: '+issue_url(result['task'])
+    # Reserve the entire footer before trimming the preview, including recovery marker.
+    budget=1950-len(footer.encode('utf-16-le'))//2-2
+    content='\n\n'.join(lines)
+    if len(content.encode('utf-16-le'))//2>budget:content=clip_units(content,budget-1)+'…'
+    return {'content':content+'\n\n'+footer,'allowed_mentions':{'parse':[],'users':[user_id],'replied_user':False},'flags':4}

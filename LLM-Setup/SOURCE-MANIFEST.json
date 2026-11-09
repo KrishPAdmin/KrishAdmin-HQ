@@ -1,6 +1,6 @@
 {
   "edition": "public",
-  "snapshot_date": "2026-11-03",
+  "snapshot_date": "2026-11-09",
   "files": [
     {
       "path": ".gitignore",
@@ -12,11 +12,11 @@
     },
     {
       "path": "DEPLOYMENT.md",
-      "sha256": "a5ec81cd51b23e5c278de63e9663e53fe65e853d38e7558f229a93e3468d3c10"
+      "sha256": "5c3ffcc38ac901e8b0fb6f206a1776de6bd7ccac24927a71b4c255fc0c4f9fb1"
     },
     {
       "path": "README.md",
-      "sha256": "9674ca0444aff935d55cb8498068857abfdb0593a63cb778644c56731f7045c3"
+      "sha256": "1a159a19c63c66a74264ca0eb7a2bfd23ca070b0bf9e6f9f9d4e6349a4e6f3ff"
     },
     {
       "path": "THIRD-PARTY.md",
@@ -24,7 +24,7 @@
     },
     {
       "path": "VERIFICATION.md",
-      "sha256": "5e00e7c985866e58033714dbf8de2df886e5ebcb3767faee94773ae3b5b34995"
+      "sha256": "4da5d4ecc5006716549f0853a385ea077b3b49d71f2024f88675db9394a6f6da"
     },
     {
       "path": "config/network-audit.json",
@@ -80,15 +80,15 @@
     },
     {
       "path": "deployments/hermes/broker.py",
-      "sha256": "8c633826a7cc8e9e7171c901ae00b15058f0da3fc957d80ea7fdabaac96f6a24"
+      "sha256": "e14abe4cfc850eb23c01f687bf81db970ae12693d726563d62aeba0242e11737"
     },
     {
       "path": "deployments/hermes/capabilities.py",
-      "sha256": "14d6e1b3ca42b3c3609016fc0a65e2c0503991d23b870c9f95ac834f6da7bbc4"
+      "sha256": "1b9c499b7907e7928fe0ed564313515016b990fe80228b691ce6869e949577de"
     },
     {
       "path": "deployments/hermes/check_concierge.py",
-      "sha256": "451388b80261a1ac3ad4cda7fab50e5d258f55afbbe1a5d235ce04dc097dbf48"
+      "sha256": "2d5575c6f0b4a359873af8af6835ca5a3797816b2856c5b1659850a9240040c1"
     },
     {
       "path": "deployments/hermes/compose.yaml",
@@ -152,19 +152,23 @@
     },
     {
       "path": "deployments/hermes/docs/discord.md",
-      "sha256": "5509deebc499149c290d701c56aa6d8af8beeb36fa634f18562888c32a9d3d7a"
+      "sha256": "84e9c1cfd1063e3ba7a0e9f4ee1ad9cb91d6483b2330ca22df41b2a7504a9aa7"
     },
     {
       "path": "deployments/hermes/docs/github.md",
-      "sha256": "d89882663c878aeeecc51d95282d06f706a11f036486e2ae9b86863db0fb2d94"
+      "sha256": "0ad60ce7faffea07dd71d07a86b00f9b8f7d58bef7bb4dfdaf0106f1046113a0"
+    },
+    {
+      "path": "deployments/hermes/docs/herdr.md",
+      "sha256": "50a9d4c41ae2a833f26d145f67d0fdddc8e7d8df7db5d4b6cb69f07aa1b84263"
     },
     {
       "path": "deployments/hermes/docs/index.md",
-      "sha256": "a197d39345d3527869c2c91ab071f070baf24d34956c829df8cabd019d4d5a65"
+      "sha256": "17f37b7529e4916e8a7f60b427bfde4aeb6645e1a708ffb453779122ec709219"
     },
     {
       "path": "deployments/hermes/docs/mcp.md",
-      "sha256": "08050c053be5381c02ba06cafa9c8db43ca1c38ab7b554646e2f3d28baffbbab"
+      "sha256": "9bb2c2032c8f0c4e2b27b52345a85e14254205ebf43594b54de37a948bd8df68"
     },
     {
       "path": "deployments/hermes/docs/monitoring.md",
@@ -187,16 +191,28 @@
       "sha256": "2dcfb3f0d625f9b533f4aec79e9b7f1767f5eb10c8d83248a0d403db0b51840b"
     },
     {
+      "path": "deployments/hermes/docs/repair-2026-11-09.md",
+      "sha256": "0211d92c2b3ac696851eaeaa75c5c15cb598645a0f6eeb9d0b8bc48f850231d1"
+    },
+    {
       "path": "deployments/hermes/docs/security.md",
       "sha256": "c7acb928711926602bb5020bd2861ef712a3940e2c5f435854f0b8b3f52c430c"
     },
     {
+      "path": "deployments/hermes/docs/skills-review.md",
+      "sha256": "04ebbf3a74e8e9e9637e43299e4e89da6170eb8daecb7064c12ff6e16ddc1c00"
+    },
+    {
       "path": "deployments/hermes/docs/troubleshooting.md",
-      "sha256": "42e1c7d4ecac5037ca077e7e98d704bf1248f757390e648d9c9a598193ff2313"
+      "sha256": "e5fdeb0d846aed3031e2e8fd36ec513c11efce76214b794df245dc21c313014c"
+    },
+    {
+      "path": "deployments/hermes/docs/workspace.md",
+      "sha256": "88247d239dd20a943279d3b6b4d2ce55c1540aae4b7151fd2490e71afe6d60c4"
     },
     {
       "path": "deployments/hermes/doctor.py",
-      "sha256": "87947a638dc37acb4281ecb9ae21b74e85080dcd7cb9a7e324a4d95095fd4859"
+      "sha256": "35c8314a17acecc2d267b91557849def92044c993c130b282b37fcee37651965"
     },
     {
       "path": "deployments/hermes/enroll_amd_gpu_observer.py",
@@ -204,7 +220,7 @@
     },
     {
       "path": "deployments/hermes/enroll_discord.py",
-      "sha256": "9c538e9e1998aebc64efcea23d64eaf38ee14236b0e7f9cb121bb43796599f31"
+      "sha256": "e43b9102bb1bde31c431fc72f9d6983ffd53e7d5e8fca8b9cf323ab94735198b"
     },
     {
       "path": "deployments/hermes/file_service.py",
@@ -216,7 +232,15 @@
     },
     {
       "path": "deployments/hermes/github_service.py",
-      "sha256": "8d0996cc7c6d6209d01288e466888d4d1ba6e7e3afbd3bec2583e27f079e43c6"
+      "sha256": "a6ae5731f5349bda20374cf601b2a79262669bc155176f99a813f9f72cf7a990"
+    },
+    {
+      "path": "deployments/hermes/google_connect.py",
+      "sha256": "71c032e4851978f4a6250a30483a510137223f2e95fe328d744c74f1bf796123"
+    },
+    {
+      "path": "deployments/hermes/google_workspace.py",
+      "sha256": "0f648636a65d6b238b7ddb08d17e7fd9cb8cba73a1db4163464470e804813114"
     },
     {
       "path": "deployments/hermes/health_rules.py",
@@ -244,11 +268,15 @@
     },
     {
       "path": "deployments/hermes/plugin/__init__.py",
-      "sha256": "835f1f4457cc01c232834957cbad1717182436e94e35d721ccc771a3ac360a7f"
+      "sha256": "ef1a83ffef7e448c40aab63f4273da574e13f15f250506a7fb2cb264d3d01449"
     },
     {
       "path": "deployments/hermes/plugin/attachments.py",
-      "sha256": "1a701b66864c834bcbfd38bccd8704310cddfb0436d4606e7367e1957056c904"
+      "sha256": "030397f6be62667ddbd85411036997c7878ebe59cf3775340a75abe08f15f0b9"
+    },
+    {
+      "path": "deployments/hermes/plugin/delivery.py",
+      "sha256": "744e25a6470962cb406c745a29bdcfb1ab4b8c92c11a8c905d8110d8056bc015"
     },
     {
       "path": "deployments/hermes/plugin/plugin.yaml",
@@ -256,7 +284,7 @@
     },
     {
       "path": "deployments/hermes/prepare.py",
-      "sha256": "a28e1d2127039259fef89f459407a4ad0313db2652b3386353fdffed707503d6"
+      "sha256": "fdacadd0faa4a1dd6d998cff407594b5415a67c0f1fbb163f30ba9a28b42b780"
     },
     {
       "path": "deployments/hermes/profiles/analyst/SOUL.md",
@@ -264,7 +292,7 @@
     },
     {
       "path": "deployments/hermes/profiles/analyst/config.yaml",
-      "sha256": "6bcf11dd07735d4c2e3a7530c7360764f043e343bcf47117f6a753ad81bac203"
+      "sha256": "d1a7c7c04ccc89fd13bb86a7153bed9aa6285b86ddd122c343e5aca48f5e063d"
     },
     {
       "path": "deployments/hermes/profiles/backup/SOUL.md",
@@ -272,7 +300,7 @@
     },
     {
       "path": "deployments/hermes/profiles/backup/config.yaml",
-      "sha256": "8f0421eb539dadfd797e0717292aa850191a59185bbe983a0aaccf90cc2d2dd4"
+      "sha256": "0a7a527bf04bb0f25b12e553565837fce31ac43bbc4c757278349a95d87a2351"
     },
     {
       "path": "deployments/hermes/profiles/backup/skills/hq-backup/SKILL.md",
@@ -280,11 +308,11 @@
     },
     {
       "path": "deployments/hermes/profiles/concierge/SOUL.md",
-      "sha256": "932327c1e89507b7bd7190dc7f67e266147ad6b64790ff472d38168dd6b9867f"
+      "sha256": "67a353993511d5aada28183054f7fbdf46ee82f6d81e40288cc8db4f66c6415f"
     },
     {
       "path": "deployments/hermes/profiles/concierge/config.yaml",
-      "sha256": "fa683ba524de4f98c1134bea8402e810574f3be7d45bfa26dee18e2a08052cb8"
+      "sha256": "5b563ee82e80531e2e2e0149b508037205144e4eec11ea09753a7723d1250eb6"
     },
     {
       "path": "deployments/hermes/profiles/concierge/discord-enrollment.json",
@@ -340,7 +368,11 @@
     },
     {
       "path": "deployments/hermes/profiles/concierge/skills/hq-planning/SKILL.md",
-      "sha256": "77c51a933ba08e3f8871c3ef7f24876231d6987492fca748c6b323de0cedb2ca"
+      "sha256": "1dd0cd91b2e7414d41f2b11aa21110021cf38ec6b542adf92db6a8fedb507d97"
+    },
+    {
+      "path": "deployments/hermes/profiles/concierge/skills/hq-project-status/SKILL.md",
+      "sha256": "1eee90ffbfaa842fa85d17896cb8bcb0beaea1775ebe186c247e5fcbbeb14aae"
     },
     {
       "path": "deployments/hermes/profiles/concierge/skills/hq-rachel/SKILL.md",
@@ -363,6 +395,10 @@
       "sha256": "fd9847792df040d527704395969e9144bc383966d6f04f26fc1b06e9f3704b21"
     },
     {
+      "path": "deployments/hermes/profiles/concierge/skills/hq-workspace/SKILL.md",
+      "sha256": "a877d2b046bdd10e308d678b727eaf5cf1f97b9966990a2b7d3d4c1334900b06"
+    },
+    {
       "path": "deployments/hermes/profiles/donna/role.json",
       "sha256": "8b9d605a1761907c7ec2878ec9fa05b7bb251d2f9921b5c306fc8bf9b078c470"
     },
@@ -376,7 +412,7 @@
     },
     {
       "path": "deployments/hermes/profiles/health/config.yaml",
-      "sha256": "8f0421eb539dadfd797e0717292aa850191a59185bbe983a0aaccf90cc2d2dd4"
+      "sha256": "0a7a527bf04bb0f25b12e553565837fce31ac43bbc4c757278349a95d87a2351"
     },
     {
       "path": "deployments/hermes/profiles/health/skills/hq-health/SKILL.md",
@@ -404,7 +440,7 @@
     },
     {
       "path": "deployments/hermes/profiles/triage/config.yaml",
-      "sha256": "8f0421eb539dadfd797e0717292aa850191a59185bbe983a0aaccf90cc2d2dd4"
+      "sha256": "0a7a527bf04bb0f25b12e553565837fce31ac43bbc4c757278349a95d87a2351"
     },
     {
       "path": "deployments/hermes/profiles/triage/skills/hq-triage/SKILL.md",
@@ -436,7 +472,7 @@
     },
     {
       "path": "deployments/hermes/restart_gateway.py",
-      "sha256": "d51d58656cf09743808de745ce39b03353bf02c53568efb46d6547cceb73a0d5"
+      "sha256": "54d5a59ab99b9319ef4a27b187795702614c156fb1469f9fd01676db3482e6e5"
     },
     {
       "path": "deployments/hermes/rotate_discord_token.py",
@@ -484,7 +520,7 @@
     },
     {
       "path": "deployments/hermes/systemd/hq-hermes-github.service",
-      "sha256": "3a307288e8c114b2c14540dbe4c8e457b946220fdb114f387dcb196c3a2e64cd"
+      "sha256": "2a1b08b0a3a4a0f61184b4da4f391115a0fc9e1663e396c9c81d01c10e360d93"
     },
     {
       "path": "deployments/hermes/systemd/hq-hermes-monitor.service",
@@ -504,7 +540,7 @@
     },
     {
       "path": "deployments/hermes/task_updates.py",
-      "sha256": "28647aea8c973c4414a90ad1bf5f63327a53b2c2bb7e0864e5acdec5a07dd63e"
+      "sha256": "1090c85d8c546692fc72d10deb9f597d3ca69b6eda41b3a9a545cb7a5d24ed42"
     },
     {
       "path": "deployments/hermes/team.py",
@@ -512,7 +548,7 @@
     },
     {
       "path": "deployments/hermes/team_worker.py",
-      "sha256": "83c8827f2193a247347181568be59618e2dedcccc7ff1236e7af159806c2b2eb"
+      "sha256": "3932e4f1ccff7b4858815827fbdc777c0a56d33e63b3b7fba7d4fc126c06ec6c"
     },
     {
       "path": "deployments/hermes/test_boundaries.py",
@@ -535,6 +571,14 @@
       "sha256": "1dd163ebc196abcac07d33a8ec74bdc180b705b877c4aa571c811fb3dafecdac"
     },
     {
+      "path": "deployments/hermes/test_google_workspace.py",
+      "sha256": "966ae10bd99751695342c9596713f694ec9487f8eda10d214ce1754f8aec68ea"
+    },
+    {
+      "path": "deployments/hermes/test_inference_recovery.py",
+      "sha256": "29bb3c19e16f054c2e31f43d752a241cdd6e7da9bfb16118d7597d6942359781"
+    },
+    {
       "path": "deployments/hermes/test_monitoring.py",
       "sha256": "6781a31a660ec3bc0feb233e9f224e1e4ad42b72b16c866a047c94604a4db240"
     },
@@ -544,31 +588,39 @@
     },
     {
       "path": "deployments/hermes/test_research_depth.py",
-      "sha256": "1620b232731812e344da34da45c9b6a5775914d564b746b1436a39ea7c9ffd11"
+      "sha256": "1e67396c735d8459342d5248a40b20863bab6889428ecea74adde298bd273945"
+    },
+    {
+      "path": "deployments/hermes/test_status_report.py",
+      "sha256": "f2617419bf0ab9d0ffff2adf967c992b5c2ac427dbc0acaee0792c1546edb5db"
     },
     {
       "path": "deployments/hermes/test_task_updates.py",
-      "sha256": "01b1ae44b918dc6e212d3a3c609bfdde6a48780d7266421413ff51fc12269b5a"
+      "sha256": "6a8a46be5a99188ca1835cebec8b5f761cddb74d580bced5b60988088c907ad1"
     },
     {
       "path": "deployments/hermes/test_workbench.py",
-      "sha256": "56d8d7e4782e37f31026cec6ee04b9709749f688ca903653cc3006277a210bae"
+      "sha256": "a5ae84c41d6cfb613818d8fed1f1678350021b7fe34eb4106fe5dc226198d0e3"
     },
     {
       "path": "deployments/hermes/validation/check_cloud_workflows.py",
-      "sha256": "1873523945852ff24cf624778c270c5d7fe63c3bfc1a9f8118021394254fbab6"
+      "sha256": "d1367f791541970404f01d7e0f962bf1b140b0efa83f80957ae3b28020ecea5a"
     },
     {
       "path": "deployments/hermes/validation/check_context_compaction.py",
       "sha256": "e725f5453f89ca0e206ea6dab6e05c583e5f09b1b45ced3822b466f4def77193"
     },
     {
+      "path": "deployments/hermes/validation/check_discord_delivery.py",
+      "sha256": "ef8dc1d8dda79ee7895b9aa356ec3e92da8dad5794d8ea147fa02b5b6e14b3bf"
+    },
+    {
       "path": "deployments/hermes/validation/check_discord_friend.py",
-      "sha256": "86b5fba17e8fb3daa4adab9aa98f76410d4be2954a8bdd5ee063723b37a90de4"
+      "sha256": "3ce15f6e7446e9be1282353d050314833bf248015fb78e897d2413aa87f34180"
     },
     {
       "path": "deployments/hermes/validation/check_discord_mentions.py",
-      "sha256": "2cdccb73c79d63946b70796a681bc0bb55167e545dcd8e8a7b32e342658f1c3e"
+      "sha256": "38286005a0f8582b535347ad929ed2b0578cd6c3d0d376d8478f642d3effdb6f"
     },
     {
       "path": "deployments/hermes/validation/check_file_formats.py",
@@ -588,11 +640,11 @@
     },
     {
       "path": "deployments/hermes/web_research.py",
-      "sha256": "b347f2ef333fffbc9d644a5d4830262bad3a5108aec021189c024b8340b04af8"
+      "sha256": "a8d98df3b8a981913371d6bfa9db1c7b39617481eef09fdbc06e4d642fd72fa7"
     },
     {
       "path": "deployments/hermes/worker.py",
-      "sha256": "7ad332c483ccfa8120a59cacc77ddd153fe92184038135953d717aff61fa3ed0"
+      "sha256": "c542929952963fdb30ed84af0f98d3e1ab2c7a639bb5c7b459bd876a7026d98e"
     },
     {
       "path": "deployments/n8n/.env.example",
@@ -975,6 +1027,10 @@
       "sha256": "e98602cbad99997c13a17a329aee216a8a473ed892fe31985d11c998da9a2bb1"
     },
     {
+      "path": "scripts/gpu/migrate-nvidia-gpu-cdi.py",
+      "sha256": "d115e14abb41efc47d3406bf09301b5eab432ab3525c2f3d06cacb394b890ee8"
+    },
+    {
       "path": "scripts/gpu/send-nvidia-gpu-credentials-to-hq.sh",
       "sha256": "ec9a4066f9ef626f7f967be33903561d5c7c485006ed17f3a5a7df09328612af"
     },
@@ -984,7 +1040,7 @@
     },
     {
       "path": "scripts/gpu/setup-nvidia-gpu-docker-run.sh",
-      "sha256": "e4db16f85d23e10fdf475d383ed141a545de1a6154318a9193587882624b1a7c"
+      "sha256": "9f17758519a728960cbf3c0f5cc313a236c635393456d8221712bc35cc5140bc"
     },
     {
       "path": "scripts/maintenance/authorize-nvidia-gpu-key.sh",

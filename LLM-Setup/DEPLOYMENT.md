@@ -34,3 +34,9 @@ See [recovery](deployments/hermes/docs/recovery.md), [backups](deployments/herme
 For public deployments, copy `deployments/hermes/config/publication-private-terms.json.example` to the ignored `.json` path and configure your private names locally. Do not publish the real blocklist into the public repository.
 
 For the research browser, provision Docker build access to the pinned Playwright image and npm package, then run `python3 prepare.py` and `docker compose up -d --build renderer render-fetch broker` from deployments/hermes. The browser has no host port or external network route; the public-fetch relay is separate. Keep the supplied seccomp profile and Chromium sandbox enabled. Run `python3 validation/check_research_browser.py` after deployment. This is source for the configured installation, not a promise of unattended fresh-host enrollment.
+
+## Current integration prerequisites
+
+Read [individual Google setup](deployments/hermes/docs/workspace.md) before enabling Gmail/Calendar; each user needs their own OAuth enrollment. Do not reuse another user's credentials. The exported configuration uses placeholders and cannot authorize Google on its own.
+
+Read [Herdr integration guidance](deployments/hermes/docs/herdr.md) for an operator terminal setup. The source snapshot does not install Herdr. Discord long replies require Attach Files permission in each destination; Paperclip links retain the application's normal authentication requirements.

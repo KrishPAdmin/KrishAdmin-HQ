@@ -1,5 +1,5 @@
 """HQ-only collection and inference relay. No model-selected shell or remote tools."""
-import concurrent.futures, datetime, fcntl, hashlib, hmac, html, http.client
+import concurrent.futures, csv, datetime, fcntl, hashlib, hmac, html, http.client
 import ipaddress, json, os, re, socket, sqlite3, ssl, threading, time, uuid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -9,7 +9,7 @@ from health_rules import assess,age_seconds
 from capabilities import TASKS,prompt_for,calculate
 from team import TEAM
 from web_research import collect as collect_web,search_web,read_page,weather
-from task_updates import issue_url,origin_checked,subscribe
+from task_updates import issue_url,origin_checked,subscribe,reply_footer
 
 STATE = Path('/state')
 TOKENS = Path('/run/access')
@@ -20,6 +20,17 @@ BACKENDS = {
 ROLES = {'concierge': 'nvidia-gpu', 'health': 'nvidia-gpu', 'backup': 'nvidia-gpu', 'triage': 'nvidia-gpu', 'analyst': 'amd-gpu', 'operator': 'nvidia-gpu', 'paperclip': 'nvidia-gpu'}
 ROLES.update({name:role['backend'] for name,role in TEAM.items()})
 AUDIT_LOCK = threading.Lock()
+
+class GPUUnavailable(RuntimeError):
+    """Operational GPU failure, never a malformed user request."""
+
+def require_gpu(loaded, model, role, backend):
+    resident=next((m for m in loaded if m.get('name')==model),{})
+    if not (resident.get('size_vram') or 0)>0:
+        audit('inference_denied',identity=role,backend=backend,model=model,
+              reason='GPU residency unavailable; response withheld')
+        raise GPUUnavailable(backend.upper()+' inference unavailable: GPU access could not be verified. Operator recovery is required; a new chat will not fix it.')
+    return resident
 
 def now(): return datetime.datetime.now(datetime.timezone.utc).isoformat()
 def digest(value): return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
@@ -112,11 +123,121 @@ def validate_inference(role, body):
     if backend=='nvidia-gpu':
         names={t.get('function',{}).get('name') for t in body.get('tools',[])}
         if names-{'hq_status','hq_task','hq_research','hq_analyze','hq_files','hq_knowledge','hq_draft','hq_team','hq_calculate','hq_diagnostics','hq_github',
-                  'mcp__research__search','mcp__research__read_page','mcp__research__weather','mcp__workbench__check_system','mcp__workbench__review_file','mcp__workbench__plan_automation'}: raise PermissionError('Tool outside HQ allowlist')
+                  'hq_workspace','mcp__research__search','mcp__research__read_page','mcp__research__weather','mcp__workbench__check_system','mcp__workbench__review_file','mcp__workbench__plan_automation'}: raise PermissionError('Tool outside HQ allowlist')
     return backend
+
+def measured_status(body):
+    """A narrow status+temperature intent is a fixed measurement workflow.
+
+    Reusing a long chat history must never turn stale model prose into telemetry.
+    Tool calls still execute through the native authenticated Hermes tool loop.
+    """
+    if 'hq_status' not in {t.get('function',{}).get('name') for t in body.get('tools',[])}:return None
+    messages=body['messages'];index=next((i for i in range(len(messages)-1,-1,-1) if messages[i].get('role')=='user'),None)
+    if index is None:return None
+    prompt=messages[index].get('content','')
+    if not isinstance(prompt,str):return None
+    normalized=re.sub(r'[^a-z0-9 ]',' ',prompt.lower());normalized=' '.join(normalized.split())
+    normalized=re.sub(r'\s+keep it (?:concise|brief)$','',normalized)
+    # Exact common phrasings avoid capturing requests about modifying the bot,
+    # historical explanations, quoted prompts, or combined unrelated actions.
+    phrases={'can you give me a status update and give me the temps my systems are sitting at',
+             'give me a status update and the temperatures','show system status and temperatures',
+             'show my system status and temperatures','status and temperatures','status and temps',
+             'show current system status and gpu temperatures','give me a status update and temperatures'}
+    if normalized not in phrases:return None
+    calls={};results={}
+    for message in messages[index+1:]:
+        for call in message.get('tool_calls') or []:
+            function=call.get('function',{})
+            if function.get('name')=='hq_status':
+                args=function.get('arguments',{})
+                if isinstance(args,str):
+                    try:args=json.loads(args)
+                    except ValueError:continue
+                calls[call.get('id')]=args.get('view','full')
+        if message.get('role')=='tool' and message.get('tool_call_id') in calls:
+            try:results[calls[message['tool_call_id']]]=json.loads(message['content'])
+            except (ValueError,TypeError):results[calls[message['tool_call_id']]]={'error':'Unreadable diagnostic result'}
+    missing=[view for view in ('full','temperatures') if view not in results]
+    rid='status_'+uuid.uuid4().hex
+    if missing:
+        message={'role':'assistant','content':'','tool_calls':[{'id':'call_'+uuid.uuid4().hex[:20],'type':'function',
+                 'function':{'name':'hq_status','arguments':json.dumps({'view':view})}} for view in missing]}
+        finish='tool_calls'
+    else:
+        status=results['full'];temps=results['temperatures']
+        lines=['**Current system measurements**','Collected: '+str(status.get('collected_at','unavailable'))]
+        if status.get('error'):lines.append('Status collection failed; no current status claimed.')
+        for gpu_info in status.get('gpu_api',[]):
+            lines.append(gpu_info['system'].upper()+' API: '+gpu_info['status'])
+            for model in gpu_info.get('loaded_models',[]):
+                vram=model.get('size_vram')
+                lines.append('• '+model['name']+': '+(f'{vram/2**30:.2f} GiB reported in GPU memory' if isinstance(vram,(int,float)) else 'GPU residency unknown')+' (model allocation, not total GPU capacity).')
+        for target,data in temps.get('measurements',{}).items():
+            lines.append('**'+target.upper()+' GPU temperatures** ('+str(data.get('checked_at_utc','unknown time'))+')')
+            checks=data.get('checks',{});found=False
+            try:
+                if checks.get('nvidia',{}).get('status')=='observed':
+                    for row in csv.reader(checks['nvidia']['output'].splitlines()):
+                        if len(row)>=5:lines.append('• '+row[1].strip()+': '+str(float(row[4]))+' °C');found=True
+                if checks.get('amd',{}).get('status')=='observed':
+                    for card,values in json.loads(checks['amd']['output']).items():
+                        if not card.startswith('card'):continue
+                        readings=[label+' '+str(float(values[key]))+' °C' for label,key in [('edge','Temperature (Sensor edge) (C)'),('junction','Temperature (Sensor junction) (C)'),('memory','Temperature (Sensor memory) (C)')] if key in values]
+                        if readings:lines.append('• '+card+': '+', '.join(readings));found=True
+            except (ValueError,TypeError,KeyError):lines.append('Sensor data could not be parsed completely.')
+            if not found:lines.append('Temperature readings unavailable.')
+        if not temps.get('measurements'):lines.append('Temperature collection failed; no temperatures claimed.')
+        lines.append('**Host telemetry**: '+str(status.get('snapshot_status','unknown'))+'; snapshot age '+str(status.get('snapshot_age_seconds','unknown'))+' seconds.')
+        for host,data in status.get('hosts',{}).items():
+            memory=data.get('memory') or {};total=memory.get('MemTotal_bytes');available=memory.get('MemAvailable_bytes');disk=data.get('root_disk') or {}
+            ram=f'{available/2**30:.1f}/{total/2**30:.1f} GiB RAM available ({100*(total-available)/total:.1f}% used)' if total and isinstance(available,(int,float)) else 'RAM unavailable'
+            lines.append('• '+host.upper()+': '+ram+'; root disk '+str(disk.get('used_percent','unknown'))+'% used.')
+        for host,coverage in status.get('host_telemetry',{}).items():
+            if coverage.get('status')!='observed':lines.append(host.upper()+': host telemetry unavailable.')
+        alerts=status.get('assessment',{}).get('alerts',[])
+        lines.append('**Current alerts**: '+('unavailable.' if 'assessment' not in status else '; '.join(a['target']+': '+a['message'] for a in alerts) if alerts else 'none in this limited check.'))
+        setup=status.get('assessment',{}).get('setup_items',[])
+        if setup:lines.append('**Setup gaps**: '+' '.join(x['message'] for x in setup))
+        lines.append('CPU, disk and HQ physical-host temperatures are not exposed by these probes. These are measurements, not a complete hardware-health certification.')
+        message={'role':'assistant','content':'\n'.join(lines)};finish='stop'
+        audit('measured_status',source_time=status.get('collected_at'),evidence_sha256=status.get('evidence_sha256'))
+    return {'id':rid,'object':'chat.completion','created':int(time.time()),'model':body['model'],
+            'choices':[{'index':0,'message':message,'finish_reason':finish}],
+            'usage':{'prompt_tokens':0,'completion_tokens':0,'total_tokens':0}}
+
+def completed_research_reply(body):
+    """Deliver a completed specialist report without a second factual rewrite.
+
+    Partial research and multi-step user requests continue through the coordinator.
+    """
+    messages=body['messages']
+    index=next((i for i in range(len(messages)-1,-1,-1) if messages[i].get('role')=='user'),None)
+    if index is None:return None
+    prompt=messages[index].get('content','')
+    if not isinstance(prompt,str) or not re.match(r'(?i)^\s*(?:please\s+)?(?:research|look up)\b',prompt):return None
+    if re.search(r'(?i)\b(?:then|also|after that|create a|write a|assign|schedule)\b',prompt):return None
+    tail=messages[index+1:]
+    if len(tail)!=2 or tail[0].get('role')!='assistant' or tail[1].get('role')!='tool':return None
+    calls=tail[0].get('tool_calls',[])
+    if len(calls)!=1 or calls[0].get('function',{}).get('name')!='hq_research' or calls[0].get('id')!=tail[1].get('tool_call_id'):return None
+    try:data=json.loads(tail[1]['content'])
+    except (ValueError,TypeError):return None
+    analysis=data.get('analysis') or {};text=analysis.get('text');receipt=analysis.get('compute_receipt')
+    if data.get('status')!='completed' or not isinstance(text,str) or not text.strip() or not receipt:return None
+    audit('research_report_delivered',run_id=receipt.get('run_id'),backend=receipt.get('backend'),rewritten=False)
+    return {'id':'report_'+uuid.uuid4().hex,'object':'chat.completion','created':int(time.time()),'model':body['model'],
+            'hq_receipt':receipt,'choices':[{'index':0,'message':{'role':'assistant','content':text},'finish_reason':'stop'}],
+            'usage':{'prompt_tokens':0,'completion_tokens':0,'total_tokens':0}}
 
 def inference(role, body):
     backend=validate_inference(role,body)
+    if role=='concierge' and backend=='nvidia-gpu':
+        measured=measured_status(body)
+        if measured is not None:return measured
+        research_reply=completed_research_reply(body)
+        if research_reply is not None:return research_reply
     url, secret, ca, model=BACKENDS[backend]
     model=body['model']
     messages=json.loads(json.dumps(body['messages']))
@@ -138,12 +259,17 @@ def inference(role, body):
                 time.sleep(.25)
         queued=time.monotonic()-start
         loaded=request(url+'/api/ps',token=Path(secret).read_text().strip(),ca=ca,timeout=10).get('models',[])
-        if any(m.get('name')==model and not m.get('size_vram',0)>0 for m in loaded):
-            audit('inference_denied',identity=role,backend=backend,reason='model loaded on CPU; GPU recovery required')
-            raise ValueError('Model is loaded on CPU; GPU recovery required')
+        if not any(m.get('name')==model for m in loaded):
+            # Load without evaluating the user's potentially large prompt. Fail
+            # before spending minutes generating on CPU after a driver failure.
+            request(url+'/api/generate',{'model':model,'prompt':'','stream':False,
+                    'keep_alive':'10m','options':{'num_ctx':context_length(model,backend)}},
+                    Path(secret).read_text().strip(),ca,timeout=180)
+            loaded=request(url+'/api/ps',token=Path(secret).read_text().strip(),ca=ca,timeout=10).get('models',[])
+        require_gpu(loaded,model,role,backend)
         response=request(url+'/api/chat',native,Path(secret).read_text().strip(),ca,timeout=min(420,max(10,450-queued)))
         residency=request(url+'/api/ps',token=Path(secret).read_text().strip(),ca=ca,timeout=10)
-        resident=next((m for m in residency.get('models',[]) if m.get('name')==model),{})
+        resident=require_gpu(residency.get('models',[]),model,role,backend)
     message=response.get('message',{})
     if backend=='amd-gpu' and message.get('tool_calls'): raise PermissionError('AMD-GPU attempted a tool call; never executed')
     if not response.get('done') or response.get('done_reason')=='length': raise ValueError('Incomplete inference')
@@ -156,11 +282,12 @@ def inference(role, body):
         generation_seconds=round((response.get('eval_duration') or 0)/1e9,3),
         generation_tokens_per_second=round((response.get('eval_count') or 0)/max((response.get('eval_duration') or 1)/1e9,.001),2),
         tool_executor='HQ only' if backend=='nvidia-gpu' else 'none; inference only')
-    if not resident.get('size_vram',0)>0:raise ValueError('GPU acceleration not confirmed; completion withheld')
     if message.get('tool_calls'):
         for item in message['tool_calls']:
             item['id']='call_'+uuid.uuid4().hex[:20];item['type']='function'
             if not isinstance(item['function'].get('arguments'),str): item['function']['arguments']=json.dumps(item['function'].get('arguments',{}))
+    elif role=='concierge':
+        message['content']=reply_footer(body['messages'],message.get('content') or '')
     return {'id':rid,'object':'chat.completion','created':int(time.time()),'model':model,
         'hq_receipt':{'run_id':rid,'backend':backend,'model':model,'context_length':receipt['context_length'],'input_tokens':receipt['input_tokens'],'output_tokens':receipt['output_tokens'],'vram_bytes':receipt['vram_bytes'],'time':receipt['time']},
         'choices':[{'index':0,'message':message,'finish_reason':'tool_calls' if message.get('tool_calls') else 'stop'}],
@@ -258,7 +385,7 @@ def research_request(body):
     packet=collect_web(body.get('query') or question,body.get('urls'))
     attempts=[{'query':body.get('query') or question,'source_count':len(packet['sources'])}]
     def coverage(p):
-        prompt='Assess whether these fetched source excerpts actually answer the user request. Do not answer the request yet. Return ONLY JSON with sufficient (boolean), missing (short string), and queries (up to 2 focused follow-up web searches if insufficient). Related pages or missing numbers are NOT sufficient. Do not require exact private data when a clearly labeled public rounded number answers the request. User request: '+question
+        prompt='Assess whether these fetched source excerpts actually answer the user request. Do not answer the request yet. Return ONLY JSON with sufficient (boolean), missing (short string), queries (up to 2 focused follow-up searches), and urls (up to 2 candidate primary HTTPS documentation URLs if insufficient). Candidate URLs are discovery suggestions, not evidence: HQ will fetch and verify them before use. Prefer a specific API/reference page to a homepage when known. Related pages or missing numbers are NOT sufficient. Do not require exact private data when a clearly labeled public rounded number answers the request. User request: '+question
         try:
             assessment=run_worker('analyst',p,prompt,'plan')
             raw=assessment.get('text','');start=raw.find('{')
@@ -266,6 +393,8 @@ def research_request(body):
             if type(result.get('sufficient')) is not bool:raise ValueError('Missing boolean coverage')
             queries=result.get('queries',[])
             result['queries']=[q for q in queries if isinstance(q,str) and 1<=len(q)<=250][:2] if isinstance(queries,list) else []
+            urls=result.get('urls',[])
+            result['urls']=[u for u in urls if isinstance(u,str) and len(u)<=1500 and u.startswith('https://')][:2] if isinstance(urls,list) else []
             return result
         except Exception as error:return {'sufficient':False,'missing':'Coverage assessment unavailable: '+type(error).__name__,'queries':[]}
     # A coverage gate prevents 'fetched related pages' being mistaken for success.
@@ -273,10 +402,12 @@ def research_request(body):
     packet['research_status']=packet['status'];packet['search_summary']={k:v for k,v in packet['search'].items() if k!='results'}
     assessment=coverage(packet) if packet['sources'] else {'sufficient':False,'missing':'No readable sources','queries':[question[:230]+' official source',question[:230]+' latest data']}
     if not assessment['sufficient']:
-        queries=assessment['queries'] or [question[:230]+' official source',question[:230]+' latest data']
-        for query in queries:
-            follow=collect_web(query)
-            attempts.append({'query':query,'source_count':len(follow['sources'])})
+        queries=assessment['queries'] or [question[:230]+' official source']
+        candidates=assessment.get('urls',[])
+        followups=([(question[:400],candidates)] if candidates else [])+[(q,None) for q in queries]
+        for query,urls in followups[:2]:
+            follow=collect_web(query,urls) if urls else collect_web(query)
+            attempts.append({'query':query,'candidate_urls':urls or [],'source_count':len(follow['sources'])})
             merged={s['url']:s for s in packet['sources']}
             for source in follow['sources']:merged[source['url']]=source
             packet['sources']=list(merged.values())[-4:]
@@ -284,7 +415,9 @@ def research_request(body):
             for source in packet['sources']:
                 if len(source['excerpt'].encode())>4000:source['excerpt']=source['excerpt'].encode()[:4000].decode('utf-8',errors='ignore');source['truncated']=True
             packet.setdefault('fetch_failures',[]).extend(follow.get('fetch_failures',[]))
-        if len(attempts)>1 and packet['sources']:assessment=coverage(packet)
+            if follow['sources']:
+                assessment=coverage(packet)
+                if assessment['sufficient']:break
     packet['search_attempts']=attempts
     packet['research_status']='supported' if assessment['sufficient'] else 'partial' if packet['sources'] else 'no_source_evidence'
     packet['search_summary']['coverage']=assessment
@@ -303,6 +436,14 @@ def research_request(body):
             source['excerpt']=source['excerpt'].encode()[:max(200,int(len(source['excerpt'].encode())*.8))].decode('utf-8',errors='ignore');source['truncated']=True
     packet['evidence_sha256']=digest({k:v for k,v in packet.items() if k!='evidence_sha256'})
     result=run_worker('analyst',packet,question+'\nAnswer directly with source URLs and source/fetch time. Label rounded values as approximate. Explain remaining gaps after the searches already attempted. Do not ask permission to try another ordinary public search; attempts have already been performed. Do not dump evidence hashes into the user answer.','research')
+    if assessment['sufficient']:
+        # A separate source-review pass catches conditional rules that the draft
+        # turned into unconditional claims. This remains model review, not proof.
+        original_receipt=result.get('compute_receipt')
+        review_packet={'sources':packet['sources'],'text':result['text'],'collected_at':packet.get('collected_at')}
+        result=run_worker('analyst',review_packet,'Check the draft in evidence.text against the supplied sources, claim by claim. Return ONLY a corrected final answer, at most 200 words, with source links and fetch date. Remove unsupported claims and repetition. Preserve every condition and exception: NEVER convert "if X except Y" into "if X". Distinguish cancellation from failure and individual actions from group actions when the sources do. Use actual source titles for versions. Do not invent gaps, code examples, or a claim of comprehensive verification. Original question: '+question,'research')
+        result['draft_compute_receipt']=original_receipt
+        result['source_review']='Separate AMD-GPU source review; not a guarantee of factual correctness'
     audit('web_research',status=packet['status'],backend=result['backend'],run_id=result['run_id'],urls=[s['url'] for s in packet['sources']],evidence_sha256=packet['evidence_sha256'])
     return {'evidence':packet,'analysis':result,'status':'completed' if assessment['sufficient'] else 'partial','workflow':'HQ collection -> AMD-GPU coverage assessment -> HQ follow-up searches when needed -> AMD-GPU synthesis'}
 
@@ -370,7 +511,7 @@ def team_request(body):
     if body.get('urls'):
         if name!='rachel':raise ValueError('Source fetching is assigned to Rachel; other agents can analyze the supplied source text')
         packet=collect_web(body.get('search_query') or question,body['urls']);kind='research'
-    elif name=='rachel' and (kind=='research' or not body.get('text') and not body.get('file_id')):
+    elif name=='rachel' and (kind=='research' or body.get('search_query')):
         packet=collect_web(body.get('search_query') or question);kind='research'
     if name=='rachel' and kind=='research' and 'search' in packet:
         packet['research_status']=packet['status'];packet['search_summary']={k:v for k,v in packet['search'].items() if k!='results'}
@@ -398,7 +539,7 @@ def team_request(body):
     audit('delegation',agent=name,backend=result['backend'],model=result['model'],run_id=result['run_id'],evidence_sha256=packet['evidence_sha256'])
     return {'evidence':packet,'analysis':result}
 
-KNOWLEDGE={'index','quickstart','architecture','operations','monitoring','discord','backups','security','troubleshooting','recovery','reference','acceptance','capabilities','diagnostics','github','mcp'}
+KNOWLEDGE={'index','quickstart','architecture','operations','monitoring','discord','backups','security','troubleshooting','recovery','reference','acceptance','capabilities','diagnostics','github','mcp','workspace'}
 def knowledge(body):
     section=body.get('section');query=body.get('query','')
     if section:
@@ -569,6 +710,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self.send(200,{'evidence':packet,'analysis':result})
             raise PermissionError('Operation not allowed')
         except PermissionError as e: self.send(403,{'error':str(e)})
+        except GPUUnavailable as e: self.send(503,{'error':{'message':str(e),'type':'service_unavailable','code':'gpu_unavailable'}})
+        except urllib.error.HTTPError as e:self.send(e.code if e.code in (429,503) else 502,{'error':'Upstream service busy or unavailable; no successful operation claimed.'})
         except (ValueError,KeyError,TypeError) as e: self.send(400,{'error':str(e)[:200]})
         except Exception as e:
             audit('failure',error_type=type(e).__name__,path=self.path)

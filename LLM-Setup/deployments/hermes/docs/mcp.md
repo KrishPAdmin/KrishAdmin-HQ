@@ -1,5 +1,7 @@
 # Internet research, MCP tools and long-context work
 
+2026-11-09: The native tool list now also includes `hq_workspace` (individual OAuth and verified one-to-one DM only). The two local MCP server tool lists remain the same. Research can fetch candidate primary URLs when searches are insufficient, preserves context around relevant excerpts, performs a separate source-review pass, and delivers completed simple specialist research without a coordinator rewrite. See [repair validation](repair-2026-11-09.md) and [Workspace enrollment](workspace.md).
+
 ## 1. Architecture and routing
 
 Discord connects to Hermes on HQ. Donna uses NVIDIA-GPU for fast tool selection and short replies. Substantive ordinary research, analysis, file review and checker interpretation use AMD-GPU. Jessica's Mixtral supports a 65,536-token context; Qwen 72B analysis and Louis's coder model use 32,768. Harvey retains 8,192. Named Rachel requests retain her NVIDIA-GPU model.

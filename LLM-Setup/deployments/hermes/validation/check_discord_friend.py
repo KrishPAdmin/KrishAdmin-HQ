@@ -19,14 +19,14 @@ async def main():
  r=object.__new__(GatewayRunner);r.config=load_gateway_config();r.pairing_store=PairingStore(profile='default');r.pairing_stores={'default':r.pairing_store};r._primary_profile_name='default';r._profile_adapters={}
  a=DiscordAdapter(r.config.platforms[Platform.DISCORD]);r.adapters={Platform.DISCORD:a}
  a._allowed_user_ids=a._get_allowed_users();a._allowed_role_ids=a._get_allowed_roles()
- a._client=SimpleNamespace(user=SimpleNamespace(id=1566929564876148898,bot=True))
+ a._client=SimpleNamespace(user=SimpleNamespace(id=900000000000000001,bot=True))
  a._text_batch_delay_seconds=0;a.handle_message=AsyncMock()
- guild=SimpleNamespace(id=889676648755122207,name='QA')
+ guild=SimpleNamespace(id=900000000000000002,name='QA')
  results=[]
- cases=[('friend_plain','900000000000000005',1566932822822887474,'Show current lab status',True),('friend_role','900000000000000005',1566932822822887474,'<@&900000000000000011> Show current lab status',True),('friend_account','900000000000000005',1566932822822887474,'<@900000000000000001> Show current lab status',True),('owner_plain','900000000000000004',1566932822822887474,'Show current lab status',True),('stranger','900000000000000006',1566932822822887474,'Show current lab status',False),('other_channel','900000000000000005',111111111111111111,'<@900000000000000001> Show current lab status',False)]
+ cases=[('friend_plain','900000000000000005',900000000000000003,'Show current lab status',True),('friend_role','900000000000000005',900000000000000003,'<@&900000000000000012> Show current lab status',True),('friend_account','900000000000000005',900000000000000003,'<@900000000000000001> Show current lab status',True),('owner_plain','900000000000000004',900000000000000003,'Show current lab status',True),('stranger','900000000000000006',900000000000000003,'Show current lab status',False),('other_channel','900000000000000005',900000000000000006,'<@900000000000000001> Show current lab status',False)]
  for i,(name,uid,cid,text,expected) in enumerate(cases):
   a.handle_message.reset_mock()
-  m=SimpleNamespace(id=900000000000000000+i,content=text,mentions=[],attachments=[],reference=None,created_at=datetime.datetime.now(datetime.timezone.utc),type=discord.MessageType.default,guild=guild,channel=SimpleNamespace(id=cid,name='QA',topic=None,guild=guild),author=SimpleNamespace(id=int(uid),name='QA',display_name='QA',bot=False))
+  m=SimpleNamespace(id=900000000000000013+i,content=text,mentions=[],attachments=[],reference=None,created_at=datetime.datetime.now(datetime.timezone.utc),type=discord.MessageType.default,guild=guild,channel=SimpleNamespace(id=cid,name='QA',topic=None,guild=guild),author=SimpleNamespace(id=int(uid),name='QA',display_name='QA',bot=False))
   admitted,role=a._discord_message_admission(m,claim=False)
   handled=await a._handle_message(m,role_authorized=role,recovered=True) if admitted else False
   authorized=False

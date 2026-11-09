@@ -1,5 +1,5 @@
 """Individual named specialist runtime on HQ, with fixed local GPU identity."""
-import hmac,json,os,threading,time,urllib.request,uuid
+import hmac,json,os,threading,time,urllib.request,urllib.error,uuid
 from pathlib import Path
 from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
 from team import TEAM
@@ -14,7 +14,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         if self.path!='/run':return self.send(404,{'error':'not found'})
         if not hmac.compare_digest(self.headers.get('Authorization',''),'Bearer '+Path('/run/access/worker').read_text().strip()):return self.send(403,{'error':'forbidden'})
-        if not LOCK.acquire(False):return self.send(429,{'error':'specialist busy'})
+        if not LOCK.acquire(timeout=120):return self.send(429,{'error':'Specialist queue deadline reached; retry later.'})
         try:
             size=int(self.headers.get('Content-Length',0))
             if not 0<size<=120000:raise ValueError('Invalid request size')
@@ -35,6 +35,7 @@ class Handler(BaseHTTPRequestHandler):
             path=folder/(str(uuid.uuid4())+'.json');path.write_text(json.dumps({k:v for k,v in value.items() if k!='text'},indent=2)+'\n');path.chmod(0o600)
             self.send(200,value)
         except ValueError as error:self.send(400,{'error':str(error)[:250]})
+        except urllib.error.HTTPError as error:self.send(error.code if error.code in (429,503) else 502,{'error':'Inference service unavailable; no successful analysis claimed.'})
         except Exception as error:self.send(502,{'error':type(error).__name__})
         finally:LOCK.release()
 

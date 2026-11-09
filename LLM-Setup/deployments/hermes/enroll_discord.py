@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Interactive owner enrollment with visible local input and redacted diagnostics."""
 import json,os,re,subprocess,urllib.request,urllib.error
+import yaml
 from pathlib import Path
 ROOT=Path(__file__).resolve().parent
 
@@ -149,11 +150,11 @@ def main():
     values['respond_without_mention']=bool(enrolled.get('respond_without_mention') is True and enrolled.get('guild_id')==values['guild_id'] and enrolled.get('channel_id')==values['channel_id'])
     path=ROOT/'access/discord-token';path.write_text(token+'\n');path.chmod(0o600)
     home=ROOT/'profiles/concierge';(home/'discord-enrollment.json').write_text(json.dumps(values,indent=2)+'\n')
-    cfg=json.loads((home/'config.yaml').read_text())
+    cfg=yaml.safe_load((home/'config.yaml').read_text())
     cfg['platforms']['discord']['enabled']=True
-    cfg['platforms']['discord']['extra'].update({'dm_policy':'disabled','group_policy':'allowlist','group_allow_from':values['allowed_users'],
+    cfg['platforms']['discord']['extra'].update({'dm_policy':'allowlist','allow_from':values['allowed_users'],'group_policy':'allowlist','group_allow_from':values['allowed_users'],
         'allowed_channels':[values['channel_id']],'allowed_users':values['allowed_users'],
-        'allow_admin_from':[],'group_allow_admin_from':[],
+        'allow_admin_from':[],'group_allow_admin_from':[],'user_allowed_commands':['status','hq-workspace'],
         'group_user_allowed_commands':sorted({'status',*(p.parent.name for p in (home/'skills').glob('hq-*/SKILL.md'))})})
     cfg['discord']['allowed_channels']=[values['channel_id']]
     free_channels=[values['channel_id']] if values['respond_without_mention'] else []

@@ -1,5 +1,5 @@
 [Unit]
-Description=Owner-only GitHub repository operations for Hermes
+Description=Verified GitHub and personal Google Workspace operations for Hermes
 After=network-online.target
 [Service]
 Type=simple
@@ -11,7 +11,7 @@ NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=read-only
-ReadWritePaths=/home/operator/krishadmin-hq/deployments/hermes/run/github /home/operator/krishadmin-hq/deployments/hermes/state/github
+ReadWritePaths=/home/operator/krishadmin-hq/deployments/hermes/run/github /home/operator/krishadmin-hq/deployments/hermes/state/github /home/operator/krishadmin-hq/deployments/hermes/state/google
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
 MemoryMax=256M
 TasksMax=32

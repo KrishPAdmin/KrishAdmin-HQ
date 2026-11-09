@@ -4,6 +4,37 @@ from unittest.mock import patch
 import broker,web_research
 
 class ResearchDepthTests(unittest.TestCase):
+    def test_completed_report_is_delivered_without_factual_rewrite(self):
+        body={'model':'qwen3.5:9b','messages':[{'role':'user','content':'Research the documented failure behavior'},
+            {'role':'assistant','tool_calls':[{'id':'call_test','function':{'name':'hq_research'}}]},
+            {'role':'tool','tool_call_id':'call_test','content':json.dumps({'status':'completed','analysis':{
+                'text':'Verified specialist report with exceptions preserved.','compute_receipt':{'run_id':'actual-amd-gpu-run','backend':'amd-gpu'}}})}]}
+        with patch('broker.audit'):
+            result=broker.completed_research_reply(body)
+        self.assertEqual(result['choices'][0]['message']['content'],'Verified specialist report with exceptions preserved.')
+        self.assertEqual(result['hq_receipt']['run_id'],'actual-amd-gpu-run')
+        body['messages'][0]['content']='Research the behavior then create a plan'
+        self.assertIsNone(broker.completed_research_reply(body))
+        body['messages'][0]['content']='Research the behavior'
+        data=json.loads(body['messages'][-1]['content']);data['status']='partial';body['messages'][-1]['content']=json.dumps(data)
+        self.assertIsNone(broker.completed_research_reply(body))
+
+    def test_excerpt_keeps_preceding_conditions_with_best_match(self):
+        text='Introduction '+('irrelevant '*400)+'Critical prerequisite: never discard the associated exception. '+('alpha beta gamma delta '*90)+' End.'
+        page={'url':'https://example.org/reference','raw':b'<title>Reference version 4</title>','text':text,'fetched_at':'now','download_truncated':False}
+        with patch('web_research.document',return_value=page):r=web_research.collect('alpha beta gamma delta',urls=[page['url']])
+        self.assertIn('Critical prerequisite',r['sources'][0]['excerpt'][:4000])
+        self.assertEqual(r['sources'][0]['title'],'Reference version 4')
+    def test_candidate_primary_url_is_fetched_before_it_is_evidence(self):
+        first={'status':'sources_collected','search':{},'sources':[{'url':'https://example.org','excerpt':'Homepage'}],'fetch_failures':[],'evidence_sha256':'one'}
+        next_page={'status':'sources_collected','search':{},'sources':[{'url':'https://docs.example.org/reference','excerpt':'Relevant verified text'}],'fetch_failures':[],'evidence_sha256':'two'}
+        replies=[{'text':json.dumps({'sufficient':False,'queries':['specific reference'],'urls':['https://docs.example.org/reference']})},
+                 {'text':'{"sufficient":true,"queries":[]}'},{'text':'Draft with fetched evidence','backend':'amd-gpu','run_id':'draft'},
+                 {'text':'Answer with fetched evidence','backend':'amd-gpu','run_id':'verified'}]
+        with patch('broker.collect_web',side_effect=[first,next_page,next_page]) as collect,patch('broker.run_worker',side_effect=replies),patch('broker.audit'):
+            result=broker.research_request({'question':'Explain the reference'})
+        self.assertEqual(collect.call_args_list[1].args,('Explain the reference',['https://docs.example.org/reference']))
+        self.assertEqual(result['status'],'completed')
     def test_youtube_uses_primary_header_not_recommended_channel(self):
         data={'metadata':{'channelMetadataRenderer':{'title':'Example Lab','externalId':'UC-example'}},
               'header':{'pageHeaderViewModel':{'metadataRows':[{'content':'2.34M subscribers'},{'accessibilityLabel':'2.34 million subscribers'}]}},
@@ -48,6 +79,7 @@ class ResearchDepthTests(unittest.TestCase):
         second=packet('https://example.org/stats','Subscribers: about 2.34 million')
         replies=[{'text':json.dumps({'sufficient':False,'missing':'Subscriber count','queries':['Example Lab subscriber statistics']})},
                  {'text':json.dumps({'sufficient':True,'missing':'','queries':[]})},
+                 {'text':'About 2.34 million','backend':'amd-gpu','run_id':'draft'},
                  {'text':'About 2.34 million','backend':'amd-gpu','run_id':'checked'}]
         with patch('broker.collect_web',side_effect=[first,second]) as collect,patch('broker.run_worker',side_effect=replies),patch('broker.audit'):
             result=broker.research_request({'question':'Example Lab subscriber count'})

@@ -4,6 +4,8 @@ The Discord owner (enrollment `owner_id`, currently `900000000000000004`) can in
 
 ## Use it
 
+As of 2026-11-09, `hq_github` also supports `project_status`: open issues and PRs (up to 30 each), recent workflow runs (10), and recent commits (5), with source URLs and timestamps. This is repository activity, not a guarantee of deployment or project completion. The two-repository owner-only boundary is unchanged. Personal Google access uses a separate, per-user DM workflow described in [workspace.md](workspace.md).
+
 Mention the bot account in the main private channel:
 
 ```text

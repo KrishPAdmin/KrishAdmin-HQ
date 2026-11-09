@@ -192,9 +192,19 @@ def weather(location,country_code=None):
     place=places[0]
     url='https://api.open-meteo.com/v1/forecast?latitude='+str(float(place['latitude']))+'&longitude='+str(float(place['longitude']))+'&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&forecast_days=3&timezone=auto'
     page=fetch(url,limit=60000);data=json.loads(page['raw'])
+    # Open-Meteo WMO meanings: provide labels instead of asking the model to
+    # guess (a live response incorrectly called code 3 "partly cloudy").
+    meanings={0:'Clear sky',1:'Mainly clear',2:'Partly cloudy',3:'Overcast',45:'Fog',48:'Depositing rime fog',
+              51:'Light drizzle',53:'Moderate drizzle',55:'Dense drizzle',56:'Light freezing drizzle',57:'Dense freezing drizzle',
+              61:'Slight rain',63:'Moderate rain',65:'Heavy rain',66:'Light freezing rain',67:'Heavy freezing rain',
+              71:'Slight snowfall',73:'Moderate snowfall',75:'Heavy snowfall',77:'Snow grains',80:'Slight rain showers',
+              81:'Moderate rain showers',82:'Violent rain showers',85:'Slight snow showers',86:'Heavy snow showers',
+              95:'Thunderstorm',96:'Thunderstorm with slight hail',97:'Heavy thunderstorm',99:'Thunderstorm with heavy hail'}
     return {'status':'collected','collector':'HQ','fetched_at':page['fetched_at'],'location':{k:place.get(k) for k in ('name','admin1','country','latitude','longitude')},
             'alternatives':[{k:p.get(k) for k in ('name','admin1','country')} for p in places[1:]],
             **{k:data.get(k) for k in ('timezone','current','current_units','daily','daily_units')},'source_url':url,'attribution':'Weather data by Open-Meteo; modeled current conditions, not a guaranteed local station observation.',
+            'weather_description':meanings.get((data.get('current') or {}).get('weather_code'),'Unknown weather code'),
+            'weather_code_reference':'https://open-meteo.com/en/docs#weathervariables',
             'body_sha256':hashlib.sha256(page['raw']).hexdigest()}
 
 def collect(query,urls=None):
@@ -270,10 +280,22 @@ def collect(query,urls=None):
             for matched,start in sorted(candidates,key=lambda x:(-x[0],x[1])):
                 if matched and all(abs(start-p)>=2100 for p in anchors):anchors.append(start)
                 if len(anchors)==3:break
-            excerpt=(text[:200]+' […] '+' […] '.join(text[p:p+2100] for p in sorted(anchors))) if anchors else text
+            # Keep the strongest relevant passage first. Re-sorting by page
+            # position put navigation/intro before the answer, then downstream
+            # byte limits removed the actual failure/exception semantics.
+            if anchors:
+                # Include preceding conditions/exceptions around the strongest
+                # hit, not separated windows that can cut out the central rule.
+                best=max(0,anchors[0]-1400)
+                excerpt=text[:200]+' […] [Source character '+str(best)+'] '+text[best:best+3600]
+                for p in anchors[1:]:
+                    if p+2100<=best or p>=best+3600:
+                        excerpt+=' […] [Source character '+str(p)+'] '+text[p:p+2100]
+            else:excerpt=text
             excerpt=excerpt.encode()[:budget].decode('utf-8',errors='ignore')
         excerpt=excerpt.encode()[:budget].decode('utf-8',errors='ignore')
         sources.append({'url':page['url'],'fetched_at':page['fetched_at'],'body_sha256':hashlib.sha256(page['raw']).hexdigest(),'excerpt':excerpt,'extraction':page.get('extraction'),
+                        'title':clean((re.search(rb'<title[^>]*>(.*?)</title>',page['raw'],re.S|re.I).group(1) if re.search(rb'<title[^>]*>(.*?)</title>',page['raw'],re.S|re.I) else b'')),
                         'browser_receipt':{k:v for k,v in page.get('render',{}).items() if k!='text'},'render_error':page.get('render_error'),
                         'truncated':page['download_truncated'] or len(excerpt)<len(text) or page.get('render',{}).get('truncated',False)})
     packet={'collector':'HQ gateway; no requests issued by AMD-GPU','collected_at':now(),'search':search,'sources':sources,'fetch_failures':failures,

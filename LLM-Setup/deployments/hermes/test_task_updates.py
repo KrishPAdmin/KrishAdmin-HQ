@@ -86,4 +86,31 @@ class NotificationTests(unittest.TestCase):
         p=updates.render(r,ORIGIN['user_id'],'marker',['secret-token-value'])
         self.assertNotIn('@everyone',p['content']);self.assertNotIn('sensitive',p['content']);self.assertNotIn('secret-token-value',p['content'])
 
+    def test_long_unicode_result_preserves_final_link_and_recovery_marker(self):
+        r=self.result();r['result_evidence']={'analysis':{'backend':'amd-gpu','model':'😀'*2500}}
+        text=updates.render(r,ORIGIN['user_id'],'stable-marker')['content']
+        self.assertLessEqual(len(text.encode('utf-16-le'))//2,1950)
+        self.assertIn('Task update reference: stable-marker',text)
+        self.assertTrue(text.endswith(updates.issue_url(r['task'])))
+
+    def test_footer_uses_only_successful_correlated_current_turn_task_results(self):
+        call={'role':'assistant','tool_calls':[{'id':'task-call','function':{'name':'hq_task'}}]}
+        result={'role':'tool','tool_call_id':'task-call','content':json.dumps({'task':'KRI-320','url':updates.issue_url('KRI-320')})}
+        messages=[{'role':'user','content':'Submit report'},call,result]
+        self.assertTrue(updates.reply_footer(messages,'Submitted').endswith(updates.issue_url('KRI-320')))
+        self.assertEqual(updates.reply_footer(messages+[{'role':'user','content':'Another question'}],'Answer'),'Answer')
+        for bad in ({'error':'denied','task':'KRI-320','url':updates.issue_url('KRI-320')},
+                    {'task':'KRI-320','url':'https://untrusted.example/'},[],{'task':'../../secret'}):
+            self.assertEqual(updates.reply_footer(messages[:2]+[dict(result,content=json.dumps(bad))],'Answer'),'Answer')
+        self.assertEqual(updates.reply_footer([messages[0],dict(result,tool_call_id='unknown')],'Answer'),'Answer')
+
+    def test_multiple_task_footer_deduplicates_without_losing_tasks(self):
+        messages=[{'role':'user','content':'Check tasks'}]
+        for task in ('KRI-320','KRI-321','KRI-320'):
+            messages.extend([{'role':'assistant','tool_calls':[{'id':task,'function':{'name':'hq_task'}}]},
+                             {'role':'tool','tool_call_id':task,'content':json.dumps({'task':task,'url':updates.issue_url(task)})}])
+        text=updates.reply_footer(messages,'Results')
+        self.assertEqual(text.count(updates.issue_url('KRI-320')),1)
+        self.assertTrue(text.endswith(updates.issue_url('KRI-321')))
+
 if __name__=='__main__':unittest.main()

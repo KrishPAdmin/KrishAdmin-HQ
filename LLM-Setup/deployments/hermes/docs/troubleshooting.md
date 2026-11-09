@@ -20,9 +20,9 @@ Gateway state is in `profiles/concierge/gateway_state.json`. Logs are in `profil
 
 ## AMD-GPU API works but host telemetry is unavailable
 
-These use separate credentials. The API token cannot authenticate SSH. The active observation account is `paperclip-observer`, using `../paperclip/operations/keys/observer`. The target configuration is `../paperclip/operations/targets.json`.
+These use separate credentials. The API token cannot authenticate SSH. AMD-GPU currently uses password authentication as `krishadmin`, with credentials confined to the HQ collector and a fixed client-side command allowlist. NVIDIA-GPU retains the forced-command `paperclip-observer` key. The target configuration is `../paperclip/operations/targets.json`; see diagnostics.md. Do not revert AMD-GPU to the historical key transport.
 
-If enrollment was lost during rebuild, run `python3 enroll_amd_gpu_observer.py` on HQ. Enter the AMD-GPU administrator's SSH/sudo password in that terminal. It installs a restricted fixed probe and verifies it before changing the target configuration. No arbitrary model tools are enabled. If the SSH host key changed, verify its fingerprint through a trusted console rather than disabling verification.
+If enrollment was lost during rebuild, inspect the maintained password transport and probe deployment from HQ. The AMD-GPU account itself is not server-side restricted. If the SSH host key changed, verify its fingerprint through a trusted console rather than disabling verification.
 
 A password reset must happen from a root/authorized sudo session on AMD-GPU or its recovery console. Gateway sudo authority does not confer administrator access to AMD-GPU.
 
@@ -46,6 +46,10 @@ The monitor's dependencies refresh host observations before sampling. Do not cha
 ## GPU unavailable or CPU fallback
 
 A model loaded with zero GPU residency triggers a critical alert, and the broker refuses to report successful GPU inference. An unloaded model alone is not an error. The earlier NVIDIA-GPU failure was a stale container GPU initialization; an approved restart of `homelab-fast-ollama` restored it. Do not assume every future failure has the same cause or automatically restart the entire Docker host.
+
+On 2026-11-09 this recurred: host `nvidia-smi` worked, container NVML failed, and two Discord completions showed zero VRAM. The managed NVIDIA-GPU Ollama container now uses `--device nvidia.com/gpu=all` (native CDI) instead of the legacy GPU hook. It passed container GPU checks after a systemd daemon reload. The migration script is `../../scripts/gpu/migrate-nvidia-gpu-cdi.py`; it preserves the image and model volume and retains the prior stopped container for rollback. Do not run the broad provisioning script to repair this service.
+
+The relay first loads an unloaded model without the user prompt and requires GPU residency before generation. GPU verification failures return an operational HTTP 503, not malformed-request HTTP 400, and emit denied receipts rather than successful inference records. Creating a new chat cannot repair container GPU access.
 
 Inspect host/container GPU evidence and active workloads, then propose the narrowest repair. Service interruptions, driver changes and reboots need separate approval. Do not redirect research execution to AMD-GPU or silently use cloud inference.
 

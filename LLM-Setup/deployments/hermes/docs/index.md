@@ -2,6 +2,8 @@
 
 This is the documentation outline and entry point for the installed Hermes/Discord system. Updated 2026-11-03. Start with the quick start; use the other chapters when needed. The deployment directory is `/home/operator/krishadmin-hq/deployments/hermes`.
 
+2026-11-09 repair: NVIDIA-GPU moved to native CDI GPU access; inference verifies residency before evaluating a user prompt. Read [personal Google Workspace](workspace.md), [skills review](skills-review.md), and [repair validation](repair-2026-11-09.md) for new capabilities and outstanding enrollment.
+
 ## Guide outline
 
 | Chapter | What you will find |
@@ -39,3 +41,8 @@ Historical setup notes are preserved in the setup archive (local runtime/history
 - [13. Fixed host and SSH diagnostics](diagnostics.md) — GPU drivers, CPU/memory, processes, services, storage and authentication.
 
 - [14. Owner-only GitHub](github.md) — repository reads, code proposals, exact owner confirmation and new review branches.
+
+- [Individual Google accounts](workspace.md) — private Gmail/Calendar access, OAuth and confirmations.
+- [Skills review](skills-review.md) — selected public skills and MCP candidates.
+- [Herdr with local AI](herdr.md) — recommended terminal layout and existing HQ CLI workflows.
+- [November 9 repair record](repair-2026-11-09.md) — GPU repair, integrations, evidence and remaining limits.

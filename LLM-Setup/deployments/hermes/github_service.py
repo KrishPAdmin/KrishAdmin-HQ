@@ -21,7 +21,7 @@ def database():
     db.execute('CREATE TABLE IF NOT EXISTS proposals (id TEXT PRIMARY KEY, owner TEXT, body TEXT, created REAL)')
     db.commit();return db
 
-def authenticate(envelope,db):
+def authenticate(envelope,db,workspace=False):
     if not isinstance(envelope,dict) or set(envelope)!={'request','origin','issued_at','nonce','signature'}:raise PermissionError('Verified owner session required')
     signature=envelope['signature'];unsigned={k:v for k,v in envelope.items() if k!='signature'}
     expected=hmac.new((ROOT/'access/github-origin').read_bytes().strip(),canonical(unsigned),hashlib.sha256).hexdigest()
@@ -30,18 +30,26 @@ def authenticate(envelope,db):
     nonce=envelope['nonce']
     if not isinstance(nonce,str) or not re.fullmatch(r'[a-f0-9]{32}',nonce):raise PermissionError('Invalid nonce')
     policy=json.loads((ROOT/'profiles/concierge/discord-enrollment.json').read_text());origin=envelope['origin']
-    if not isinstance(origin,dict) or origin.get('platform')!='discord' or origin.get('user_id')!=policy['owner_id'] or origin.get('chat_id')!=policy['channel_id']:
+    if not isinstance(origin,dict) or origin.get('platform')!='discord':raise PermissionError('Verified Discord session required')
+    if workspace:
+        if origin.get('user_id') not in {policy['owner_id'],*policy.get('allowed_users',[])}:raise PermissionError('User is not enrolled')
+        channel_id=origin.get('chat_id','')
+        if not re.fullmatch(r'\d{17,22}',channel_id) or channel_id==policy['channel_id']:raise PermissionError('Use a private direct message for Google Workspace')
+        channel=discord('GET','/channels/'+channel_id)
+        if channel.get('type')!=1 or {r['id'] for r in channel.get('recipients',[])}!={origin['user_id']}:
+            raise PermissionError('Google Workspace requires a one-to-one DM with the requesting user')
+    elif origin.get('user_id')!=policy['owner_id'] or origin.get('chat_id')!=policy['channel_id']:
         raise PermissionError('GitHub operations are owner-only in the enrolled channel')
     message_id=origin.get('message_id','')
     if not re.fullmatch(r'\d{17,22}',message_id):raise PermissionError('Live Discord message required')
-    message=discord('GET','/channels/'+policy['channel_id']+'/messages/'+message_id)
-    if message.get('author',{}).get('id')!=policy['owner_id'] or message.get('author',{}).get('bot'):
-        raise PermissionError('Discord author is not the owner')
-    if not any(x.get('id')==policy['application_id'] for x in message.get('mentions',[])):raise PermissionError('Mention the bot account')
+    message=discord('GET','/channels/'+origin['chat_id']+'/messages/'+message_id)
+    if message.get('author',{}).get('id')!=origin['user_id'] or message.get('author',{}).get('bot'):
+        raise PermissionError('Discord author does not match the authenticated user')
+    if not workspace and not any(x.get('id')==policy['application_id'] for x in message.get('mentions',[])):raise PermissionError('Mention the bot account')
     if time.time()-((int(message_id)>>22)+1420070400000)/1000>3600:raise PermissionError('Send a fresh owner request')
     try:db.execute('INSERT INTO nonces VALUES (?,?)',(nonce,time.time()));db.execute('DELETE FROM nonces WHERE created<?',(time.time()-86400,));db.commit()
     except sqlite3.IntegrityError:raise PermissionError('Replayed request') from None
-    return policy['owner_id'],message.get('content','')
+    return origin['user_id'],message.get('content','')
 
 def api(repo,path,method='GET',body=None):
     if repo not in REPOS:raise PermissionError('Repository is not enrolled')
@@ -118,6 +126,19 @@ def execute(body,owner,message,db):
     repo=body.get('repo')
     if repo not in REPOS:raise PermissionError('Repository is not enrolled')
     branch,commit=head(repo)
+    if action=='project_status':
+        issues=api(repo,'issues?state=open&per_page=30&sort=updated&direction=desc')
+        pulls=api(repo,'pulls?state=open&per_page=30&sort=updated&direction=desc')
+        runs=api(repo,'actions/runs?per_page=10').get('workflow_runs',[])
+        commits=api(repo,'commits?per_page=5')
+        fields=lambda row,keys:{k:row.get(k) for k in keys}
+        return {'repo':repo,'checked_at':time.strftime('%Y-%m-%dT%H:%M:%SZ',time.gmtime()),'default_branch':branch,'commit':commit,
+                'issues':[fields(r,('number','title','state','html_url','updated_at')) for r in issues if 'pull_request' not in r],
+                'pull_requests':[fields(r,('number','title','state','html_url','updated_at','draft')) for r in pulls],
+                'workflow_runs':[fields(r,('name','status','conclusion','html_url','head_sha','updated_at')) for r in runs],
+                'recent_commits':[{'sha':r['sha'],'url':r['html_url'],'subject':r['commit']['message'].split('\n')[0]} for r in commits],
+                'limits':{'issues_and_pull_requests':30,'workflow_runs':10,'commits':5},
+                'coverage':'Recent repository activity only. Lists are bounded; CI success does not certify deployment or project completion.'}
     if action=='status':return {'repo':repo,'default_branch':branch,'commit':commit,'owner_only':True,'writes':'new hq-bot branches only; no merge or force-push'}
     entries=tree(repo,commit)
     if action=='tree':
@@ -161,15 +182,18 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         code=200
         try:
-            if self.path!='/github':raise ValueError('Unknown route')
+            if self.path not in ('/github','/workspace'):raise ValueError('Unknown route')
             size=int(self.headers.get('Content-Length',0))
             if not 0<size<=140000:raise ValueError('Request too large')
             envelope=json.loads(self.rfile.read(size))
             if not LOCK.acquire(False):raise RuntimeError('GitHub worker busy; retry shortly')
             try:
                 with database() as db:
-                    owner,message=authenticate(envelope,db)
-                    result=execute(envelope['request'],owner,message,db)
+                    owner,message=authenticate(envelope,db,workspace=self.path=='/workspace')
+                    if self.path=='/workspace':
+                        from google_workspace import execute as workspace_execute
+                        result=workspace_execute(envelope['request'],owner,message,db)
+                    else:result=execute(envelope['request'],owner,message,db)
                     with (STATE/'audit.jsonl').open('a') as f:f.write(json.dumps({'time':time.time(),'owner':owner,'action':envelope['request'].get('action'),'repo':envelope['request'].get('repo'),'proposal_id':result.get('id'),'status':result.get('status','read')})+'\n')
             finally:LOCK.release()
         except PermissionError as error:code=403;result={'error':str(error)}

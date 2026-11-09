@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Planned gateway restart with the native back-online notification marker."""
 import json,os,subprocess,time
+import yaml
 from pathlib import Path
 ROOT=Path(__file__).resolve().parent
 
 def main():
     os.umask(0o077)
     home=ROOT/'profiles/concierge'
-    cfg=json.loads((home/'config.yaml').read_text())['platforms']['discord']
+    cfg=yaml.safe_load((home/'config.yaml').read_text())['platforms']['discord']
     enrolled=json.loads((home/'discord-enrollment.json').read_text())
     if cfg.get('home_channel',{}).get('chat_id')!=enrolled['channel_id'] or cfg.get('gateway_restart_notification') is not True:
         raise SystemExit('Configure restart notifications for the enrolled private channel first.')

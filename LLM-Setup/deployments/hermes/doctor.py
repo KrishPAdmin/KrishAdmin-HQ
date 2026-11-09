@@ -1,5 +1,6 @@
 """Read-only local diagnostics; never dumps environment variables or credentials."""
 import datetime,json,stat,subprocess
+import yaml
 from pathlib import Path
 from hq_client import ROOT,call
 from health_rules import age_seconds
@@ -38,7 +39,7 @@ def diagnose():
             'Connection='+str(connected)+'; heartbeat age seconds='+str(round(age) if age is not None else 'unknown'))
     except Exception as error:add('discord_gateway',False,type(error).__name__+'; inspect gateway state locally')
     try:
-        config=json.loads((ROOT/'profiles/concierge/config.yaml').read_text())
+        config=yaml.safe_load((ROOT/'profiles/concierge/config.yaml').read_text())
         servers=config.get('mcp_servers',{})
         add('mcp_configuration',set(servers)=={'research','workbench'} and all(s.get('command')=='python' and s.get('tools',{}).get('resources') is False and s.get('tools',{}).get('prompts') is False for s in servers.values()),
             'Two local stdio servers with explicit tool filters; native discovery is verified separately.')

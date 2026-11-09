@@ -1,5 +1,6 @@
 """Idempotent local deployment preparation; never prints secrets."""
 import json,os,secrets
+import yaml
 from pathlib import Path
 from team import TEAM
 ROOT=Path(__file__).resolve().parent
@@ -34,7 +35,15 @@ def main():
         cfg=home/'config.yaml'
         if not cfg.exists():cfg.write_text(json.dumps(config,indent=2)+'\n')
         if profile=='concierge':
-            config=json.loads(cfg.read_text())
+            config=yaml.safe_load(cfg.read_text())
+            enrollment=home/'discord-enrollment.json'
+            if enrollment.exists():
+                enrolled=json.loads(enrollment.read_text())
+                users=list(dict.fromkeys([enrolled['owner_id'],*enrolled.get('allowed_users',[])]))
+                extra=config['platforms']['discord']['extra']
+                extra.update(dm_policy='allowlist',allow_from=users)
+                extra['user_allowed_commands']=sorted(set(extra.get('user_allowed_commands',[]))|{'status','hq-workspace'})
+                extra['group_user_allowed_commands']=sorted(set(extra.get('group_user_allowed_commands',[]))|{'hq-project-status'})
             config['mcp_servers']={name:{'command':'python','args':['/app/mcp_server.py',name],'tools':{'include':names,'resources':False,'prompts':False},'timeout':540} for name,names in {'research':['search','read_page','weather'],'workbench':['check_system','review_file','plan_automation']}.items()}
             config['platform_toolsets']['discord']=['hq_ops','mcp-research','mcp-workbench']
             config['agent']['max_turns']=12

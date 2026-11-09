@@ -39,7 +39,7 @@
     "discord": {
       "enabled": true,
       "extra": {
-        "dm_policy": "disabled",
+        "dm_policy": "allowlist",
         "group_policy": "allowlist",
         "group_allow_from": [
           "900000000000000004",
@@ -48,6 +48,7 @@
         "allow_admin_from": [],
         "group_allow_admin_from": [],
         "user_allowed_commands": [
+          "hq-workspace",
           "status"
         ],
         "group_user_allowed_commands": [
@@ -56,6 +57,7 @@
           "hq-diagnostics",
           "hq-donna",
           "hq-files",
+          "hq-github",
           "hq-harvey",
           "hq-health",
           "hq-jessica",
@@ -63,13 +65,13 @@
           "hq-louis",
           "hq-mike",
           "hq-planning",
+          "hq-project-status",
           "hq-rachel",
           "hq-research",
           "hq-suits-team",
           "hq-tasks",
-          "status",
-          "hq-github",
-          "hq-workbench"
+          "hq-workbench",
+          "status"
         ],
         "allowed_channels": [
           "900000000000000003"
@@ -81,7 +83,11 @@
         "max_attachment_bytes": 5242880,
         "free_response_channels": [],
         "require_mention": true,
-        "thread_require_mention": true
+        "thread_require_mention": true,
+        "allow_from": [
+          "900000000000000004",
+          "900000000000000005"
+        ]
       },
       "home_channel": {
         "platform": "discord",

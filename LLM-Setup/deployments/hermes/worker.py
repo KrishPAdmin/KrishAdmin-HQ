@@ -19,7 +19,7 @@ class Handler(BaseHTTPRequestHandler):
         if not hmac.compare_digest(self.headers.get('Authorization',''), 'Bearer '+Path('/run/access/worker').read_text().strip()):return self.send(403,{'error':'forbidden'})
         length=int(self.headers.get('Content-Length',0))
         if not 0<length<120000:return self.send(400,{'error':'invalid body size'})
-        if not LOCK.acquire(False):return self.send(429,{'error':'worker busy'})
+        if not LOCK.acquire(timeout=120):return self.send(429,{'error':'Worker queue deadline reached; retry later.'})
         try:
             body=json.loads(self.rfile.read(length));started=time.monotonic();rid=str(uuid.uuid4())
             prompt=json.dumps({'question':body['question'],'evidence':body['evidence']},sort_keys=True)
