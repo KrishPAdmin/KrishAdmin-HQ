@@ -1,0 +1,11 @@
+[Unit]
+Description=Private agent Hub file snapshot and extraction check
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /home/operator/krishadmin-hq/deployments/hermes/backup_hub.py
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/operator/KrishAdmin-LLM-Hub/backups

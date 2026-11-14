@@ -12,11 +12,11 @@
     },
     {
       "path": "DEPLOYMENT.md",
-      "sha256": "b2d418e459f5631975e75ed34e1b304780a9a7f1cda3e89ca6b6880c0cb42200"
+      "sha256": "0cd49211313dbd4213bd2a870d61b887d47a4965c7d1c35bbeb4033ec4eb1554"
     },
     {
       "path": "README.md",
-      "sha256": "fa5d63997929e379bf6e2d0ea829c98eaec65571e1d0575e67802163d0f5d5e4"
+      "sha256": "8bf5256da035ec16f27334e2838773b6e344d3e4d75ec362a04c6301746193cd"
     },
     {
       "path": "THIRD-PARTY.md",
@@ -24,7 +24,7 @@
     },
     {
       "path": "VERIFICATION.md",
-      "sha256": "42c646b8c8a8863f3c74fb7dd73484a1aa29a36051f713df4e9c419eb27930ab"
+      "sha256": "35fbffd8357fd5081ca59083bc29bd2236e9757378d0ff01bf51931337b33fe1"
     },
     {
       "path": "config/network-audit.json",
@@ -68,7 +68,11 @@
     },
     {
       "path": "deployments/hermes/backup.py",
-      "sha256": "282389f068c366ed53aa5188cb1e0f425920ac7d10558ba852f25f5ba22a1a0d"
+      "sha256": "2c9a719580d1e32c7d97d3f0dc4ddb31ada1a2ee69e41c080039381ffe28db37"
+    },
+    {
+      "path": "deployments/hermes/backup_hub.py",
+      "sha256": "c4cac939ee2966d4333665bdf01e92b4935e790c20701e5436f317ef2957ca30"
     },
     {
       "path": "deployments/hermes/backup_maintenance.py",
@@ -80,7 +84,7 @@
     },
     {
       "path": "deployments/hermes/broker.py",
-      "sha256": "89ebe5a3c26d4973ed4a4dd3937722dd5c4ca130166be6487c492677a4dccdb9"
+      "sha256": "0a76cce1e25f86c647e05f6c77f94c49354e2b8ae32333b7acf3dcfe01600ef7"
     },
     {
       "path": "deployments/hermes/capabilities.py",
@@ -92,7 +96,7 @@
     },
     {
       "path": "deployments/hermes/compose.yaml",
-      "sha256": "21d3f55f176dc5053d39ac4f33113965e35dc568f2663fa4a03f122a7019c413"
+      "sha256": "47f90ab1afb4ac607246b6c521e9097e11596fc32d8b307ce0af5f1f1cacee38"
     },
     {
       "path": "deployments/hermes/config/browser-package-lock.json",
@@ -196,7 +200,11 @@
     },
     {
       "path": "deployments/hermes/docs/index.md",
-      "sha256": "051ddd5b9957f138f9eadd8e9d9451205b3c363192ed42ce434b9077cd99dead"
+      "sha256": "2b33ed3f0f8808012943b55182773812bf09c63841374193f08fa3f8b51bfdd6"
+    },
+    {
+      "path": "deployments/hermes/docs/llm-hub.md",
+      "sha256": "78adb77c0fb70408b8b1bdfb37f293ff583f5ea391f57ef4ebaab7082b32b8f5"
     },
     {
       "path": "deployments/hermes/docs/mcp.md",
@@ -264,7 +272,7 @@
     },
     {
       "path": "deployments/hermes/github_service.py",
-      "sha256": "88e782fb5bd30c19424baed46f102caa55ec76d15739a33f66c56f69041086b8"
+      "sha256": "155f3a588952ab509fd8d650008485e658a9945acaa84a63fcf6ca09778c5ba3"
     },
     {
       "path": "deployments/hermes/google_connect.py",
@@ -307,6 +315,22 @@
       "sha256": "9fde0733d0402fa08cb7eb4472b11d486285efb2049b5f371072863152f2d505"
     },
     {
+      "path": "deployments/hermes/hub.py",
+      "sha256": "86a7493ff84d629582f724f49d8710d07858dc00842245c8ba3343ddf5e2b201"
+    },
+    {
+      "path": "deployments/hermes/hub_operations.py",
+      "sha256": "9d689dd3c68624a07242c3a4f521e230c2811efa51edb8ccbafd1c3a8b4e5902"
+    },
+    {
+      "path": "deployments/hermes/hub_sandbox.py",
+      "sha256": "93daba1d1810af0e2b7598e69798fa4dbd67f4f9831e6fe8790e07c128198307"
+    },
+    {
+      "path": "deployments/hermes/hub_store.py",
+      "sha256": "e07ebb0197acc3a24b4b1b60ba72de7232b659759ed6bce04307ffc904a0cef7"
+    },
+    {
       "path": "deployments/hermes/mcp_server.py",
       "sha256": "af1227a325056dc124487b9978a699a4b6212785efacd4760ef25fbaa7db7de8"
     },
@@ -320,7 +344,7 @@
     },
     {
       "path": "deployments/hermes/plugin/__init__.py",
-      "sha256": "0a71b5b9579af54345172738107ffadb0e19a658c27f297017fd76e373f19fc2"
+      "sha256": "a5740cd29f341abe66039905498e5faa9bc7e996d75438ef0192728711c30009"
     },
     {
       "path": "deployments/hermes/plugin/access.py",
@@ -344,11 +368,11 @@
     },
     {
       "path": "deployments/hermes/plugin/plugin.yaml",
-      "sha256": "0b8fde361101a0863d20e34238bb69c521f592913deabc73e33d132acd71eaed"
+      "sha256": "3c3b04d699351c98c53ee280022beafbb7ec3feec7f1e0a3e2831cb03ff10cf7"
     },
     {
       "path": "deployments/hermes/prepare.py",
-      "sha256": "7fcdab3cb0d190d70f31b390623cfc8740d64207459482de94842bec3faa5d4d"
+      "sha256": "09f8efea5afd647476ca2532168a091c7e7f1f9fb5e4b02264ec490eff903f08"
     },
     {
       "path": "deployments/hermes/profiles/analyst/SOUL.md",
@@ -372,7 +396,7 @@
     },
     {
       "path": "deployments/hermes/profiles/concierge/SOUL.md",
-      "sha256": "6af5ea08abff69f3752c796148b40c1f1a3505e47823df08bd5b4c270d7e1efd"
+      "sha256": "5b4fa53af723d6af3622ea42e8566d3d91b42073b57a8dd1c9edcdd02bf1c5f7"
     },
     {
       "path": "deployments/hermes/profiles/concierge/config.yaml",
@@ -448,7 +472,7 @@
     },
     {
       "path": "deployments/hermes/profiles/concierge/skills/hq-suits-team/SKILL.md",
-      "sha256": "c581a17be73106704768b3c3d7b896d484e2f459b42932d30e5017c9ccef2d97"
+      "sha256": "af0f4ace07a42553184509ca527ed527537969ca6eed15f7bda71717a006a990"
     },
     {
       "path": "deployments/hermes/profiles/concierge/skills/hq-tasks/SKILL.md",
@@ -547,6 +571,10 @@
       "sha256": "29349fa4d669a13071ed255ed7f4536b121b24dabe801e3899f574a1ad7c983e"
     },
     {
+      "path": "deployments/hermes/setup_hub.py",
+      "sha256": "5c238c002d379091edb3eaff912fbd055014d1b751972c78f0ec2b7e6ad01ae0"
+    },
+    {
       "path": "deployments/hermes/setup_paperclip.py",
       "sha256": "3296fda9b9954f05737645e3f4c215b5e116f2c5d5cc9cb048e1e1f31b639b47"
     },
@@ -623,6 +651,22 @@
       "sha256": "eae111cedac45243fd4cfd91d0aca9a8d66e57925492568a7a5dcf307b9eae09"
     },
     {
+      "path": "deployments/hermes/systemd/hq-hub-backup.service",
+      "sha256": "b0ff7c916b0bda3bdaf741c9468ff45c55e83231d92216964c41bb6e803b9ac6"
+    },
+    {
+      "path": "deployments/hermes/systemd/hq-hub-backup.timer",
+      "sha256": "d48d64dcb88343495938093952222ff638fcd45667f1c29ee0e96dc860fb5f1b"
+    },
+    {
+      "path": "deployments/hermes/systemd/hq-hub-sandbox.service",
+      "sha256": "9418ca58ce3f164a3a5f22631a5773a30fe10d83a0de6894bf84c9cda6ad5e8f"
+    },
+    {
+      "path": "deployments/hermes/systemd/hq-hub-sandbox.socket",
+      "sha256": "d41336951cbe09515d2c4edc35d1453f682c32308eba7b14017dd200715d8a34"
+    },
+    {
       "path": "deployments/hermes/task_updates.py",
       "sha256": "0973dad61b6b02295e0acb8ad9cac16c36f8346e855c7ef8b02cebbdcde3d4f0"
     },
@@ -669,6 +713,10 @@
     {
       "path": "deployments/hermes/test_homelab.py",
       "sha256": "b968c96b05282e00361f5ed3f02c02f1e82160f2eeb4ca12341a6dabc0b2d3cd"
+    },
+    {
+      "path": "deployments/hermes/test_hub.py",
+      "sha256": "8a9e4ab7bc1fdb375fd2880e5007d6c73662231ad29a4fc253a10a772f65d376"
     },
     {
       "path": "deployments/hermes/test_inference_recovery.py",
@@ -900,7 +948,7 @@
     },
     {
       "path": "deployments/paperclip/agents/artifacts.py",
-      "sha256": "d93e70244ed37a45f45a9d23c53a8d342fa0819423253a96e7be5a8df2e70b4d"
+      "sha256": "09fe692f9365a77138cb944be8ec11cf1b151800e3e10b0ad256c1e98a20484e"
     },
     {
       "path": "deployments/paperclip/agents/codex-instructions.md",
@@ -972,7 +1020,7 @@
     },
     {
       "path": "deployments/paperclip/backup.py",
-      "sha256": "72295f3907275f7e033d3060de88057647151b740b70d983195e852eb7bcb5cf"
+      "sha256": "0234f0f7cfa8c005cb282319a3220dd56a85102028cbf29c6bafd2ddb9c0aa03"
     },
     {
       "path": "deployments/paperclip/codex-isolated/egress.py",
@@ -984,7 +1032,7 @@
     },
     {
       "path": "deployments/paperclip/compose.yaml",
-      "sha256": "e8297cad6c815d99fc15b5025c8bf43ccab98f6f96e6c6e05ee666bd127fa9cb"
+      "sha256": "1133ed6b06bd33e5f68db6f215e6fa211068365d9c44c666a75d0877bf08c552"
     },
     {
       "path": "deployments/paperclip/control-center/OPERATOR-GUIDE.md",
@@ -1108,7 +1156,7 @@
     },
     {
       "path": "deployments/paperclip/pi-worker/pi_runtime.py",
-      "sha256": "ba2c5faf03b23225fc2ceab022c7647945dd869a60de1eabda1caac37857e2c4"
+      "sha256": "e0171223a2535bc0441219e7a654aebd3d377826daf70c079bf97e2fed727197"
     },
     {
       "path": "deployments/paperclip/pi-worker/server_ops.py",

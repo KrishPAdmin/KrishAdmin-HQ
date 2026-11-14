@@ -5,6 +5,7 @@ from pathlib import Path
 from team import TEAM
 import context_settings as contexts
 ROOT=Path(__file__).resolve().parent
+HUB=Path('/home/operator/KrishAdmin-LLM-Hub')
 IMAGE='nousresearch/hermes-agent@sha256:d27689bc6e8581ec884a7227c9101fdaebf6c853cff8859020dac14f21452b4d'
 
 def main():
@@ -75,12 +76,12 @@ def main():
         'volumes':['./file_service.py:/app/file_service.py:ro','./profiles/concierge/cache/documents:/uploads:ro','./access/worker:/run/access/worker:ro']}
     services['broker']={**common,'entrypoint':['python','/app/broker.py'],'mem_limit':'512m',
         'ports':['127.0.0.1:18880:8080'],'networks':{'private':{},'egress':{},'paperclip':{'aliases':['hq-hermes-broker']}},
-        'volumes':['./broker.py:/app/broker.py:ro','./gpu_telemetry.py:/app/gpu_telemetry.py:ro','./task_updates.py:/app/task_updates.py:ro','./profiles/concierge/discord-enrollment.json:/discord-enrollment.json:ro','./web_research.py:/app/web_research.py:ro','./health_rules.py:/app/health_rules.py:ro','./capabilities.py:/app/capabilities.py:ro','./team.py:/app/team.py:ro',
+        'volumes':['./hub_store.py:/app/hub_store.py:ro','./file_service.py:/app/file_service.py:ro','./broker.py:/app/broker.py:ro','./gpu_telemetry.py:/app/gpu_telemetry.py:ro','./task_updates.py:/app/task_updates.py:ro','./profiles/concierge/discord-enrollment.json:/discord-enrollment.json:ro','./web_research.py:/app/web_research.py:ro','./health_rules.py:/app/health_rules.py:ro','./capabilities.py:/app/capabilities.py:ro','./team.py:/app/team.py:ro',
             '/var/lib/hq-vault-catalog:/service-catalog:ro','./docs:/knowledge:ro','./profiles/concierge/cache/documents/drafts:/drafts','./access:/run/access:ro','./state:/state','./config:/config:ro',
             './observations:/observations:ro','./run/diagnostics:/diagnostic-socket:ro','/var/lib/hq-observations:/backup-observations:ro','../paperclip/data/hq-locks:/locks',
             '/run/hq-vault-runtime/nvidia-gpu-api:/run/secrets/nvidia-gpu-token:ro','/run/hq-vault-runtime/amd-gpu-api:/run/secrets/amd-gpu-token:ro',
             '../../secrets/nvidia-gpu-server.crt:/run/secrets/nvidia-gpu-ca.crt:ro']}
-    services['broker']['environment']={'HQ_RENDER_URL':'http://renderer:8080/render'}
+    services['broker']['environment']={'HQ_LLM_HUB':'/hub','HQ_RENDER_URL':'http://renderer:8080/render'}
     services['broker']['networks']['research_internal']={}
     services['render-fetch']={**common,'entrypoint':['python','/app/render_fetch.py'],'mem_limit':'256m',
         'networks':['research_internal','egress'],
@@ -99,6 +100,12 @@ def main():
         'volumes':['./gateway_start.py:/app/gateway_start.py:ro','./mcp_server.py:/app/mcp_server.py:ro','./profiles/concierge:/profile',
             './plugin:/profile/plugins/hq-operations:ro','./access/concierge:/run/access/identity:ro',
             './access/discord-token:/run/access/discord-token:ro','./run/github:/github-socket:ro','./access/github-origin:/run/access/github-origin:ro'], 'healthcheck':{'disable':True}}
+    for name in (*TEAM,'benjamin'):
+        for area in ('inbox','workspace','deliverables','archive','skills'):
+            services['broker']['volumes'].append(str(HUB/'agents'/name/area)+':/hub/agents/'+name+'/'+area+('' if area in ('workspace','deliverables') else ':ro'))
+    for name in TEAM:
+        services[name]['volumes'] += [str(HUB/'agents'/name/'inbox')+':/agent/inbox:ro',str(HUB/'agents'/name/'workspace')+':/agent/workspace',str(HUB/'agents'/name/'deliverables')+':/agent/deliverables',str(HUB/'agents'/name/'skills')+':/agent/skills:ro']
+    services['concierge']['volumes'] += [str(HUB/'skills/hermes')+':/profile/skills:ro',str(HUB/'shared/uploads')+':/profile/cache/documents']
     for service in ('broker','health','backup','triage','analyst',*TEAM):
         services[service].setdefault('environment',{})['HQ_CONTEXT_CONFIG']='/config/context-windows.json'
         services[service]['volumes'].append('./context_settings.py:/app/context_settings.py:ro')

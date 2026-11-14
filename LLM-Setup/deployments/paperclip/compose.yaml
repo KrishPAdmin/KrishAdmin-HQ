@@ -79,6 +79,9 @@ services:
       - ./pi-worker/models.json:/home/node/.pi/agent/models.json:ro
       - ./pi-worker/inference-settings.ts:/opt/worker/inference-settings.ts:ro
       - ./worker-workspaces:/workspace
+      - /home/operator/KrishAdmin-LLM-Hub/agents/benjamin/inbox:/agent-inbox:ro
+      - /home/operator/KrishAdmin-LLM-Hub/agents/benjamin/deliverables:/agent-deliverables
+      - /home/operator/KrishAdmin-LLM-Hub/agents/benjamin/skills:/agent-skills:ro
       - ./data/hq-locks:/paperclip/hq-locks
       - ./data/hq-control:/paperclip/hq-control:ro
       - ./worker-secrets/pi-bridge-token:/run/secrets/pi-bridge-token:ro

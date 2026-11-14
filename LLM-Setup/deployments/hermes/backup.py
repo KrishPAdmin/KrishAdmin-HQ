@@ -19,7 +19,14 @@ def main():
         selected=[p for p in ROOT.iterdir() if p.is_file() and p.suffix in ('.py','.yaml','.json','.md')]
         selected += [ROOT/x for x in ('access','config','state','profiles','plugin','systemd','docs')]
         with tarfile.open(archive,'w:gz') as tar:
-            for p in selected:tar.add(p,arcname=p.name,filter=lambda item:None if '__pycache__' in item.name or '/logs/' in item.name else item)
+            for p in selected:
+                if p.name=='profiles':
+                    for profile in p.iterdir():
+                        if profile.is_dir():tar.add(profile.resolve(),arcname='profiles/'+profile.name,filter=lambda item:None if item.issym() or '__pycache__' in item.name or '/logs/' in item.name else item)
+                    for relative in ('concierge/skills','concierge/cache/documents'):
+                        item=p/relative
+                        if item.exists():tar.add(item.resolve(),arcname='profiles/'+relative,filter=lambda member:None if member.issym() or '__pycache__' in member.name else member)
+                else:tar.add(p.resolve(),arcname=p.name,filter=lambda item:None if '__pycache__' in item.name or '/logs/' in item.name else item)
             for unit in ('hq-hermes-evidence.service','hq-hermes-evidence.timer','hq-hermes-monitor.service','hq-hermes-monitor.timer','hq-hermes-diagnostics.service','hq-hermes-task-notifications.service','hq-hermes-task-notifications.timer','hq-hermes-github.service'):
                 path=Path.home()/'.config/systemd/user'/unit
                 if path.exists():tar.add(path,arcname='systemd-user/'+unit)

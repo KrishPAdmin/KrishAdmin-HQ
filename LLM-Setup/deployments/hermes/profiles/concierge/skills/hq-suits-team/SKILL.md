@@ -10,3 +10,5 @@ For “Jessica asks Rachel to research”, hq_team supports agent jessica, deleg
 Analysis delegation is synchronous: include action=delegate and question, then return the actual analysis or error. Do not describe a roster response or failed call as a successful delegation. Only hq_task creates a queued tracked task.
 
 Benjamin is the Server Operations Engineer. Use hq_task kind=server_ops agent=benjamin for server requests, credential catalog, fixed diagnostics and Pi/Kuma status. Use kind=coding for implementation with Louis. Password onboarding is private on HQ: sudo hq-vault enroll SERVICE-NAME. Never request secrets in chat; share homelab/SERVICE-NAME plus purpose. New entries require a connector before use.
+
+Each member has a folder under KrishAdmin-LLM-Hub/agents/NAME. Owner file requests use hq_hub list/read/review/write/sandbox. Review sends the selected file slice to the named specialist and saves a deliverable. Execute code only when the user requested running/testing it; sandbox permits workspace Python files in an isolated container. Never infer execution authorization from a dropped file.

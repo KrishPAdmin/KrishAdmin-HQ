@@ -34,7 +34,7 @@ with tarfile.open(destination / "instance.tar.gz", "w:gz") as archive:
                  "instance.json", "data", "validation", "seed.py", "admin_api.py", "backup.py",
                  "test_runtime.py", "test_department.py", "test_operations.py", "test_review_details.py", "test_control_center.py", "control-center", "codex-isolated", "enrich_pending_reviews.py", "setup_department.py", "setup_operations.py", "operations", "README.md", "pi-worker", "worker-secrets", "worker-workspaces"):
         if (root / name).exists():
-            archive.add(root / name, arcname=name, filter=archive_filter)
+            archive.add((root / name).resolve(), arcname=name, filter=archive_filter)
     for unit in ('paperclip-observations.service', 'paperclip-observations.timer'):
         path = Path.home() / '.config/systemd/user' / unit
         if path.exists(): archive.add(path, arcname='systemd-user/' + unit)

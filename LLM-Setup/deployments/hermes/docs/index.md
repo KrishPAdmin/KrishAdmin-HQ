@@ -55,3 +55,5 @@ Pi cluster and Uptime Kuma: see the Pi cluster management section in `operations
 - [Agent credential vault](agent-secret-storage-plan.md) — deployed encrypted storage outside Codex, connector access, automatic unlocking, backups and recovery.
 
 - [Benjamin server operations and private credential enrollment](benjamin-server-operations.md)
+
+- [Central LLM Hub, per-agent files and sandboxes](llm-hub.md)

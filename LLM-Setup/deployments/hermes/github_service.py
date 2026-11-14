@@ -188,7 +188,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         code=200
         try:
-            if self.path not in ('/github','/workspace','/homelab'):raise ValueError('Unknown route')
+            if self.path not in ('/github','/workspace','/homelab','/hub'):raise ValueError('Unknown route')
             size=int(self.headers.get('Content-Length',0))
             if not 0<size<=140000:raise ValueError('Request too large')
             envelope=json.loads(self.rfile.read(size))
@@ -199,6 +199,10 @@ class Handler(BaseHTTPRequestHandler):
                     if self.path=='/workspace':
                         from google_workspace import execute as workspace_execute
                         result=workspace_execute(envelope['request'],owner,message,db)
+                    elif self.path=='/hub':
+                        if envelope['request'].get('_service')!='hub':raise PermissionError('Hub service signature required')
+                        from hub_operations import execute as hub_execute
+                        result=hub_execute(envelope['request'])
                     elif self.path=='/homelab':
                         from homelab import execute as homelab_execute
                         result=homelab_execute(envelope['request'],owner,message,db)

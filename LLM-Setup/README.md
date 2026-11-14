@@ -112,3 +112,9 @@ Per-user Gmail/Calendar code is included, with private DM access and separate co
 Benjamin now receives server-operations tasks directly and uses fixed host/Pi/monitoring connectors. The vault offers hidden-input enrollment with service metadata and a non-secret catalog. The source includes Paperclip execution/blocker repairs and the repaired job-manager prototype under `examples/job-manager`; that prototype is partial, with no full web UI or production scheduler.
 
 This is a configurable reference deployment, not a turnkey product. Start with [deployment prerequisites](DEPLOYMENT.md). Passwords, tokens, unlock credentials, vault snapshots and runtime state are not part of either repository edition.
+
+## Central agent Hub
+
+[KrishAdmin-LLM-Hub](deployments/hermes/docs/llm-hub.md) gives all seven Suits members their own inbox, workspace, deliverables, archive and skills folders. Existing agent profiles, shared skills, uploads and runtime files are relocated with compatibility links. Owner-only file review saves specialist reports; Benjamin's tracked artifacts are mirrored into his deliverables. Each agent can run requested Python checks in a disposable container with only its own workspace mounted and no network or credentials. Daily private file snapshots validate extraction.
+
+The Hub's private files and backups are not included in this repository; the implementation, migration helpers and runbooks are.

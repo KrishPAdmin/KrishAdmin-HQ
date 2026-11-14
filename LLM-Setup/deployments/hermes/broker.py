@@ -126,7 +126,7 @@ def validate_inference(role, body):
     if backend=='nvidia-gpu':
         names={t.get('function',{}).get('name') for t in body.get('tools',[])}
         if names-{'hq_status','hq_task','hq_research','hq_analyze','hq_files','hq_knowledge','hq_draft','hq_send_file','hq_homelab','hq_team','hq_calculate','hq_diagnostics','hq_github',
-                  'hq_workspace','mcp__research__search','mcp__research__read_page','mcp__research__weather','mcp__workbench__check_system','mcp__workbench__review_file','mcp__workbench__plan_automation'}: raise PermissionError('Tool outside HQ allowlist')
+                  'hq_hub','hq_workspace','mcp__research__search','mcp__research__read_page','mcp__research__weather','mcp__workbench__check_system','mcp__workbench__review_file','mcp__workbench__plan_automation'}: raise PermissionError('Tool outside HQ allowlist')
     return backend
 
 def measured_status(body):
@@ -609,6 +609,11 @@ def team_request(body):
     else:
         result=request('http://'+name+':8080/run',{'question':question,'evidence':packet,'task_kind':kind},TOKENS.joinpath('worker').read_text().strip(),timeout=520)
     audit('delegation',agent=name,backend=result['backend'],model=result['model'],run_id=result['run_id'],evidence_sha256=packet['evidence_sha256'])
+    try:
+        from hub_store import report
+        result['saved_file']=report(name,result['text'])
+    except (OSError,ValueError) as error:
+        result['storage_error']='Analysis completed but Hub save failed: '+type(error).__name__
     return {'evidence':packet,'analysis':result}
 
 KNOWLEDGE={'index','quickstart','architecture','operations','monitoring','discord','backups','security','troubleshooting','recovery','reference','acceptance','capabilities','diagnostics','github','mcp','workspace','contexts','dashboard','herdr'}
@@ -782,6 +787,9 @@ class Handler(BaseHTTPRequestHandler):
             if self.path=='/diagnostics' and role=='paperclip':return self.send(200,diagnostics(body))
             if self.path=='/gpu-telemetry' and role in ('paperclip','operator','concierge'):return self.send(200,GPU_VIEW.get())
             if self.path=='/team' and role=='paperclip':return self.send(200,team_request(body))
+            if self.path=='/hub-files' and role=='operator':
+                from hub_store import operation
+                return self.send(200,operation(body))
             if role in ('concierge','operator'):
                 if self.path=='/context':return self.send(200,context_status(include_native=body.get('include_native') is True and role=='operator'))
                 if self.path=='/web/weather':return self.send(200,weather(body.get('location'),body.get('country_code')))

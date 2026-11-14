@@ -55,3 +55,13 @@ Earlier repair validation covered 22 job-manager prototype tests and 16 executio
 Both export editions receive syntax and credential screening, and the public edition replaces installation-specific networks, hardware aliases, account IDs and domains. Source backup excludes the vault database, credentials, encrypted unlock material and runtime state.
 
 Current exported-edition checks: each edition passed 5 enrollment tests, 16 server-operation/diagnostic/research tests, and 22 repaired-prototype tests (43 total per edition). Syntax/JSON validation and known-secret/privacy scans passed for both exports. These are targeted checks, not a full clean-host deployment test.
+
+## Central Hub validation
+
+41 targeted live-environment regressions passed across Hub file boundaries, GitHub origin controls, homelab, server operations and broker restrictions. All seven disposable agent sandboxes passed workspace-write, network-denial, missing-secret-mount and missing-sibling-mount checks. Four non-operator identities were denied direct Hub file access. DOCX/XLSX extraction passed through the live broker.
+
+Mike and Louis completed real inbox reviews on their respective local inference backends, and their reports were saved under their own deliverables. Benjamin completed a tracked inbox task and its actual artifact was mirrored into his deliverables. Nineteen storage/skill directories were relocated, with existing paths retained as links. The first private Hub snapshot passed isolated extraction. The existing backup helpers were adjusted to follow the intended relocated roots while excluding arbitrary symlink traversal.
+
+No automatic inbox execution or off-host backup is claimed. Python sandboxes are containers, not VMs or total disk quotas. The protected vault, external authentication and PostgreSQL volume remain outside the general agent file tree.
+
+Final Hub checks also verified sandbox output limiting and persistent receipts, excluded private runtime directories from broker file mounts, and passed all seven Hub unit tests in each exported edition plus eight Paperclip execution tests. Hermes backup extraction, credential roundtrip and five SQLite integrity checks passed after relocation; a fresh Paperclip/database/vault backup was also created.
