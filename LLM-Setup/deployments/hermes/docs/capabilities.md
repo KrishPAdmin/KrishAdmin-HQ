@@ -10,6 +10,7 @@
 | Louis Litt | Code, configuration and financial-analysis specialist | AMD-GPU | `qwen2.5-coder:32b-instruct-q8_0` (32.8B) | Harvey |
 | Rachel Zane | Research and source-checking specialist | NVIDIA-GPU | `qwen3.5:9b` (9.7B) | Harvey |
 | Donna Paulsen | Chief of staff / front desk and knowledge coordinator | NVIDIA-GPU | `qwen3.5:9b` (9.7B) | Jessica |
+| Benjamin | Suits Implementation Engineer / files and tests | NVIDIA-GPU inference, HQ tools | `paperclip-qwen3.5:9b` | Harvey |
 
 ```mermaid
 flowchart TD
@@ -19,13 +20,14 @@ flowchart TD
   Harvey --> Mike[Mike: fast generalist]
   Harvey --> Louis[Louis: code, configuration and finance]
   Harvey --> Rachel[Rachel: research and source checks]
+  Harvey --> Benjamin[Benjamin: implementation and tests]
 ```
 
 Jessica uses the largest installed model by parameter count, a 140.6B mixture-of-experts model. Parameter count is not a guarantee of better answers for every task. Harvey uses a smaller general model to favor latency. Louis uses the specialized coding model even though his parameter count exceeds Harvey's; the hierarchy represents responsibility, not a strict parameter ranking.
 
 Each named specialist has a separate service, profile, broker credential and fixed model assignment. They are tool-free local inference workers orchestrated by Hermes on HQ. Donna is also the coordinating persona of the existing Discord gateway. All collection, file parsing, calculation, draft writing and delegation run on HQ; NVIDIA-GPU and AMD-GPU perform inference. Rachel's research uses NVIDIA-GPU inference and HQ internet collection. No browsing or model-selected commands run on AMD-GPU.
 
-The six named agents are registered in Paperclip with these reporting lines. [Paperclip Control Center](https://paperclip.example.invalid/KRI/control-center) opens on the Suits team tab and displays their models, responsibilities and live Paperclip activity states. Jessica is the top-level lead; the existing workflow coordinator now reports to Donna, preserving existing task assignments. Named task execution is on demand, one concurrent Paperclip run per agent, with a default daily run cap of 24. Workers propose decisions and drafts; the human retains production approval. The original health/backup/triage agents remain available.
+The seven named team members are registered in Paperclip with these reporting lines. [Paperclip Control Center](https://paperclip.example.invalid/KRI/control-center) opens on the Suits team tab and displays their models, responsibilities and live Paperclip activity states. Jessica is the top-level lead; the existing workflow coordinator now reports to Donna, preserving existing task assignments. Named task execution is on demand, one concurrent Paperclip run per agent, with a default daily run cap of 24 for the six analysis specialists; Benjamin retains his existing cap of 50. Workers propose decisions and drafts; the human retains production approval. The original health/backup/triage agents remain available.
 
 ## Compute routing
 
@@ -116,3 +118,7 @@ See [fixed host and SSH diagnostics](diagnostics.md) for the new on-demand check
 ## Current research and context update
 
 The original short-input limits are superseded by [MCP and long-context workflows](mcp.md): general public search and direct page retrieval are enabled; ordinary synthesis/reviews default to AMD-GPU, Qwen/Louis use 32K, Jessica uses 64K, and long histories compact through AMD-GPU. Fixed workbench checkers, upload validation/review and automation planning are available as MCP tools.
+
+## Benjamin: actual implementation
+
+Benjamin is the Suits implementation engineer and reports to Harvey. Donna routes build/test requests using `hq_task action=submit kind=coding agent=benjamin`. Louis supervises the tracked parent task, supplies optional coding guidance and reviews completed execution evidence. Benjamin writes files and runs tests in the existing isolated HQ workspace using NVIDIA-GPU inference. Direct Paperclip tasks may also be assigned to Benjamin and retain human review. The original worker ID, task history and internal Pi runtime are preserved. Synchronous `hq_team` lists Benjamin but does not execute his coding work.

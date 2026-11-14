@@ -47,7 +47,7 @@ class CapabilityTests(unittest.TestCase):
             self.assertEqual(result['evidence']['reviewed_span']['next_offset'],8)
     def test_team_roster_names_and_reporting_lines(self):
         result=broker.team_request({'action':'roster'})
-        self.assertEqual(set(result['agents']),{'jessica','harvey','mike','louis','rachel','donna'})
+        self.assertEqual(set(result['agents']),{'jessica','harvey','mike','louis','rachel','donna','benjamin'})
         self.assertEqual(result['agents']['harvey']['reports_to'],'jessica')
     def test_named_delegation_uses_fixed_worker(self):
         result={'backend':'amd-gpu','model':TEAM['louis']['model'],'run_id':'test'}

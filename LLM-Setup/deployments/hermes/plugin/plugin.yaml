@@ -9,7 +9,10 @@ provides_tools:
   - hq_files
   - hq_knowledge
   - hq_draft
+  - hq_homelab
+  - hq_send_file
   - hq_team
   - hq_calculate
   - hq_diagnostics
   - hq_github
+  - hq_hub

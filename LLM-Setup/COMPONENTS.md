@@ -16,3 +16,9 @@ Excluded from both editions:
 The Hermes source also includes two local stdio MCP servers, public search/page/weather collection, bounded native Discord attachment handoff, fixed workbench workflows, and long-context routing/compaction. See the [MCP runbook](deployments/hermes/docs/mcp.md).
 
 The research renderer uses `Dockerfile.research`, `render_server.mjs`, `render_fetch.py`, a pinned SDK lockfile and seccomp profile under config/. It renders fresh anonymous public pages through a validated HTTPS GET relay, with separate HTML and DOM receipts. Web collection stays on HQ.
+
+## New source coverage
+
+- `deployments/vault`: OpenBao host integration, operator enrollment, metadata/catalog code, connector/runtime helpers, systemd units and enrollment tests. No vault data or keys.
+- `deployments/paperclip/pi-worker/server_ops.py`: Benjamin's restricted server connector client.
+- `examples/job-manager`: repaired partial prototype and its tests, without runtime databases or generated archives.

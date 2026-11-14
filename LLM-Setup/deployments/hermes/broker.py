@@ -7,7 +7,7 @@ from urllib.parse import urlsplit
 import urllib.request
 from health_rules import assess,age_seconds
 from capabilities import TASKS,prompt_for,calculate
-from team import TEAM
+from team import TEAM, EXECUTION_TEAM
 from web_research import collect as collect_web,search_web,read_page,weather
 from task_updates import issue_url,origin_checked,subscribe,reply_footer
 import context_settings as contexts
@@ -20,7 +20,7 @@ BACKENDS = {
     'nvidia-gpu': ('https://192.0.2.181:11434', '/run/secrets/nvidia-gpu-token', '/run/secrets/nvidia-gpu-ca.crt', 'qwen3.5:9b'),
     'amd-gpu': ('http://198.51.100.202:11434', '/run/secrets/amd-gpu-token', None, 'qwen2.5:72b-instruct-q8_0'),
 }
-ROLES = {'concierge': 'nvidia-gpu', 'health': 'nvidia-gpu', 'backup': 'nvidia-gpu', 'triage': 'nvidia-gpu', 'analyst': 'amd-gpu', 'operator': 'nvidia-gpu', 'paperclip': 'nvidia-gpu'}
+ROLES = {'concierge': 'nvidia-gpu', 'health': 'nvidia-gpu', 'backup': 'nvidia-gpu', 'triage': 'nvidia-gpu', 'analyst': 'amd-gpu', 'operator': 'nvidia-gpu', 'paperclip': 'nvidia-gpu', 'benjamin-ops': 'nvidia-gpu'}
 ROLES.update({name:role['backend'] for name,role in TEAM.items()})
 AUDIT_LOCK = threading.Lock()
 
@@ -125,8 +125,8 @@ def validate_inference(role, body):
         raise PermissionError('AMD-GPU is evidence-only; tools and tool execution transcripts are prohibited')
     if backend=='nvidia-gpu':
         names={t.get('function',{}).get('name') for t in body.get('tools',[])}
-        if names-{'hq_status','hq_task','hq_research','hq_analyze','hq_files','hq_knowledge','hq_draft','hq_team','hq_calculate','hq_diagnostics','hq_github',
-                  'hq_workspace','mcp__research__search','mcp__research__read_page','mcp__research__weather','mcp__workbench__check_system','mcp__workbench__review_file','mcp__workbench__plan_automation'}: raise PermissionError('Tool outside HQ allowlist')
+        if names-{'hq_status','hq_task','hq_research','hq_analyze','hq_files','hq_knowledge','hq_draft','hq_send_file','hq_homelab','hq_team','hq_calculate','hq_diagnostics','hq_github',
+                  'hq_hub','hq_workspace','mcp__research__search','mcp__research__read_page','mcp__research__weather','mcp__workbench__check_system','mcp__workbench__review_file','mcp__workbench__plan_automation'}: raise PermissionError('Tool outside HQ allowlist')
     return backend
 
 def measured_status(body):
@@ -566,9 +566,10 @@ def team_request(body):
     if body['action']=='delegate' and not body.get('question') and body.get('search_query'):
         body['question']=body['search_query']
     if body['action']=='roster':
-        return {'agents':{name:{**{k:v for k,v in role.items() if k!='persona'},'context_length':contexts.window(name)} for name,role in TEAM.items()},
+        return {'agents':{name:{**{k:v for k,v in role.items() if k!='persona'},'context_length':contexts.window(role.get('context_target',name))} for name,role in {**TEAM,**EXECUTION_TEAM}.items()},
                 'coordinator':'Donna persona in the Hermes Discord gateway on HQ; tool calls and delegation stay on HQ',
                 'approval':'The human operator authorizes production changes.'}
+    if body.get('agent') in EXECUTION_TEAM:raise ValueError('Benjamin executes tracked coding tasks. Use hq_task action=submit kind=coding agent=benjamin; Louis supervises the implementation.')
     if body.get('action')!='delegate' or body.get('agent') not in TEAM:raise ValueError('Choose roster or delegate to a named team member')
     name=body['agent']
     if body.get('delegate_to'):
@@ -608,6 +609,11 @@ def team_request(body):
     else:
         result=request('http://'+name+':8080/run',{'question':question,'evidence':packet,'task_kind':kind},TOKENS.joinpath('worker').read_text().strip(),timeout=520)
     audit('delegation',agent=name,backend=result['backend'],model=result['model'],run_id=result['run_id'],evidence_sha256=packet['evidence_sha256'])
+    try:
+        from hub_store import report
+        result['saved_file']=report(name,result['text'])
+    except (OSError,ValueError) as error:
+        result['storage_error']='Analysis completed but Hub save failed: '+type(error).__name__
     return {'evidence':packet,'analysis':result}
 
 KNOWLEDGE={'index','quickstart','architecture','operations','monitoring','discord','backups','security','troubleshooting','recovery','reference','acceptance','capabilities','diagnostics','github','mcp','workspace','contexts','dashboard','herdr'}
@@ -685,11 +691,17 @@ def task(body):
                         result['result_evidence']={'analysis':{k:artifact.get('analysis',{}).get(k) for k in ('backend','model','seconds','run_id')},
                             'evidence':{k:artifact.get('evidence',{}).get(k) for k in ('assessment','gpu_api','collected_at','snapshot_status')}}
             return result
-        if body.get('action')!='submit' or body.get('kind') not in TASKS:raise ValueError('Invalid task operation')
+        if body.get('action')!='submit' or body.get('kind') not in (*TASKS,'coding','server_ops'):raise ValueError('Invalid task operation')
         team_agent=body.get('agent')
+        if body['kind']=='server_ops':
+            if team_agent not in (None,'benjamin'):raise ValueError('Server operations are assigned to Benjamin')
+            team_agent='benjamin'
+        if team_agent in EXECUTION_TEAM and body['kind']!='server_ops':
+            if body['kind']!='coding':raise ValueError('Benjamin accepts kind=coding; use the other Suits specialists for analysis.')
+            team_agent=EXECUTION_TEAM[team_agent]['supervisor']
         if team_agent is None and body['kind'] not in ('health','backup','triage'):
-            team_agent={'code_review':'louis','config_review':'louis','automation':'louis','plan':'harvey','summarize':'mike','compare':'jessica','research':'rachel'}[body['kind']]
-        if team_agent is not None and team_agent not in TEAM:raise ValueError('Unknown named agent')
+            team_agent={'coding':'louis','code_review':'louis','config_review':'louis','automation':'louis','plan':'harvey','summarize':'mike','compare':'jessica','research':'rachel'}[body['kind']]
+        if team_agent is not None and team_agent not in {**TEAM,**EXECUTION_TEAM}:raise ValueError('Unknown named agent')
         key=body.get('request_id','')
         if not re.fullmatch(r'[a-zA-Z0-9_:.\-]{8,160}',key):raise ValueError('Stable request ID required')
         description=str(body.get('description',''))
@@ -705,7 +717,7 @@ def task(body):
         db.execute('INSERT INTO tasks VALUES (?,?,NULL,NULL,?)',(key,payload_hash,'pending'));db.commit()
         # Persist reservation before network I/O. Ambiguous failures cannot create a second task.
         issue=api('/companies/'+cfg['company_id']+'/issues',{'title':'Hermes '+body['kind']+' request '+hashlib.sha256(key.encode()).hexdigest()[:10],'description':('[HQ task kind='+body['kind']+']\n' if team_agent else '')+description+'\n\n[HQ Hermes request '+key+']',
-            'status':'todo','assigneeAgentId':cfg['team_agents'][team_agent] if team_agent else cfg['agents'][body['kind']],'projectId':cfg['project_id']})
+            'status':'todo','assigneeAgentId':{**cfg['team_agents'],**cfg.get('execution_agents',{})}[team_agent] if team_agent else cfg['agents'][body['kind']],'projectId':cfg['project_id']})
         if '[HQ Hermes request '+key+']' not in (issue.get('description') or ''):raise ValueError('Paperclip reused a different task; reconcile before retrying')
         db.execute('UPDATE tasks SET issue_id=?,identifier=?,state=? WHERE key=?',(issue['id'],issue['identifier'],'created',key))
         watching=subscribe(db,issue['id'],origin);db.commit()
@@ -715,18 +727,33 @@ def task(body):
 def diagnostics(body):
     if not isinstance(body,dict) or set(body)-{'target','check'}:raise ValueError('Only target and check are accepted')
     if body.get('target') not in ('hq','nvidia-gpu','amd-gpu') or body.get('check','overview') not in ('overview','gpu','processes','services','storage'):raise ValueError('Unsupported diagnostic target or check')
-    conn=http.client.HTTPConnection('localhost',timeout=50)
-    sock=socket.socket(socket.AF_UNIX,socket.SOCK_STREAM);sock.settimeout(50)
+    return host_check('/diagnostics',body)
+
+def host_check(route,body):
+    conn=http.client.HTTPConnection('localhost',timeout=100)
+    sock=socket.socket(socket.AF_UNIX,socket.SOCK_STREAM);sock.settimeout(100)
     try:
         sock.connect('/diagnostic-socket/check.sock');conn.sock=sock
-        conn.request('POST','/diagnostics',json.dumps(body),{'Content-Type':'application/json','Authorization':'Bearer '+(TOKENS/'worker').read_text().strip()})
+        conn.request('POST',route,json.dumps(body),{'Content-Type':'application/json','Authorization':'Bearer '+(TOKENS/'worker').read_text().strip()})
         response=conn.getresponse();raw=response.read(65001)
         if len(raw)>65000:raise ValueError('Diagnostic output exceeds limit')
         data=json.loads(raw)
         if response.status!=200:raise ValueError(data.get('error','Diagnostic service failed'))
-        audit('diagnostics',target=body['target'],check=body.get('check','overview'),status=data.get('status'),evidence_sha256=data.get('evidence_sha256'))
+        audit('diagnostics',target=body.get('target','pi-cluster'),check=body.get('check','overview'),status=data.get('status'),evidence_sha256=data.get('evidence_sha256'))
         return data
     finally:conn.close();sock.close()
+
+def server_ops(body):
+    if not isinstance(body,dict):raise ValueError('Object required')
+    action=body.get('action')
+    audit('benjamin_server_ops',action=action if action in ('catalog','status','diagnostics','homelab') else 'refused')
+    if action=='homelab' and set(body)=={'action'}:return host_check('/homelab-read',{})
+    if action=='catalog' and set(body)=={'action'}:
+        return json.loads(Path('/service-catalog/services.json').read_text())
+    if action=='status' and set(body)=={'action'}:return evidence('health')
+    if action=='diagnostics' and not set(body)-{'action','target','check'}:
+        return diagnostics({k:v for k,v in body.items() if k!='action'})
+    raise PermissionError('Only catalog, status and fixed diagnostics are supported')
 
 class Handler(BaseHTTPRequestHandler):
     def log_message(self,*args): pass
@@ -743,6 +770,9 @@ class Handler(BaseHTTPRequestHandler):
             length=int(self.headers.get('Content-Length',0))
             if not 0<length<=768000: raise ValueError('Invalid body size')
             body=json.loads(self.rfile.read(length))
+            if role=='benjamin-ops':
+                if self.path!='/server-ops':raise PermissionError('Benjamin identity is restricted to fixed server operations')
+                return self.send(200,server_ops(body))
             if self.path=='/v1/chat/completions':
                 value=inference(role,body)
                 if not body.get('stream'): return self.send(200,value)
@@ -757,6 +787,9 @@ class Handler(BaseHTTPRequestHandler):
             if self.path=='/diagnostics' and role=='paperclip':return self.send(200,diagnostics(body))
             if self.path=='/gpu-telemetry' and role in ('paperclip','operator','concierge'):return self.send(200,GPU_VIEW.get())
             if self.path=='/team' and role=='paperclip':return self.send(200,team_request(body))
+            if self.path=='/hub-files' and role=='operator':
+                from hub_store import operation
+                return self.send(200,operation(body))
             if role in ('concierge','operator'):
                 if self.path=='/context':return self.send(200,context_status(include_native=body.get('include_native') is True and role=='operator'))
                 if self.path=='/web/weather':return self.send(200,weather(body.get('location'),body.get('country_code')))

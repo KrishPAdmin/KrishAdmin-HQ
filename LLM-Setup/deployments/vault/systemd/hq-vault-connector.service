@@ -1,0 +1,19 @@
+[Unit]
+Description=HQ host connector credential transport
+After=hq-openbao.service
+Requires=hq-openbao.service hq-vault-connector.socket
+[Service]
+ExecStart=/usr/bin/python3 /usr/local/lib/hq-vault/connector.py
+Restart=on-failure
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+RestrictAddressFamilies=AF_UNIX AF_INET
+ReadWritePaths=/run/hq-vault
+MemorySwapMax=0
+LimitCORE=0
+[Install]
+WantedBy=multi-user.target

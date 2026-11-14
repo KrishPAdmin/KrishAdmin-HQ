@@ -7,5 +7,9 @@
     "900000000000000004",
     "900000000000000005"
   ],
-  "respond_without_mention": false
+  "respond_without_mention": false,
+  "maintenance_dm": {
+    "owner_id": "900000000000000004",
+    "channel_id": "900000000000000006"
+  }
 }

@@ -39,7 +39,7 @@ Paperclip has three deterministic agents under Harvey: **HQ Host Checker**, **NV
 
 ## Authentication and boundaries
 
-HQ collects its own local measurements. NVIDIA-GPU uses the `paperclip-observer` account and a source-restricted, forced-command SSH key. AMD-GPU uses the operator-selected `krishadmin` account with password authentication, public-key authentication explicitly disabled, and strict host-key verification. The AMD-GPU password is privately stored at `../paperclip/operations/keys/amd-gpu-password` (0600). `ssh_access.py` supplies it through SSH_ASKPASS; it is absent from process arguments, model prompts, reports and logs. Existing AMD-GPU observer keys are not used by the current collector.
+HQ collects its own local measurements. NVIDIA-GPU uses the `paperclip-observer` account and a source-restricted, forced-command SSH key. AMD-GPU uses the operator-selected `krishadmin` account with password authentication, public-key authentication explicitly disabled, and strict host-key verification. The AMD-GPU password is encrypted in OpenBao as `amd-gpu-ssh`. `ssh_access.py` retrieves it through the host-only vault connector and supplies it through SSH_ASKPASS; it is absent from process arguments, model prompts, reports and logs. Existing AMD-GPU observer keys are not used by the current collector.
 
 AMD-GPU’s account is an administrator account, not a server-restricted observer account. The HQ collector enforces the named command allowlist. Routine diagnostics run without sudo; the one-time probe installation used authorized sudo. Credentials stay on HQ, outside the agent containers. Never describe this as a global AMD-GPU outbound firewall: the workflow executes fixed local checks and performs no browsing/research from AMD-GPU.
 

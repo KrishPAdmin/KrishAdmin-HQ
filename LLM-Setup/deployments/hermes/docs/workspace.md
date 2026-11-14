@@ -1,6 +1,6 @@
 # Personal Gmail and Calendar
 
-Installed on 2026-11-09. Live Google operations remain pending each user's OAuth consent. No accounts are shared by default. The existing two authorized Discord users can use one-to-one DMs; outsiders remain denied. GitHub remains owner-only, available in the verified owner DM and enrolled main channel; other enrolled users do not gain GitHub access.
+Installed on 2026-11-09. Live Google operations remain pending each user's OAuth consent. No accounts are shared by default. Only the enrolled owner can use one-to-one DMs (updated 2026-11-11); the friend retains shared-channel access only. GitHub remains owner-only, available in the verified owner DM and enrolled main channel; other enrolled users do not gain GitHub access.
 
 `hq_workspace` supports readiness, bounded Gmail search/read, primary-calendar event listing, local email/reply drafts, and proposed event creation/update with optional bounded recurrence. Every send or calendar mutation requires a new, exact `workspace confirm ID DIGEST` DM from that same user. Confirmation is checked against the independently fetched Discord message. User A cannot inspect or confirm user B's proposal. Ambiguous writes are reserved and never automatically resent. No mailbox deletion, invitations, shared calendars, attachments, or unattended recurring email is implemented.
 

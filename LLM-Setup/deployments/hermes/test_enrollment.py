@@ -44,8 +44,8 @@ class EnrollmentTests(unittest.TestCase):
             with self.assertRaisesRegex(enrollment.EnrollmentError,'different application'):enrollment.validated_application('123')
 
     def values(self):
-        return {'application_id':'900000000000000006','guild_id':'900000000000000007',
-                'owner_id':'900000000000000008','channel_id':'900000000000000009'}
+        return {'application_id':'900000000000000007','guild_id':'900000000000000008',
+                'owner_id':'900000000000000009','channel_id':'900000000000000010'}
 
     def test_server_id_cannot_be_used_as_owner_id(self):
         values=self.values()
@@ -70,7 +70,7 @@ class EnrollmentTests(unittest.TestCase):
 
     def test_channel_from_another_server_rejected(self):
         values=self.values()
-        with contextlib.redirect_stdout(io.StringIO()),patch('builtins.input',return_value=''),patch.object(enrollment,'discord_api',side_effect=[{'name':'test'},{'guild_id':'900000000000000010','type':0}]):
+        with contextlib.redirect_stdout(io.StringIO()),patch('builtins.input',return_value=''),patch.object(enrollment,'discord_api',side_effect=[{'name':'test'},{'guild_id':'900000000000000011','type':0}]):
             with self.assertRaisesRegex(enrollment.EnrollmentError,'different server'):enrollment.verify_discord_access(values,'fake')
 
 if __name__=='__main__':unittest.main()

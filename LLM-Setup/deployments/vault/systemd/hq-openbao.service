@@ -1,0 +1,27 @@
+[Unit]
+Description=HQ encrypted homelab credential vault
+After=network-online.target
+Wants=network-online.target
+[Service]
+User=hq-vault
+Group=hq-vault
+ExecStart=/usr/local/bin/bao server -config=/etc/openbao/openbao.hcl
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ReadWritePaths=/var/lib/openbao /var/log/openbao
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+CapabilityBoundingSet=
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+LockPersonality=true
+UMask=0077
+MemorySwapMax=0
+LimitCORE=0
+[Install]
+WantedBy=multi-user.target

@@ -19,5 +19,8 @@
     "hq": "c4919d5e-f468-51cc-988d-6424a7b61c72",
     "nvidia-gpu": "59a4ad77-7bac-5512-9e4b-1e07e9bc88a2",
     "amd-gpu": "aad4c114-18d9-5584-a8ba-8124aee4c6ca"
+  },
+  "execution_agents": {
+    "benjamin": "47c154c3-adfb-57c7-9be7-5e95b42a982c"
   }
 }

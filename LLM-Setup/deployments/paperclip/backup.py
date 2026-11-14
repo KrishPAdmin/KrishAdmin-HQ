@@ -16,6 +16,8 @@ def archive_filter(member):
         return None
     if member.name == "worker-secrets/codex-worker-bridge-token":
         return None
+    if member.name == "operations/keys/amd-gpu-password":
+        return None
     if "__pycache__" in parts:
         return None
     return member
@@ -32,7 +34,7 @@ with tarfile.open(destination / "instance.tar.gz", "w:gz") as archive:
                  "instance.json", "data", "validation", "seed.py", "admin_api.py", "backup.py",
                  "test_runtime.py", "test_department.py", "test_operations.py", "test_review_details.py", "test_control_center.py", "control-center", "codex-isolated", "enrich_pending_reviews.py", "setup_department.py", "setup_operations.py", "operations", "README.md", "pi-worker", "worker-secrets", "worker-workspaces"):
         if (root / name).exists():
-            archive.add(root / name, arcname=name, filter=archive_filter)
+            archive.add((root / name).resolve(), arcname=name, filter=archive_filter)
     for unit in ('paperclip-observations.service', 'paperclip-observations.timer'):
         path = Path.home() / '.config/systemd/user' / unit
         if path.exists(): archive.add(path, arcname='systemd-user/' + unit)
@@ -50,11 +52,11 @@ with tarfile.open(destination / "instance.tar.gz", "w:gz") as archive:
             archive.addfile(info, io.BytesIO(data))
     # Retain the exact external client secrets and TLS material needed on a replacement HQ.
     for name, path in {
-        "amd-gpu-api.txt": root.parent.parent / "secrets/amd-gpu-api.txt",
-        "nvidia-gpu-api.txt": root.parent.parent / "secrets/nvidia-gpu-api.txt",
         "nvidia-gpu-server.crt": root.parent.parent / "secrets/nvidia-gpu-server.crt",
         "hq-server.crt": root.parent / "n8n/tls/server.crt",
         "hq-server.key": root.parent / "n8n/tls/server.key",
     }.items():
         archive.add(path, arcname="external-secrets/" + name)
+# The vault snapshot contains encrypted credential data; recovery keys stay separate.
+subprocess.run(['sudo','-n','/usr/local/sbin/hq-vault','snapshot','--output',str(destination/'homelab-vault.snap')],check=True)
 print(destination)

@@ -1,0 +1,13 @@
+[Unit]
+Description=Prepare volatile GPU credential mounts before Docker starts
+Before=docker.service
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=/usr/bin/python3 /usr/local/lib/hq-vault/runtime_secrets.py --prepare
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/run
+[Install]
+WantedBy=multi-user.target

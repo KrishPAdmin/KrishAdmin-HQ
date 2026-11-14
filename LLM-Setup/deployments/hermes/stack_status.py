@@ -2,7 +2,7 @@
 import datetime,json,os,shutil,subprocess,sys,tempfile
 from pathlib import Path
 from hq_client import ROOT,call
-from team import TEAM
+from team import TEAM, EXECUTION_TEAM
 
 def refresh():
     now=datetime.datetime.now(datetime.timezone.utc).isoformat()
@@ -13,7 +13,7 @@ def refresh():
     sys.path.insert(0,str(ROOT.parent/'paperclip'))
     from admin_api import Admin
     admin=Admin().login();agents=admin.api('GET','/api/companies/'+cid+'/agents')
-    team_names={r['name']:key for key,r in TEAM.items()}
+    team_names={r['name']:r.get('context_target',key) for key,r in {**TEAM,**EXECUTION_TEAM}.items()}
     legacy={'Local Coordinator':'paperclip-coordinator','NVIDIA-GPU Assistant':'paperclip-nvidia-gpu','AMD-GPU Analyst':'paperclip-amd-gpu','Pi Workspace Engineer':'pi'}
     inventory=[]
     for agent in agents:
@@ -39,9 +39,17 @@ def refresh():
     except (OSError,ValueError):delivery_errors=None
     accounts=ROOT/'state/google/accounts'
     connected=sum(1 for p in accounts.glob('*.json') if p.is_file()) if accounts.exists() else 0
+    vault_status='unavailable'
+    try:
+        import ssl,urllib.request
+        with urllib.request.urlopen('https://127.0.0.1:8200/v1/sys/seal-status',context=ssl.create_default_context(cafile='/etc/ssl/certs/hq-vault-local.crt'),timeout=3) as response:
+            seal=json.load(response)
+        vault_status='unlocked' if seal.get('initialized') and not seal.get('sealed') else 'locked'
+    except (OSError,ValueError):pass
     integrations=[
+        {'name':'HQ credential vault','status':vault_status,'detail':'Encrypted OpenBao storage outside Codex; four migrated homelab credentials, protected local automatic unlock, fixed connector access and daily encrypted snapshots. HQ administrator remains trusted.'},
         {'name':'Discord gateway','status':gateway,'detail':'Enrolled channel and per-user private DMs. Paperclip report footers; long replies become Markdown attachments.'},
-        {'name':'Suits / Paperclip','status':'configured','detail':str(len(TEAM))+' named specialists; '+str(len(agents))+' total Paperclip agents. Task status is separate from GPU execution.'},
+        {'name':'Suits / Paperclip','status':'configured','detail':str(len(TEAM)+len(EXECUTION_TEAM))+' Suits team members; '+str(len(agents))+' total Paperclip agents. Task status is separate from GPU execution.'},
         {'name':'Task notifications','status':'ready' if delivery_errors==0 else 'attention' if delivery_errors else 'unknown','detail':'Delivery errors: '+str(delivery_errors)+'; durable updates and uncertain-send reconciliation.'},
         {'name':'Local MCP research','status':'configured','detail':'Search, read public pages, weather. HQ fetches sources; AMD-GPU synthesizes evidence. Public browser rendering available.'},
         {'name':'Local MCP workbench','status':'configured','detail':'Fixed system checks, bounded file review, automation drafts; generated code is not automatically executed.'},

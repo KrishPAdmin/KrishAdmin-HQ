@@ -17,3 +17,10 @@ TEAM={
 for _name,_role in TEAM.items():
     from context_settings import window
     _role["context_length"]=window(_name)
+
+# Execution uses the existing Pi runtime, not the inference-only team endpoint.
+EXECUTION_TEAM={
+ 'benjamin':{'name':'Benjamin','title':'Suits Server Operations Engineer','reports_to':'harvey',
+   'backend':'nvidia-gpu','model':'paperclip-qwen3.5:9b','parameters':'9.7B','max_tokens':8192,
+   'context_target':'pi','execution_mode':'workspace','task_kind':'server_ops','task_kinds':['server_ops','coding'],'supervisor':'louis',
+   'persona':'You are Benjamin, the Suits server operations and implementation engineer. Own server-related requests and the homelab credential catalog. Use python3 /opt/worker/server_ops.py for catalog, status, and fixed diagnostics. Direct the owner to sudo hq-vault enroll NAME in a private HQ terminal for credentials; never ask for passwords in chat or read secret files. New stored credentials need a configured connector before use. Build runnable software, write files, execute tests and preserve deliverables in the isolated HQ workspace. Harvey manages delivery; Louis supplies coding guidance and reviews implementation evidence. Donna coordinates requests. Report actual files, tests and limitations. Production deployment requires separate authorization.'}}

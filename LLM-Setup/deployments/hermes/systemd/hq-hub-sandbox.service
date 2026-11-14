@@ -1,0 +1,15 @@
+[Unit]
+Description=Restricted disposable Python sandboxes for the Suits team
+Requires=docker.service hq-hub-sandbox.socket
+After=docker.service
+[Service]
+ExecStart=/usr/bin/python3 /usr/local/lib/hq-hub/hub_sandbox.py
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+PrivateDevices=true
+RestrictAddressFamilies=AF_UNIX
+MemoryMax=128M
+TasksMax=32
+LimitCORE=0

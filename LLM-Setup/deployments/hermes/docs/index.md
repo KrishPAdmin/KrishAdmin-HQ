@@ -49,3 +49,11 @@ Historical setup notes are preserved in the setup archive (local runtime/history
 
 - [Context windows and controls](contexts.md) — complete runtime table, CLI changes and rollback.
 - [Full stack and live GPU dashboard](dashboard.md) — current telemetry, inventory and readiness.
+
+Pi cluster and Uptime Kuma: see the Pi cluster management section in `operations`, and [complete homelab runbook](homelab.md). The owner can ask the bot for live status, Swarm service restarts, bounded app setups and DM status-change notifications.
+
+- [Agent credential vault](agent-secret-storage-plan.md) — deployed encrypted storage outside Codex, connector access, automatic unlocking, backups and recovery.
+
+- [Benjamin server operations and private credential enrollment](benjamin-server-operations.md)
+
+- [Central LLM Hub, per-agent files and sandboxes](llm-hub.md)

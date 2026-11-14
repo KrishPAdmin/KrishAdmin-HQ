@@ -10,6 +10,42 @@ POLICY={'owner_id':'900000000000000004','allowed_users':['900000000000000005'],
 ORIGIN={'platform':'discord','chat_id':POLICY['channel_id'],'user_id':POLICY['owner_id']}
 
 class NotificationTests(unittest.TestCase):
+    def test_benjamin_routes_through_louis_without_duplicate_submission(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);(root/'paperclip-api').write_text('test-token')
+            (root/'config.json').write_text(json.dumps({'company_id':'company','project_id':'project','team_agents':{'louis':'reviewer'}}))
+            body={'action':'submit','kind':'coding','agent':'benjamin','description':'Build and test a script','request_id':'test:benjamin-coding'}
+            issue={'id':'code-issue','identifier':'KRI-400','description':'[HQ task kind=coding]\nBuild and test a script\n\n[HQ Hermes request test:benjamin-coding]'}
+            with patch.object(broker,'STATE',root),patch.object(broker,'TOKENS',root),patch.object(broker,'Path',return_value=root/'config.json'),patch.object(broker,'request',return_value=issue) as api,patch.object(broker,'audit'):
+                broker.task(body);result=broker.task(body)
+                self.assertEqual(api.call_args.args[1]['assigneeAgentId'],'reviewer')
+                self.assertTrue(result['duplicate']);api.assert_called_once()
+                with self.assertRaisesRegex(ValueError,'kind=coding'):
+                    broker.task({**body,'kind':'plan'})
+
+    def test_benjamin_roster_is_execution_only(self):
+        role=broker.team_request({'action':'roster'})['agents']['benjamin']
+        self.assertEqual(role['execution_mode'],'workspace');self.assertEqual(role['supervisor'],'louis')
+        with self.assertRaisesRegex(ValueError,'hq_task'):
+            broker.team_request({'action':'delegate','agent':'benjamin','kind':'plan','question':'Build software'})
+
+    def test_owner_dm_stays_private_and_friend_dm_is_denied(self):
+        policy={**POLICY,'maintenance_dm':{'owner_id':POLICY['owner_id'],'channel_id':'900000000000000006'}}
+        origin={**ORIGIN,'chat_id':policy['maintenance_dm']['channel_id']}
+        self.assertEqual(updates.origin_checked(origin,policy)['channel_id'],origin['chat_id'])
+        for change in ({'user_id':'900000000000000005'},{'scope_id':POLICY['guild_id']},{'chat_id':'900000000000000007'}):
+            with self.assertRaises(PermissionError):updates.origin_checked(origin|change,policy)
+
+    def test_coding_request_routes_to_louis_and_keeps_explicit_kind(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);(root/'paperclip-api').write_text('test-token')
+            (root/'config.json').write_text(json.dumps({'company_id':'company','project_id':'project','team_agents':{'louis':'coder'}}))
+            body={'action':'submit','kind':'coding','description':'Build and test a script','request_id':'test:code-execution'}
+            issue={'id':'code-issue','identifier':'KRI-400','description':'[HQ task kind=coding]\nBuild and test a script\n\n[HQ Hermes request test:code-execution]'}
+            with patch.object(broker,'STATE',root),patch.object(broker,'TOKENS',root),patch.object(broker,'Path',return_value=root/'config.json'),patch.object(broker,'request',return_value=issue) as api,patch.object(broker,'audit'):
+                broker.task(body)
+                self.assertEqual(api.call_args.args[1]['assigneeAgentId'],'coder')
+                self.assertTrue(api.call_args.args[1]['description'].startswith('[HQ task kind=coding]'))
     def test_bridge_submission_retry_keeps_one_issue_and_watch(self):
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder);(root/'paperclip-api').write_text('test-token')

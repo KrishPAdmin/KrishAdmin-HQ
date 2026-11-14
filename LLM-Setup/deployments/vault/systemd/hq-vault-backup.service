@@ -1,0 +1,12 @@
+[Unit]
+Description=Encrypted homelab vault snapshot
+After=hq-vault-unlock.service
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/hq-vault-backup
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/var/backups/hq-vault
+UMask=0077

@@ -6,15 +6,16 @@
 |---|---|
 | Discord bot token | `access/discord-token` |
 | Separate broker identities | `access/` |
-| NVIDIA-GPU API token | `/home/operator/krishadmin-hq/secrets/nvidia-gpu-api.txt` |
-| AMD-GPU API token | `/home/operator/krishadmin-hq/secrets/amd-gpu-api.txt` |
+| NVIDIA-GPU API token | OpenBao `nvidia-gpu-api`; volatile runtime mount `/run/hq-vault-runtime/nvidia-gpu-api` |
+| AMD-GPU API token | OpenBao `amd-gpu-api`; volatile runtime mount `/run/hq-vault-runtime/amd-gpu-api` |
 | NVIDIA-GPU trusted public certificate | `/home/operator/krishadmin-hq/secrets/nvidia-gpu-server.crt` |
 | NVIDIA-GPU restricted observer private key | `../paperclip/operations/keys/observer` |
-| AMD-GPU SSH password | `../paperclip/operations/keys/amd-gpu-password` (0600) |
+| AMD-GPU SSH password | OpenBao `amd-gpu-ssh`, via the host-only credential connector |
+| Pi cluster / Uptime Kuma password | OpenBao `pi-cluster`; original Codex password file removed |
 | NVIDIA-GPU observation SSH key | `/home/operator/.ssh/krishadmin-hq-nvidia-gpu` |
 | Original AMD-GPU SSH key, previously rejected | `/home/operator/.ssh/krishadmin-hq-amd-gpu` |
 
-The AMD-GPU API token is not its Linux password. The AMD-GPU SSH password is now saved privately on HQ at the path above, as explicitly requested by the operator. SSH/sudo passwords entered during enrollment remain in the local authentication interaction, not in task prompts. Do not print key files, `.env`, authorization headers or expanded Compose configuration into support chats.
+The AMD-GPU API token is not its Linux password. The AMD-GPU SSH password is now stored in the encrypted HQ vault, as requested by the operator. SSH/sudo passwords entered during enrollment remain in the local authentication interaction, not in task prompts. Do not print key files, `.env`, authorization headers or expanded Compose configuration into support chats.
 
 ## AMD-GPU diagnostics authentication
 
@@ -33,3 +34,5 @@ Use `hq.py report` for a bounded report. It deliberately includes internal syste
 ## Shared Discord files
 
 The owner and explicitly allowed friend share access to this channel’s supported bot tools, cached uploads and drafts. This is not a per-user private document store. File extraction runs in a separate restricted container without model credentials; uploads are read-only there, limited to 5 MiB and parsed without executing code, macros or formulas. Extracted text and model evidence are separately bounded. User-supplied instructions inside documents are treated as untrusted content.
+
+See [the vault deployment and recovery guide](agent-secret-storage-plan.md) for unattended unlocking, credential enrollment, access boundaries and verified migration scope.

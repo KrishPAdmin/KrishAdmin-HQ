@@ -45,8 +45,8 @@ services:
       - ./worker-secrets/codex-bridge-token:/run/secrets/codex-bridge-token:ro
       - ./pi-worker/cluster_health.py:/opt/collectors/cluster_health.py:ro
       - ./operations/snapshots:/opt/hq-observations:ro
-      - ../../secrets/amd-gpu-api.txt:/run/secrets/amd-gpu-token:ro
-      - ../../secrets/nvidia-gpu-api.txt:/run/secrets/nvidia-gpu-token:ro
+      - /run/hq-vault-runtime/amd-gpu-api:/run/secrets/amd-gpu-token:ro
+      - /run/hq-vault-runtime/nvidia-gpu-api:/run/secrets/nvidia-gpu-token:ro
       - ../../secrets/nvidia-gpu-server.crt:/run/secrets/nvidia-gpu-ca.crt:ro
       - ./worker-secrets/pi-bridge-token:/run/secrets/pi-bridge-token:ro
     networks: [default, codex_private]
@@ -73,12 +73,20 @@ services:
     volumes:
       - ./agents:/opt/hq-agents:ro
       - ./pi-worker/pi_runtime.py:/opt/worker/pi_runtime.py:ro
+      - ./pi-worker/server_ops.py:/opt/worker/server_ops.py:ro
+      - ../hermes/access/benjamin-ops:/run/secrets/benjamin-ops:ro
+      - ./pi-worker/worker.py:/opt/worker/worker.py:ro
+      - ./pi-worker/models.json:/home/node/.pi/agent/models.json:ro
+      - ./pi-worker/inference-settings.ts:/opt/worker/inference-settings.ts:ro
       - ./worker-workspaces:/workspace
+      - /home/operator/KrishAdmin-LLM-Hub/agents/benjamin/inbox:/agent-inbox:ro
+      - /home/operator/KrishAdmin-LLM-Hub/agents/benjamin/deliverables:/agent-deliverables
+      - /home/operator/KrishAdmin-LLM-Hub/agents/benjamin/skills:/agent-skills:ro
       - ./data/hq-locks:/paperclip/hq-locks
       - ./data/hq-control:/paperclip/hq-control:ro
       - ./worker-secrets/pi-bridge-token:/run/secrets/pi-bridge-token:ro
-      - ../../secrets/amd-gpu-api.txt:/run/secrets/amd-gpu-token:ro
-      - ../../secrets/nvidia-gpu-api.txt:/run/secrets/nvidia-gpu-token:ro
+      - /run/hq-vault-runtime/amd-gpu-api:/run/secrets/amd-gpu-token:ro
+      - /run/hq-vault-runtime/nvidia-gpu-api:/run/secrets/nvidia-gpu-token:ro
       - ../../secrets/nvidia-gpu-server.crt:/run/secrets/nvidia-gpu-ca.crt:ro
     healthcheck:
       test: [CMD, python3, -c, "import urllib.request; urllib.request.urlopen('http://localhost:8080/health', timeout=3)"]

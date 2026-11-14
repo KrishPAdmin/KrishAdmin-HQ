@@ -301,6 +301,10 @@
         "./profiles/jessica:/profile",
         "./access/jessica:/run/access/identity:ro",
         "./access/worker:/run/access/worker:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/jessica/inbox:/agent/inbox:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/jessica/workspace:/agent/workspace",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/jessica/deliverables:/agent/deliverables",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/jessica/skills:/agent/skills:ro",
         "./context_settings.py:/app/context_settings.py:ro",
         "./config:/config:ro"
       ]
@@ -361,6 +365,10 @@
         "./profiles/harvey:/profile",
         "./access/harvey:/run/access/identity:ro",
         "./access/worker:/run/access/worker:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/harvey/inbox:/agent/inbox:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/harvey/workspace:/agent/workspace",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/harvey/deliverables:/agent/deliverables",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/harvey/skills:/agent/skills:ro",
         "./context_settings.py:/app/context_settings.py:ro",
         "./config:/config:ro"
       ]
@@ -421,6 +429,10 @@
         "./profiles/mike:/profile",
         "./access/mike:/run/access/identity:ro",
         "./access/worker:/run/access/worker:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/mike/inbox:/agent/inbox:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/mike/workspace:/agent/workspace",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/mike/deliverables:/agent/deliverables",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/mike/skills:/agent/skills:ro",
         "./context_settings.py:/app/context_settings.py:ro",
         "./config:/config:ro"
       ]
@@ -481,6 +493,10 @@
         "./profiles/louis:/profile",
         "./access/louis:/run/access/identity:ro",
         "./access/worker:/run/access/worker:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/louis/inbox:/agent/inbox:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/louis/workspace:/agent/workspace",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/louis/deliverables:/agent/deliverables",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/louis/skills:/agent/skills:ro",
         "./context_settings.py:/app/context_settings.py:ro",
         "./config:/config:ro"
       ]
@@ -541,6 +557,10 @@
         "./profiles/rachel:/profile",
         "./access/rachel:/run/access/identity:ro",
         "./access/worker:/run/access/worker:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/rachel/inbox:/agent/inbox:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/rachel/workspace:/agent/workspace",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/rachel/deliverables:/agent/deliverables",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/rachel/skills:/agent/skills:ro",
         "./context_settings.py:/app/context_settings.py:ro",
         "./config:/config:ro"
       ]
@@ -601,6 +621,10 @@
         "./profiles/donna:/profile",
         "./access/donna:/run/access/identity:ro",
         "./access/worker:/run/access/worker:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/donna/inbox:/agent/inbox:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/donna/workspace:/agent/workspace",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/donna/deliverables:/agent/deliverables",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/donna/skills:/agent/skills:ro",
         "./context_settings.py:/app/context_settings.py:ro",
         "./config:/config:ro"
       ]
@@ -710,6 +734,8 @@
         "127.0.0.1:18880:8080"
       ],
       "volumes": [
+        "./hub_store.py:/app/hub_store.py:ro",
+        "./file_service.py:/app/file_service.py:ro",
         "./broker.py:/app/broker.py:ro",
         "./gpu_telemetry.py:/app/gpu_telemetry.py:ro",
         "./task_updates.py:/app/task_updates.py:ro",
@@ -718,6 +744,7 @@
         "./health_rules.py:/app/health_rules.py:ro",
         "./capabilities.py:/app/capabilities.py:ro",
         "./team.py:/app/team.py:ro",
+        "/var/lib/hq-vault-catalog:/service-catalog:ro",
         "./docs:/knowledge:ro",
         "./profiles/concierge/cache/documents/drafts:/drafts",
         "./access:/run/access:ro",
@@ -727,12 +754,48 @@
         "./run/diagnostics:/diagnostic-socket:ro",
         "/var/lib/hq-observations:/backup-observations:ro",
         "../paperclip/data/hq-locks:/locks",
-        "../../secrets/nvidia-gpu-api.txt:/run/secrets/nvidia-gpu-token:ro",
-        "../../secrets/amd-gpu-api.txt:/run/secrets/amd-gpu-token:ro",
+        "/run/hq-vault-runtime/nvidia-gpu-api:/run/secrets/nvidia-gpu-token:ro",
+        "/run/hq-vault-runtime/amd-gpu-api:/run/secrets/amd-gpu-token:ro",
         "../../secrets/nvidia-gpu-server.crt:/run/secrets/nvidia-gpu-ca.crt:ro",
-        "./context_settings.py:/app/context_settings.py:ro"
+        "./context_settings.py:/app/context_settings.py:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/jessica/inbox:/hub/agents/jessica/inbox:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/jessica/workspace:/hub/agents/jessica/workspace",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/jessica/deliverables:/hub/agents/jessica/deliverables",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/jessica/archive:/hub/agents/jessica/archive:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/jessica/skills:/hub/agents/jessica/skills:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/harvey/inbox:/hub/agents/harvey/inbox:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/harvey/workspace:/hub/agents/harvey/workspace",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/harvey/deliverables:/hub/agents/harvey/deliverables",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/harvey/archive:/hub/agents/harvey/archive:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/harvey/skills:/hub/agents/harvey/skills:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/louis/inbox:/hub/agents/louis/inbox:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/louis/workspace:/hub/agents/louis/workspace",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/louis/deliverables:/hub/agents/louis/deliverables",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/louis/archive:/hub/agents/louis/archive:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/louis/skills:/hub/agents/louis/skills:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/mike/inbox:/hub/agents/mike/inbox:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/mike/workspace:/hub/agents/mike/workspace",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/mike/deliverables:/hub/agents/mike/deliverables",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/mike/archive:/hub/agents/mike/archive:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/mike/skills:/hub/agents/mike/skills:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/rachel/inbox:/hub/agents/rachel/inbox:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/rachel/workspace:/hub/agents/rachel/workspace",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/rachel/deliverables:/hub/agents/rachel/deliverables",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/rachel/archive:/hub/agents/rachel/archive:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/rachel/skills:/hub/agents/rachel/skills:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/donna/inbox:/hub/agents/donna/inbox:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/donna/workspace:/hub/agents/donna/workspace",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/donna/deliverables:/hub/agents/donna/deliverables",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/donna/archive:/hub/agents/donna/archive:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/donna/skills:/hub/agents/donna/skills:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/benjamin/inbox:/hub/agents/benjamin/inbox:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/benjamin/workspace:/hub/agents/benjamin/workspace",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/benjamin/deliverables:/hub/agents/benjamin/deliverables",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/benjamin/archive:/hub/agents/benjamin/archive:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/agents/benjamin/skills:/hub/agents/benjamin/skills:ro"
       ],
       "environment": {
+        "HQ_LLM_HUB": "/hub",
         "HQ_RENDER_URL": "http://renderer:8080/render",
         "HQ_CONTEXT_CONFIG": "/config/context-windows.json"
       }
@@ -937,7 +1000,9 @@
         "./access/concierge:/run/access/identity:ro",
         "./access/discord-token:/run/access/discord-token:ro",
         "./run/github:/github-socket:ro",
-        "./access/github-origin:/run/access/github-origin:ro"
+        "./access/github-origin:/run/access/github-origin:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/skills/hermes:/profile/skills:ro",
+        "/home/operator/KrishAdmin-LLM-Hub/shared/uploads:/profile/cache/documents"
       ]
     }
   },

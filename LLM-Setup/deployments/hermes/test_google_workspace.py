@@ -7,7 +7,7 @@ from test_github import GitHubTests
 class WorkspaceOriginTests(GitHubTests):
     def envelope(self):
         import hashlib,hmac
-        e=self.signed();e['origin']['chat_id']='900000000000000011';e['request']={'_service':'workspace','action':'status'}
+        e=self.signed();e['origin']['chat_id']='900000000000000012';e['request']={'_service':'workspace','action':'status'}
         e['signature']=hmac.new(b'test-signing-key',__import__('github_service').canonical({k:v for k,v in e.items() if k!='signature'}),hashlib.sha256).hexdigest()
         return e
     def test_workspace_requires_verified_one_to_one_dm(self):

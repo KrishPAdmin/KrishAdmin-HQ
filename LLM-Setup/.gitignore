@@ -29,4 +29,11 @@
 **/*.key
 **/*.pem
 **/dist/
+**/downloads/
+**/source-before/
+**/worker-workspaces/
+**/codex-worker-auth/
+**/codex-worker-data/
+**/*.snap
+**/services.json
 deployments/hermes/config/publication-private-terms.json

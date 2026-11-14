@@ -18,7 +18,7 @@ Verified against the installed Ollama model metadata on 2026-11-09. These are co
 | Paperclip Local Coordinator | NVIDIA-GPU | Qwen3.5 9B | 8,192 | 262,144 | paperclip-coordinator |
 | Paperclip NVIDIA-GPU Assistant | NVIDIA-GPU | Qwen3.5 9B | 8,192 | 262,144 | paperclip-nvidia-gpu |
 | Paperclip AMD-GPU Analyst | AMD-GPU | Qwen2.5 72B q8_0 | 8,192 | 32,768 | paperclip-amd-gpu |
-| Pi Workspace Engineer | NVIDIA-GPU | paperclip-qwen3.5:9b | 16,384 | 262,144 | pi |
+| Benjamin — Suits Implementation Engineer | NVIDIA-GPU | paperclip-qwen3.5:9b | 16,384 | 262,144 | pi |
 
 Hermes Lab Health, Backup Watch and Incident Triage in Paperclip use the AMD-GPU analyst by default; their optional NVIDIA-GPU execution uses the corresponding health/backup/triage worker. Hermes HQ Dispatcher is intake-only. System Health Observer, System Diagnostics, Network Discovery, HQ Host Checker, NVIDIA-GPU GPU Checker and AMD-GPU GPU Checker use deterministic probes and have no model window. Codex Escalation Engineer uses its selected external provider; local context controls do not change that provider. The dashboard lists every registered agent, including those non-model runtimes and the external agent's current Paperclip state.
 

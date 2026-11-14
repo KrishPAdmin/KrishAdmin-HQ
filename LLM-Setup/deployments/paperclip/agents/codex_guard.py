@@ -17,6 +17,10 @@ def packet_for(issue):
          'Do not attempt to retrieve other tasks, accounts or local systems. Give concrete findings, actual tests, limitations and proposed changes for operator review.\n\n'
          'Task: '+redact(issue['title'])+'\n\nRequest:\n'+redact(issue.get('description') or 'No description supplied.')[:10000])
 
+def block(a,iid,message):
+ a.api('PATCH',f'/issues/{iid}',{'status':'blocked','comment':message,
+  'unblockDescriptor':{'owner':{'agentId':a.agent_id},'action':'Reconcile the existing dispatch receipt and restore the account connection before an explicitly requested retry.'}})
+
 def main():
  if '--version' in sys.argv:print('codex-cli (isolated Paperclip approval gateway)');return 0
  # The native adapter's prompt is intentionally not forwarded; build a minimal reviewable packet instead.
@@ -28,14 +32,14 @@ def main():
  if issue.get('status') in ('todo','in_progress','blocked'):
   a.api('POST',f'/issues/{iid}/checkout',{'agentId':a.agent_id,'expectedStatuses':['todo','in_progress','blocked']})
  if policy(a.company_id).get('externalAI','disabled')!='ask':
-  a.api('PATCH',f'/issues/{iid}',{'status':'blocked','comment':'External AI is disabled in Control Center. No task data was sent to Codex.'});print('External AI disabled; no dispatch.');return 0
+  block(a,iid,'External AI is disabled in Control Center. No task data was sent to Codex.');print('External AI disabled; no dispatch.');return 0
  prompt=packet_for(issue)
  digest=hashlib.sha256(prompt.encode()).hexdigest();key='external-packet-'+digest
  interactions=a.api('GET',f'/issues/{iid}/interactions')
  request=next((x for x in interactions if x.get('idempotencyKey')==key),None)
  if not request or request['status'] not in ('accepted','pending'):
   if request:
-   a.api('PATCH',f'/issues/{iid}',{'status':'blocked','comment':'This external packet was declined or superseded. Edit the task or change the sharing policy to propose a new packet.'});return 0
+   block(a,iid,'This external packet was declined or superseded. Edit the task or change the sharing policy to propose a new packet.');return 0
   fence='`'*max(3, max([len(x) for x in re.findall(r'`+',prompt)]+[0])+1)
   request=a.api('POST',f'/issues/{iid}/interactions',{'kind':'request_confirmation','title':'Approve exact Codex packet: '+issue['title'][:170],
    'summary':'Only the task title and description below are proposed for OpenAI-hosted Codex. No task history, attachments, private system observations or credentials are automatically included.',
@@ -51,7 +55,7 @@ def main():
  try:
   fd=os.open(receipt,os.O_CREAT|os.O_EXCL|os.O_WRONLY,0o600)
  except FileExistsError:
-  a.api('PATCH',f'/issues/{iid}',{'status':'blocked','comment':'This approved packet was already dispatched. Review its outcome before requesting another external call; no automatic replay occurred.'});return 0
+  block(a,iid,'This approved packet was already dispatched. Review its outcome before requesting another external call; no automatic replay occurred.');return 0
  with os.fdopen(fd,'w') as f:json.dump({'issueId':iid,'sha256':digest,'status':'dispatching','approvedInteractionId':request['id'],'at':time.time()},f)
  req=urllib.request.Request('http://codex-worker:8081/run',data=json.dumps({'prompt':prompt,'sha256':digest}).encode(),headers={'Content-Type':'application/json','Authorization':'Bearer '+Path('/run/secrets/codex-bridge-token').read_text().strip()})
  def cancelled(signum,frame):
@@ -73,7 +77,7 @@ def main():
   if event.get('type')=='turn.completed':usage=event.get('usage') or {}
  if not result.get('ok') or not text:
   receipt.write_text(json.dumps({'issueId':iid,'sha256':digest,'status':'failed','error':result.get('error','No final response')[:500]},indent=2))
-  a.api('PATCH',f'/issues/{iid}',{'status':'blocked','comment':'The approved Codex call did not produce a verified final result. Inspect the gateway receipt; no automatic retry was made.'});print('Approved call failed; no private worker logs published.');return 0
+  block(a,iid,'The approved Codex call did not produce a verified final result. Inspect the gateway receipt; no automatic retry was made.');print('Approved call failed; no private worker logs published.');return 0
  receipt.write_text(json.dumps({'issueId':iid,'sha256':digest,'status':'completed','usage':usage},indent=2))
  links=[]
  if result.get('files'):
