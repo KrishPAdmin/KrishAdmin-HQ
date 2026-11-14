@@ -15,7 +15,7 @@ def main():
         headers={'Content-Type': 'application/json',
                  'Authorization': 'Bearer ' + Path('/run/secrets/pi-bridge-token').read_text().strip()})
     try:
-        with urllib.request.urlopen(req, timeout=440) as response:
+        with urllib.request.urlopen(req, timeout=740) as response:
             result = json.load(response)
         for summary in result.get('summaries', []):
             print(json.dumps(summary), flush=True)

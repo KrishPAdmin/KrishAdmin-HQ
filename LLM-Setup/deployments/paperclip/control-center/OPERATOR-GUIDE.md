@@ -4,7 +4,7 @@ Open https://paperclip.example.invalid/KRI/control-center from the sidebar.
 
 ## Suits team
 
-Control Center opens on the Suits team tab. It shows the six named agents, their actual Paperclip activity state, model and compute assignments, responsibilities, reporting lines, and links to their native task/profile pages. Jessica is the top-level CEO/strategic lead; Harvey and Donna report to her, and Mike, Louis and Rachel report to Harvey. The existing Local Coordinator reports to Donna and keeps its original task/routine assignments.
+Control Center opens on the Suits team tab. It shows the seven named team members, their actual Paperclip activity state, model and compute assignments, responsibilities, reporting lines, and links to their native task/profile pages. Jessica is the top-level CEO/strategic lead; Harvey and Donna report to her, and Mike, Louis, Rachel and Benjamin report to Harvey. The existing Local Coordinator reports to Donna and keeps its original task/routine assignments.
 
 The same fixed Hermes workers execute these Paperclip tasks and Discord delegations. Assign work to a named agent using Paperclip’s normal task controls. The named task adapter uses the task title and description; include the evidence to analyze there. Paperclip attachments are not automatically read. Discord additionally provides the implemented upload reader, syntax checks, exact arithmetic and draft files.
 
@@ -69,3 +69,7 @@ Overview now includes all registered agents, runtime services, context windows, 
 Context windows are managed on HQ with `python3 ../hermes/contextctl.py show`, `set TARGET TOKENS`, `set TARGET TOKENS --apply`, `reset TARGET --apply`, and `rollback SNAPSHOT_ID --apply`. The source runbooks are `../hermes/docs/contexts.md` and `../hermes/docs/dashboard.md`. Dashboard context controls are instructional/read-only by operator preference. No personal Google contents or credentials are shown.
 
 The inventory snapshot is company-scoped and refreshed by hq-hermes-stack.timer independently of the host-observation timer. Live GPU API access additionally requires an enrolled lab operator. This update uses the existing plugin capability set; no new native capability grant is requested.
+
+## Benjamin implementation integration (2026-11-13)
+
+Benjamin reuses the former Pi Workspace Engineer agent ID and execution adapter. He appears on the Suits team under Harvey. `hq_task kind=coding agent=benjamin` creates a Louis-supervised task; its existing execution child is assigned to Benjamin. The internal `pi` runtime, model alias and context target remain stable for compatibility. `setup_team_paperclip.py --execution-only` synchronizes his metadata and team manifest without resetting the other agents.

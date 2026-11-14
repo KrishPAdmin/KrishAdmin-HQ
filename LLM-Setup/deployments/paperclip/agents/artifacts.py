@@ -4,12 +4,12 @@ import json, mimetypes, urllib.request, uuid
 def attachments(self, workspace):
     links = []
     secrets = self.private_values()
-    for path in sorted(workspace.rglob('*')):
+    for path in sorted(workspace.rglob('*'),key=lambda p:(p.name!='deliverables.zip',p.name!='test-results.txt',str(p))):
         self.require_active_run()
         relative = path.relative_to(workspace)
         if len(links) >= 5:
             break
-        if path.is_symlink() or not path.is_file() or any(p.startswith('.') for p in relative.parts):
+        if path.is_symlink() or not path.is_file() or any(p.startswith('.') or p in ('__pycache__','node_modules') for p in relative.parts):
             continue
         if not path.resolve().is_relative_to(workspace.resolve()) or not 0 < path.stat().st_size <= 1048576:
             continue

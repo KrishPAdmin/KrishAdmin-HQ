@@ -1,0 +1,23 @@
+[Unit]
+Description=Unlock HQ vault with systemd-protected local recovery credential
+After=hq-openbao.service hq-vault-runtime.service
+Requires=hq-openbao.service hq-vault-runtime.service
+Before=docker.service
+PartOf=hq-openbao.service
+[Service]
+Type=oneshot
+RemainAfterExit=true
+LoadCredentialEncrypted=unseal:/etc/credstore.encrypted/hq-vault-unseal
+ExecStart=/usr/local/sbin/hq-vault unlock --recovery-file %d/unseal
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ReadWritePaths=/run/hq-vault-runtime
+MemorySwapMax=0
+LimitCORE=0
+[Install]
+WantedBy=multi-user.target

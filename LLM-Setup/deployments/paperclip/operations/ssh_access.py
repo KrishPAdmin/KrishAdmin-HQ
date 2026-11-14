@@ -11,4 +11,6 @@ def amd_gpu(command,timeout=45,input=None):
 
 if __name__=='__main__':
     if os.environ.get('HQ_SSH_ASKPASS')!='amd-gpu' or len(sys.argv)!=2 or 'password' not in sys.argv[1].lower():raise SystemExit(1)
-    sys.stdout.write((ROOT/'keys/amd-gpu-password').read_text().rstrip('\n')+'\n')
+    sys.path.insert(0,'/usr/local/lib')
+    from hq_vault_client import credential
+    sys.stdout.write(credential('amd-gpu-ssh')+'\n')

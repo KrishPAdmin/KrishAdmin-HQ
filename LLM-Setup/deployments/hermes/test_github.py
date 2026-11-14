@@ -42,7 +42,7 @@ class GitHubTests(unittest.TestCase):
             with self.assertRaises(PermissionError):service.authenticate(e,self.db)
             network.assert_not_called()
     def dm_envelope(self,user=None):
-        e=self.signed(user);e['origin']['chat_id']='900000000000000011'
+        e=self.signed(user);e['origin']['chat_id']='900000000000000012'
         e['signature']=hmac.new(b'test-signing-key',service.canonical({k:v for k,v in e.items() if k!='signature'}),hashlib.sha256).hexdigest()
         return e
     def test_owner_dm_verified_without_mention_and_replay_denied(self):

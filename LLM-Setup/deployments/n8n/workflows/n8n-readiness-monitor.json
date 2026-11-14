@@ -6,7 +6,7 @@
   "isArchived": false,
   "nodes": [
     {
-      "id": "2882381d-1206-55b7-953b-6a6e02e6f250",
+      "id": "32f15976-7528-57c2-bd00-b033592bd330",
       "name": "Run manually",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
@@ -17,7 +17,7 @@
       "parameters": {}
     },
     {
-      "id": "32f15976-7528-57c2-bd00-b033592bd330",
+      "id": "302974de-5a21-5e58-a17a-dfa717daac53",
       "name": "Every minute",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -37,7 +37,7 @@
       }
     },
     {
-      "id": "302974de-5a21-5e58-a17a-dfa717daac53",
+      "id": "33e03184-d530-5e72-8477-5239c4902772",
       "name": "Check n8n readiness",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -61,7 +61,7 @@
       "onError": "continueRegularOutput"
     },
     {
-      "id": "33e03184-d530-5e72-8477-5239c4902772",
+      "id": "6ebd5736-1f8d-555e-8d27-18e18a0f2d13",
       "name": "Health report",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -108,7 +108,7 @@
       }
     },
     {
-      "id": "6ebd5736-1f8d-555e-8d27-18e18a0f2d13",
+      "id": "dc2f1634-50db-5438-8c1f-e5dc797561ca",
       "name": "Healthy?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -142,7 +142,7 @@
       }
     },
     {
-      "id": "dc2f1634-50db-5438-8c1f-e5dc797561ca",
+      "id": "0ebad025-08fa-5e0b-98d7-dda8e1d5ec75",
       "name": "Record failed health check",
       "type": "n8n-nodes-base.stopAndError",
       "typeVersion": 1,
@@ -234,7 +234,7 @@
   "meta": null,
   "nodeGroups": [],
   "pinData": {},
-  "versionId": "adb9808b-ae5b-5bb4-9775-fb3a7997d6d0",
+  "versionId": "c2e6ade9-5fe7-5fc4-a427-6095bea9a464",
   "versionCounter": 1,
   "triggerCount": 1,
   "sourceWorkflowId": null,

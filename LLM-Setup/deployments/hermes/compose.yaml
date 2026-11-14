@@ -727,10 +727,11 @@
         "./run/diagnostics:/diagnostic-socket:ro",
         "/var/lib/hq-observations:/backup-observations:ro",
         "../paperclip/data/hq-locks:/locks",
-        "../../secrets/nvidia-gpu-api.txt:/run/secrets/nvidia-gpu-token:ro",
-        "../../secrets/amd-gpu-api.txt:/run/secrets/amd-gpu-token:ro",
+        "/run/hq-vault-runtime/nvidia-gpu-api:/run/secrets/nvidia-gpu-token:ro",
+        "/run/hq-vault-runtime/amd-gpu-api:/run/secrets/amd-gpu-token:ro",
         "../../secrets/nvidia-gpu-server.crt:/run/secrets/nvidia-gpu-ca.crt:ro",
-        "./context_settings.py:/app/context_settings.py:ro"
+        "./context_settings.py:/app/context_settings.py:ro",
+        "/var/lib/hq-vault-catalog:/service-catalog:ro"
       ],
       "environment": {
         "HQ_RENDER_URL": "http://renderer:8080/render",

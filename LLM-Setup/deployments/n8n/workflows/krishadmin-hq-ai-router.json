@@ -4,7 +4,7 @@
   "active": false,
   "nodes": [
     {
-      "id": "bfdda238-fa08-52a6-b616-c5ea4a389efd",
+      "id": "3df5d0d1-bcd9-5275-a424-9124724d3107",
       "name": "Run manually",
       "type": "n8n-nodes-base.manualTrigger",
       "typeVersion": 1,
@@ -15,7 +15,7 @@
       ]
     },
     {
-      "id": "3df5d0d1-bcd9-5275-a424-9124724d3107",
+      "id": "6bc25aa9-bc35-546a-89fa-9503d04ca20c",
       "name": "Example request",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -23,13 +23,13 @@
         "assignments": {
           "assignments": [
             {
-              "id": "6bc25aa9-bc35-546a-89fa-9503d04ca20c",
+              "id": "f8938374-ae80-5c84-8186-885d60c20b9c",
               "name": "tier",
               "value": "reasoning",
               "type": "string"
             },
             {
-              "id": "f8938374-ae80-5c84-8186-885d60c20b9c",
+              "id": "be35ce60-8e89-55f0-9f3a-d5551491b967",
               "name": "prompt",
               "value": "In three sentences, explain what evidence I should collect before restarting a failed homelab service.",
               "type": "string"
@@ -44,7 +44,7 @@
       ]
     },
     {
-      "id": "be35ce60-8e89-55f0-9f3a-d5551491b967",
+      "id": "77a58515-650a-5108-b5bd-b4a5764a5b84",
       "name": "Called by another workflow",
       "type": "n8n-nodes-base.executeWorkflowTrigger",
       "typeVersion": 1.1,
@@ -57,7 +57,7 @@
       ]
     },
     {
-      "id": "77a58515-650a-5108-b5bd-b4a5764a5b84",
+      "id": "885a3e2d-5815-596d-b24a-7c6fa71325cf",
       "name": "Validate request",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -71,7 +71,7 @@
           },
           "conditions": [
             {
-              "id": "885a3e2d-5815-596d-b24a-7c6fa71325cf",
+              "id": "2aba2104-b019-5550-a898-361bc1a60ca8",
               "leftValue": "={{ typeof $json.prompt === 'string' && $json.prompt.trim().length > 0 && $json.prompt.length <= 12000 && ['fast','reasoning'].includes($json.tier) }}",
               "rightValue": true,
               "operator": {
@@ -91,7 +91,7 @@
       ]
     },
     {
-      "id": "2aba2104-b019-5550-a898-361bc1a60ca8",
+      "id": "e918689f-e2df-58a9-bcbf-3d4cb1b98084",
       "name": "Invalid request",
       "type": "n8n-nodes-base.stopAndError",
       "typeVersion": 1,
@@ -104,7 +104,7 @@
       ]
     },
     {
-      "id": "e918689f-e2df-58a9-bcbf-3d4cb1b98084",
+      "id": "60431fc3-8e67-5077-99cc-60d9628a0df3",
       "name": "Use NVIDIA-GPU fast model?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -118,7 +118,7 @@
           },
           "conditions": [
             {
-              "id": "60431fc3-8e67-5077-99cc-60d9628a0df3",
+              "id": "9bd3e71a-3177-5e13-b72f-a5b50caa84be",
               "leftValue": "={{ $json.tier === 'fast' }}",
               "rightValue": true,
               "operator": {
@@ -138,7 +138,7 @@
       ]
     },
     {
-      "id": "9bd3e71a-3177-5e13-b72f-a5b50caa84be",
+      "id": "f08d7728-8362-56fd-8167-9210986434a5",
       "name": "nvidia-gpu | Fast",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -171,7 +171,7 @@
       }
     },
     {
-      "id": "f08d7728-8362-56fd-8167-9210986434a5",
+      "id": "da7b1ae7-f178-52d7-aee3-208781636cdc",
       "name": "Dual AMD-GPU | Reasoning",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -204,7 +204,7 @@
       }
     },
     {
-      "id": "da7b1ae7-f178-52d7-aee3-208781636cdc",
+      "id": "c66bea10-b748-5e15-94be-8d8ac21874b1",
       "name": "Return answer",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
@@ -212,37 +212,37 @@
         "assignments": {
           "assignments": [
             {
-              "id": "c66bea10-b748-5e15-94be-8d8ac21874b1",
+              "id": "e2da6b7e-50dd-5f01-bf35-da8eea427f8f",
               "name": "answer",
               "value": "={{ $json.message?.content ?? '' }}",
               "type": "string"
             },
             {
-              "id": "e2da6b7e-50dd-5f01-bf35-da8eea427f8f",
+              "id": "c91b3d51-bcdc-521f-b028-ab73387936c9",
               "name": "model",
               "value": "={{ $json.model }}",
               "type": "string"
             },
             {
-              "id": "c91b3d51-bcdc-521f-b028-ab73387936c9",
+              "id": "2f7008f1-3dfd-5072-8c78-fa8f2a53c952",
               "name": "completed",
               "value": "={{ $json.done === true }}",
               "type": "boolean"
             },
             {
-              "id": "2f7008f1-3dfd-5072-8c78-fa8f2a53c952",
+              "id": "1057f78f-aa0e-5479-9822-10300acf8a06",
               "name": "generated_tokens",
               "value": "={{ $json.eval_count ?? 0 }}",
               "type": "number"
             },
             {
-              "id": "1057f78f-aa0e-5479-9822-10300acf8a06",
+              "id": "207a8931-c7a0-51f3-978f-4a0453aad913",
               "name": "total_seconds",
               "value": "={{ ($json.total_duration ?? 0) / 1000000000 }}",
               "type": "number"
             },
             {
-              "id": "207a8931-c7a0-51f3-978f-4a0453aad913",
+              "id": "53540a4d-f7cc-5e11-9548-6933caadd189",
               "name": "completed_at",
               "value": "={{ $now.toISO() }}",
               "type": "string"
@@ -257,7 +257,7 @@
       ]
     },
     {
-      "id": "53540a4d-f7cc-5e11-9548-6933caadd189",
+      "id": "e4adc33a-4f13-5bb7-9560-d1a025c163d6",
       "name": "KrishAdmin-HQ guide",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -373,7 +373,7 @@
     "saveDataErrorExecution": "none",
     "saveManualExecutions": false
   },
-  "versionId": "e4adc33a-4f13-5bb7-9560-d1a025c163d6",
+  "versionId": "adb9808b-ae5b-5bb4-9775-fb3a7997d6d0",
   "pinData": {},
   "tags": []
 }

@@ -40,12 +40,21 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         status=200
         try:
-            if self.path!='/diagnostics':raise ValueError('Unknown route')
+            if self.path not in ('/diagnostics','/homelab-read'):raise ValueError('Unknown route')
             if not hmac.compare_digest(self.headers.get('Authorization',''),'Bearer '+(ROOT/'access/worker').read_text().strip()):
                 status=403;raise ValueError('Forbidden')
             n=int(self.headers.get('Content-Length',0))
             if not 0<n<=1024:raise ValueError('Invalid body size')
-            data=execute(json.loads(self.rfile.read(n)))
+            body=json.loads(self.rfile.read(n))
+            if self.path=='/homelab-read':
+                if body!={}:raise ValueError('Homelab read accepts no arguments')
+                if not LOCK.acquire(blocking=False):raise RuntimeError('Diagnostic workers are busy')
+                try:
+                    result=subprocess.run([str(ROOT/'.venv-management/bin/python'),str(ROOT/'homelab_read.py')],capture_output=True,text=True,timeout=90)
+                    if result.returncode or len(result.stdout)>65000:raise RuntimeError('Homelab collection failed')
+                    data=json.loads(result.stdout)
+                finally:LOCK.release()
+            else:data=execute(body)
         except (ValueError,TypeError) as e:status=400 if status==200 else status;data={'error':str(e)}
         except RuntimeError as e:status=409;data={'error':str(e)}
         except Exception as e:status=502;data={'error':type(e).__name__}

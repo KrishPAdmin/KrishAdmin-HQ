@@ -6,11 +6,12 @@ export function teamView(manifest,agents,companyId){
   const agent=byId.get(role.id);if(!agent)return [];
   const config=agent.adapterConfig||{};
   const setting=key=>{const value=config.env?.[key];return typeof value==='string'?value:value?.type==='plain'?value.value:null;};
-  const matches=agent.adapterType==='process'&&config.args?.includes('/opt/hq-agents/hermes_team_bridge.py')&&setting('HQ_TEAM_AGENT')===role.key&&setting('HQ_BACKEND')===role.backend;
+  const execution=role.key==='benjamin'&&role.execution_mode==='workspace';
+  const matches=agent.adapterType==='process'&&(execution?config.args?.includes('/opt/hq-agents/pi_bridge.py'):config.args?.includes('/opt/hq-agents/hermes_team_bridge.py')&&setting('HQ_TEAM_AGENT')===role.key&&setting('HQ_BACKEND')===role.backend);
   return [{id:agent.id,key:role.key,name:agent.name,title:agent.title,status:agent.status,
    reportsTo:agent.reportsTo||null,manager:byId.get(agent.reportsTo)?.name||'Human operator',
    backend:role.backend,model:role.model,parameters:role.parameters,maxOutputTokens:role.max_tokens,
-   summary:role.summary,configurationMatches:matches&&((agent.reportsTo||null)===(role.reports_to_id||null))}];
+   contextTarget:role.context_target||role.key,executionMode:role.execution_mode||'analysis',summary:role.summary,configurationMatches:matches&&((agent.reportsTo||null)===(role.reports_to_id||null))}];
  });
- return {status:rows.length===6&&rows.every(a=>a.configurationMatches)?'configured':'needs_attention',generatedAt:manifest.generated_at,agents:rows};
+ return {status:['jessica','harvey','mike','louis','rachel','donna','benjamin'].every(key=>rows.some(a=>a.key===key&&a.configurationMatches))?'configured':'needs_attention',generatedAt:manifest.generated_at,agents:rows};
 }

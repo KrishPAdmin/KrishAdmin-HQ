@@ -29,7 +29,7 @@ Examples:
 | Local Coordinator | NVIDIA-GPU / qwen3.5:9b | Bounded multi-step planning, delegation and final synthesis |
 | AMD-GPU Analyst | AMD-GPU / qwen2.5:72b-instruct-q8_0 | Analysis of supplied tasks and teammate evidence |
 | NVIDIA-GPU Assistant | NVIDIA-GPU / qwen3.5:9b | Short reasoning, summaries, extraction and writing |
-| Pi Workspace Engineer | NVIDIA-GPU / paperclip-qwen3.5:9b, Pi 0.74.0 | Actual file/shell tools in its worker; approved GPU API collector; downloadable artifacts |
+| Benjamin — Suits Implementation Engineer | NVIDIA-GPU / paperclip-qwen3.5:9b, Pi 0.74.0 | Actual file/shell tools in its worker; approved GPU API collector; downloadable artifacts |
 
 The process runtime handles Paperclip API operations; text models cannot execute arbitrary tools. Pi has no host Docker socket or SSH keys, but does have network access and mounted inference credentials. It remains an internal trusted-task worker, not a sandbox for hostile inputs. Each Pi task has a separate workspace, so collecting and writing related files should be one step. JSON artifacts and result comments are shared with downstream agents.
 
@@ -63,7 +63,7 @@ behavior; the generic Paperclip instructions editor is not consumed by this scri
 Runtime code is bind-mounted read-only from `agents/`; edits apply to new runs.
 `agents/targets.json` maps `amd-gpu` and `nvidia-gpu` to specialist IDs. Its optional `pi`
 entry enables coordinator delegation for creating, editing, or testing workspace
-files. Pi Workspace Engineer uses `agents/pi_bridge.py` to call the private worker; its
+files. Benjamin — Suits Implementation Engineer uses `agents/pi_bridge.py` to call the private worker; its
 model/tool configuration lives under `pi-worker/`.
 
 Text-runtime limits: one run per agent, one request per GPU across these pilot agents, 100 daily

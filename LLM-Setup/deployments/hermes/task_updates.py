@@ -45,13 +45,17 @@ def origin_checked(origin,policy):
     if origin.get('platform')!='discord' or origin.get('user_id') not in allowed:
         raise PermissionError('Notification requester is not allowed')
     channel=policy['channel_id']
+    dm=policy.get('maintenance_dm') or {}
+    if (dm.get('owner_id')==policy['owner_id'] and origin.get('user_id')==policy['owner_id']
+            and origin.get('chat_id')==dm.get('channel_id') and not origin.get('scope_id')):
+        channel=dm['channel_id']
     if origin.get('chat_id')!=channel and origin.get('parent_chat_id')!=channel:
         raise PermissionError('Notification channel is not allowed')
     if origin.get('scope_id') and origin['scope_id']!=policy['guild_id']:
         raise PermissionError('Notification server is not allowed')
     message=origin.get('message_id') if origin.get('chat_id')==channel else None
     if message and not re.fullmatch(r'\d{15,22}',message):raise ValueError('Invalid source message')
-    # Always deliver to the enrolled private channel; never a model-selected destination.
+    # Preserve the verified owner DM; shared-channel threads use the enrolled channel.
     return {'channel_id':channel,'user_id':origin['user_id'],'source_message_id':message}
 
 def subscribe(db,issue_id,origin):

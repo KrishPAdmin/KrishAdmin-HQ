@@ -23,10 +23,10 @@ async def main():
  a._text_batch_delay_seconds=0;a.handle_message=AsyncMock()
  guild=SimpleNamespace(id=900000000000000002,name='QA')
  results=[]
- cases=[('friend_plain','900000000000000005',900000000000000003,'Show current lab status',True),('friend_role','900000000000000005',900000000000000003,'<@&900000000000000012> Show current lab status',True),('friend_account','900000000000000005',900000000000000003,'<@900000000000000001> Show current lab status',True),('owner_plain','900000000000000004',900000000000000003,'Show current lab status',True),('stranger','900000000000000006',900000000000000003,'Show current lab status',False),('other_channel','900000000000000005',900000000000000006,'<@900000000000000001> Show current lab status',False)]
+ cases=[('friend_plain','900000000000000005',900000000000000003,'Show current lab status',True),('friend_role','900000000000000005',900000000000000003,'<@&900000000000000013> Show current lab status',True),('friend_account','900000000000000005',900000000000000003,'<@900000000000000001> Show current lab status',True),('owner_plain','900000000000000004',900000000000000003,'Show current lab status',True),('stranger','900000000000000007',900000000000000003,'Show current lab status',False),('other_channel','900000000000000005',900000000000000007,'<@900000000000000001> Show current lab status',False)]
  for i,(name,uid,cid,text,expected) in enumerate(cases):
   a.handle_message.reset_mock()
-  m=SimpleNamespace(id=900000000000000013+i,content=text,mentions=[],attachments=[],reference=None,created_at=datetime.datetime.now(datetime.timezone.utc),type=discord.MessageType.default,guild=guild,channel=SimpleNamespace(id=cid,name='QA',topic=None,guild=guild),author=SimpleNamespace(id=int(uid),name='QA',display_name='QA',bot=False))
+  m=SimpleNamespace(id=900000000000000014+i,content=text,mentions=[],attachments=[],reference=None,created_at=datetime.datetime.now(datetime.timezone.utc),type=discord.MessageType.default,guild=guild,channel=SimpleNamespace(id=cid,name='QA',topic=None,guild=guild),author=SimpleNamespace(id=int(uid),name='QA',display_name='QA',bot=False))
   admitted,role=a._discord_message_admission(m,claim=False)
   handled=await a._handle_message(m,role_authorized=role,recovered=True) if admitted else False
   authorized=False

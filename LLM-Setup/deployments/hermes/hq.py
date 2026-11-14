@@ -4,20 +4,20 @@ import argparse,json,os
 from pathlib import Path
 from hq_client import ROOT,call
 from capabilities import TASKS
-from team import TEAM
+from team import TEAM, EXECUTION_TEAM
 
 GUIDES={'index':'index.md','quickstart':'quickstart.md','architecture':'architecture.md',
         'operations':'operations.md','monitoring':'monitoring.md','discord':'discord.md',
         'backups':'backups.md','security':'security.md','troubleshooting':'troubleshooting.md',
         'recovery':'recovery.md','reference':'reference.md','acceptance':'acceptance.md','capabilities':'capabilities.md','diagnostics':'diagnostics.md','github':'github.md','mcp':'mcp.md','contexts':'contexts.md','dashboard':'dashboard.md','herdr':'herdr.md','workspace':'workspace.md'}
 def main():
-    p=argparse.ArgumentParser(description='HQ operations: status and diagnostics are read-only; submit creates a read-only Paperclip task.')
+    p=argparse.ArgumentParser(description='HQ operations: status and diagnostics are read-only; submit creates a tracked Paperclip task; kind=coding enables isolated workspace implementation.')
     p.add_argument('operation',choices=['status','alerts','history','doctor','report','guide','health','backup','triage','research','submit','task-status','analyze','files','knowledge','compute','team','calculate','diagnostics'])
     p.add_argument('--target',choices=['hq','nvidia-gpu','amd-gpu']);p.add_argument('--check',choices=['overview','gpu','processes','services','storage'],default='overview')
     p.add_argument('--question',default='Report current evidence and explicitly identify missing coverage.')
-    p.add_argument('--url',action='append');p.add_argument('--kind',choices=TASKS)
+    p.add_argument('--url',action='append');p.add_argument('--kind',choices=(*TASKS,'coding','server_ops'))
     p.add_argument('--text',default='');p.add_argument('--text-file',type=Path);p.add_argument('--file-id');p.add_argument('--offset',type=int,default=0)
-    p.add_argument('--file-limit',type=int,default=3000);p.add_argument('--compute',choices=['nvidia-gpu','amd-gpu']);p.add_argument('--agent',choices=TEAM)
+    p.add_argument('--file-limit',type=int,default=3000);p.add_argument('--compute',choices=['nvidia-gpu','amd-gpu']);p.add_argument('--agent',choices={**TEAM,**EXECUTION_TEAM})
     p.add_argument('--query');p.add_argument('--expression')
     p.add_argument('--task');p.add_argument('--request-id');p.add_argument('--output',type=Path,help='Save report to a new private Markdown file; refuses overwrite')
     p.add_argument('--section',choices=GUIDES,default='index');p.add_argument('--limit',type=int,default=20)

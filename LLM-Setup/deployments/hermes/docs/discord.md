@@ -11,11 +11,11 @@
 | Allowed operator | `900000000000000004` |
 | Allowed friend | `900000000000000005` |
 
-The configured policy restricts the allowed users/channel, disables DMs, requires a bot account mention, and disables history backfill. The tool surface includes eleven native operations and six MCP tools; see [Internet and long-context workflows](mcp.md). Native `/help` can list upstream commands and skills that are not part of this deployment's supported workflow; use this guide for supported commands. Live wrong-user/channel/DM denial tests remain an acceptance item.
+The configured policy restricts the allowed users/channel, restricts DMs to the owner, requires a bot account mention, and disables history backfill. The tool surface includes eleven native operations and six MCP tools; see [Internet and long-context workflows](mcp.md). Native `/help` can list upstream commands and skills that are not part of this deployment's supported workflow; use this guide for supported commands. Live wrong-user/channel/DM denial tests remain an acceptance item.
 
 ## Allowed users
 
-The owner and friend listed above can use the same supported tools in the private channel. This is a shared workspace: allowed users can access the bot’s uploaded files and drafts. Neither receives gateway administration commands through this grant. DMs remain disabled.
+The owner and friend listed above can use the same supported tools in the private channel. This is a shared workspace: allowed users can access the bot’s uploaded files and drafts. Neither receives gateway administration commands through this grant. DMs are owner-only.
 
 Allowed users are stored in `profiles/concierge/discord-enrollment.json`. Keep the profile allowlists synchronized and restart the concierge after access changes. Preserve `respond_without_mention=false`, empty `free_response_channels`, and true `require_mention` / `thread_require_mention`. Server membership and channel permissions remain separate requirements.
 
@@ -28,7 +28,7 @@ On 2026-11-03 UTC, Discord confirmed the friend is a server member with View Cha
 <@900000000000000001> show active warnings and recent changes
 ```
 
-The private command channel requires an explicit mention of the bot account from either allowed user. Plain messages and bot role mentions do not trigger replies. Threads also require a mention. `/status` checks the Hermes session/gateway, whereas the ordinary status request obtains lab measurements. Other channels remain blocked; DMs remain disabled.
+The private command channel requires an explicit mention of the bot account from either allowed user. Plain messages and bot role mentions do not trigger replies. Threads also require a mention. `/status` checks the Hermes session/gateway, whereas the ordinary status request obtains lab measurements. Other channels remain blocked; DMs are owner-only.
 
 ## Everyday prompt guide and compute routing
 
@@ -203,3 +203,15 @@ python3 hq.py doctor
 `state/task-notifications/status.json` records poll time and error count. `task_watches` records message IDs, pending deliveries and sanitized errors. Never remove a pending record just to retry an uncertain send. Restored subscriptions should be reconciled against Discord before enabling the timer on a replacement gateway; never run two gateways against separate copies of this database.
 
 GitHub reads and code proposals are owner-only; see [the GitHub workflow](github.md).
+
+## November 11 execution, files and owner DM update
+
+Owner `900000000000000004` alone may DM the bot. The friend retains existing mention-only channel access. The local `plugin/access.py` enforces the DM boundary before attachment intake, slash handling and gateway authorization; the upstream user allowlist is shared with channel users, so changing that list alone does not enforce owner-only DMs. Enrollment and preparation preserve the owner DM policy.
+
+Use `hq_draft` to create a text/code file and `hq_send_file` with its returned name to attach it. Existing supported uploads use their `file_id`. The gateway adds a validated current-turn attachment, checks the cache boundary and content hash, and preserves the original reply destination. Limit: 5 MiB; text drafts: 100,000 UTF-8 bytes. Receiving text/code/config, text PDFs, DOCX and XLSX remains enabled; image OCR/audio/video and archive review are not enabled. Saving/queuing is not proof of upload.
+
+`hq_task kind=coding` now creates a named-supervisor task plus an isolated execution child assigned to Benjamin that can write files and run tests on HQ. Other analysis kinds remain advisory. The bridge includes human follow-ups, reuses an existing child on retry, and waits for verified child completion before supervisor review. Louis's optional AMD-GPU specification may fail; the authorized requirements still reach the coding worker, with that gap disclosed. This grants no production or host deployment capability.
+
+Maintenance: `restart_gateway.py` continues to use native planned-restart tracking. The verified owner DM is a second native notification target, so shutdown and back-online notices reach both destinations; successfully delivered startup destinations are tracked separately. Discord API/channel failures can delay or prevent delivery. Owner DM task submissions also keep their task notifications in that DM.
+
+Ask: “Donna, have Benjamin build and test this in his workspace, with Louis reviewing the implementation.” Use `hq_task kind=coding agent=benjamin`; this keeps the Louis-supervised parent and Benjamin execution child.

@@ -74,7 +74,7 @@ class Handler(BaseHTTPRequestHandler):
             proc = subprocess.Popen(['python3', '/opt/worker/pi_runtime.py'], env=env,
                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE, start_new_session=True)
             try:
-                deadline = time.monotonic() + 420
+                deadline = time.monotonic() + 720
                 while True:
                     try:
                         raw, error_output = proc.communicate(timeout=2)

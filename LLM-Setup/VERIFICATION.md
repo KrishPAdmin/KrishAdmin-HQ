@@ -43,3 +43,15 @@ The live dashboard's AMD values are joined by PCI address; ROCm card0/card1 do n
 ## Owner DM GitHub access repair
 
 The live Hermes suite passes 176 checks. GitHub now accepts the enrolled owner in a verified one-to-one Discord DM as well as the main channel. Tests reject group DMs, other channels, wrong recipients, forged authors, other users and replayed requests; the main channel still requires a bot mention. Exact proposal-specific push confirmation and branch-only writes remain enforced. A native Hermes replay of the original access question used the real recent owner DM, read both repositories through the signed service, and answered successfully. No validation message was sent to Discord.
+
+## November 14: vault, server ownership and Paperclip repairs
+
+The deployed gateway passed 5 enrollment tests (metadata preservation/version checks, catalog filtering, endpoint validation, access errors, interactive-only input), 3 fixed-operation boundary tests, and existing diagnostics/GitHub/broker boundary regressions. Live validation used Benjamin's actual container identity: catalog, health, all three Pi hosts, Uptime Kuma and fixed gateway/GPU-host diagnostics succeeded. Five unauthorized requests (including secret retrieval and arbitrary commands) were refused. The restricted connector's socket activation was verified from a hardened systemd user service.
+
+Benjamin completed a real server handoff task with 4 tool events across 3 model turns; Paperclip placed it in review. Model prose still needs review: a monitor count in its summary was inaccurate compared with the collector result. This is not proof that all generated claims are reliable.
+
+Earlier repair validation covered 22 job-manager prototype tests and 16 execution/control checks. Vault snapshot restore and vault-service restart/unattended unlock were exercised. Full host reboot, off-host recovery and fully automated fresh installation remain unverified. External Codex work remains blocked pending account sign-in; no external task was replayed.
+
+Both export editions receive syntax and credential screening, and the public edition replaces installation-specific networks, hardware aliases, account IDs and domains. Source backup excludes the vault database, credentials, encrypted unlock material and runtime state.
+
+Current exported-edition checks: each edition passed 5 enrollment tests, 16 server-operation/diagnostic/research tests, and 22 repaired-prototype tests (43 total per edition). Syntax/JSON validation and known-secret/privacy scans passed for both exports. These are targeted checks, not a full clean-host deployment test.

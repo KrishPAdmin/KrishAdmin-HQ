@@ -14,7 +14,14 @@ def install():
     if not getattr(create,'_hq_bounded',False):
         def create_adapter(self,name,config):
             adapter=create(self,name,config)
-            if name=='discord' and adapter is not None:_patch(type(adapter))
+            if name=='discord' and adapter is not None:
+                # register() runs while gateway.run imports its tool catalog. Importing
+                # GatewayRunner there deadlocks plugin discovery. The factory is later.
+                from .access import install as install_access
+                from .file_delivery import install as install_files
+                from .maintenance import install as install_maintenance
+                install_access();install_files();install_maintenance()
+                _patch(type(adapter))
             return adapter
         create_adapter._hq_bounded=True
         PlatformRegistry.create_adapter=create_adapter
@@ -25,6 +32,8 @@ def install():
     for cls in classes:_patch(cls)
 
 def _patch(DiscordAdapter):
+    from .access import patch_adapter
+    patch_adapter(DiscordAdapter)
     from .delivery import patch_delivery
     patch_delivery(DiscordAdapter)
     original=DiscordAdapter._collect_attachment_media

@@ -16,6 +16,8 @@ def archive_filter(member):
         return None
     if member.name == "worker-secrets/codex-worker-bridge-token":
         return None
+    if member.name == "operations/keys/amd-gpu-password":
+        return None
     if "__pycache__" in parts:
         return None
     return member
@@ -50,11 +52,11 @@ with tarfile.open(destination / "instance.tar.gz", "w:gz") as archive:
             archive.addfile(info, io.BytesIO(data))
     # Retain the exact external client secrets and TLS material needed on a replacement HQ.
     for name, path in {
-        "amd-gpu-api.txt": root.parent.parent / "secrets/amd-gpu-api.txt",
-        "nvidia-gpu-api.txt": root.parent.parent / "secrets/nvidia-gpu-api.txt",
         "nvidia-gpu-server.crt": root.parent.parent / "secrets/nvidia-gpu-server.crt",
         "hq-server.crt": root.parent / "n8n/tls/server.crt",
         "hq-server.key": root.parent / "n8n/tls/server.key",
     }.items():
         archive.add(path, arcname="external-secrets/" + name)
+# The vault snapshot contains encrypted credential data; recovery keys stay separate.
+subprocess.run(['sudo','-n','/usr/local/sbin/hq-vault','snapshot','--output',str(destination/'homelab-vault.snap')],check=True)
 print(destination)

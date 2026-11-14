@@ -1,0 +1,16 @@
+[Unit]
+Description=Owner-only Pi cluster and Uptime Kuma status updates
+After=network-online.target
+[Service]
+Type=oneshot
+ExecStart=/home/operator/krishadmin-hq/deployments/hermes/.venv-management/bin/python /home/operator/krishadmin-hq/deployments/hermes/homelab_monitor.py
+TimeoutStartSec=110
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/operator/krishadmin-hq/deployments/hermes/state/homelab
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+MemoryMax=256M
+TasksMax=32

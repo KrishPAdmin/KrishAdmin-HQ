@@ -1,9 +1,9 @@
 {
-  "coordinator": "cc134c84-114b-5f0f-857c-81624d914212",
+  "coordinator": "53853202-9b92-5417-a254-399a8e8408a5",
   "targets": {
-    "amd-gpu": "53853202-9b92-5417-a254-399a8e8408a5",
-    "nvidia-gpu": "832be695-1e8e-5dd4-8609-50686996be0d",
-    "pi": "109b1474-0852-5a9d-870a-be65d37dd223",
+    "amd-gpu": "832be695-1e8e-5dd4-8609-50686996be0d",
+    "nvidia-gpu": "109b1474-0852-5a9d-870a-be65d37dd223",
+    "pi": "47c154c3-adfb-57c7-9be7-5e95b42a982c",
     "health": "4baba587-233a-564b-a3b2-9f64a025254d",
     "network": "d0944a79-6e46-551d-a129-a9d377e4a4e4",
     "diagnostics": "407b5fb2-4738-5e09-93fe-169f90d43045",

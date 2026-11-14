@@ -10,7 +10,7 @@ IMAGE='nousresearch/hermes-agent@sha256:d27689bc6e8581ec884a7227c9101fdaebf6c853
 def main():
     os.umask(0o077)
     for name in ('access','state','validation','config','observations','profiles','plugin'):(ROOT/name).mkdir(exist_ok=True)
-    for name in ('concierge','health','backup','triage','analyst','operator','paperclip','worker','github-origin',*TEAM):
+    for name in ('concierge','health','backup','triage','analyst','operator','paperclip','worker','github-origin','benjamin-ops',*TEAM):
         p=ROOT/'access'/name
         if not p.exists():p.write_text(secrets.token_urlsafe(32)+'\n')
     p=ROOT/'config/research-origins.json'
@@ -50,7 +50,7 @@ def main():
                 enrolled=json.loads(enrollment.read_text())
                 users=list(dict.fromkeys([enrolled['owner_id'],*enrolled.get('allowed_users',[])]))
                 extra=config['platforms']['discord']['extra']
-                extra.update(dm_policy='allowlist',allow_from=users)
+                extra.update(dm_policy='allowlist',allow_from=users,dm_allow_from=[enrolled['owner_id']])
                 extra['user_allowed_commands']=sorted(set(extra.get('user_allowed_commands',[]))|{'status','hq-workspace'})
                 extra['group_user_allowed_commands']=sorted(set(extra.get('group_user_allowed_commands',[]))|{'hq-project-status'})
             config['mcp_servers']={name:{'command':'python','args':['/app/mcp_server.py',name],'tools':{'include':names,'resources':False,'prompts':False},'timeout':540} for name,names in {'research':['search','read_page','weather'],'workbench':['check_system','review_file','plan_automation']}.items()}
@@ -76,9 +76,9 @@ def main():
     services['broker']={**common,'entrypoint':['python','/app/broker.py'],'mem_limit':'512m',
         'ports':['127.0.0.1:18880:8080'],'networks':{'private':{},'egress':{},'paperclip':{'aliases':['hq-hermes-broker']}},
         'volumes':['./broker.py:/app/broker.py:ro','./gpu_telemetry.py:/app/gpu_telemetry.py:ro','./task_updates.py:/app/task_updates.py:ro','./profiles/concierge/discord-enrollment.json:/discord-enrollment.json:ro','./web_research.py:/app/web_research.py:ro','./health_rules.py:/app/health_rules.py:ro','./capabilities.py:/app/capabilities.py:ro','./team.py:/app/team.py:ro',
-            './docs:/knowledge:ro','./profiles/concierge/cache/documents/drafts:/drafts','./access:/run/access:ro','./state:/state','./config:/config:ro',
+            '/var/lib/hq-vault-catalog:/service-catalog:ro','./docs:/knowledge:ro','./profiles/concierge/cache/documents/drafts:/drafts','./access:/run/access:ro','./state:/state','./config:/config:ro',
             './observations:/observations:ro','./run/diagnostics:/diagnostic-socket:ro','/var/lib/hq-observations:/backup-observations:ro','../paperclip/data/hq-locks:/locks',
-            '../../secrets/nvidia-gpu-api.txt:/run/secrets/nvidia-gpu-token:ro','../../secrets/amd-gpu-api.txt:/run/secrets/amd-gpu-token:ro',
+            '/run/hq-vault-runtime/nvidia-gpu-api:/run/secrets/nvidia-gpu-token:ro','/run/hq-vault-runtime/amd-gpu-api:/run/secrets/amd-gpu-token:ro',
             '../../secrets/nvidia-gpu-server.crt:/run/secrets/nvidia-gpu-ca.crt:ro']}
     services['broker']['environment']={'HQ_RENDER_URL':'http://renderer:8080/render'}
     services['broker']['networks']['research_internal']={}

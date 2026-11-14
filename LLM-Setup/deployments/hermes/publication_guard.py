@@ -29,6 +29,17 @@ def secret_values():
         if p.exists():
             value=json.loads(p.read_text()).get('password','')
             if value:values.add(value)
+    for name in ("nvidia-gpu-api","amd-gpu-api"):
+        path=Path("/run/hq-vault-runtime")/name
+        if path.exists():
+            value=path.read_text().strip()
+            if value:values.add(value)
+    # Host-only connector access preserves exact-value publication blocking after vault migration.
+    import sys
+    if Path("/run/hq-vault/connector.sock").exists():
+        if "/usr/local/lib" not in sys.path:sys.path.insert(0,"/usr/local/lib")
+        from hq_vault_client import credential
+        values.update(credential(name) for name in ("pi-cluster","amd-gpu-ssh"))
     return values
 
 def check_text(text,public=False,secrets=None):
